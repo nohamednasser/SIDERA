@@ -688,7 +688,7 @@ async function render() {
         const frag = document.createDocumentFragment();
         let count = 0;
 
-        for (let i = items.length - 1; i >= 0; i--) {
+        for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
                 const sInfo = subjectMap[item.subject];
