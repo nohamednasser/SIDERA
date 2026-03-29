@@ -17,74 +17,77 @@
         }
 
         html { scroll-behavior: smooth; }
+        /* FIX: Only transition color properties, not "all" which triggers expensive layout recalcs */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: background-color 0.15s ease, color 0.15s ease; }
         
-        header { width: 100%; padding: 30px 0 60px; text-align: center; background: var(--header-bg); border-bottom: 1px solid var(--border); position: relative; transition: background-color 0.15s ease; }
+        header { width: 100%; padding: 30px 0 60px; text-align: center; background: var(--header-bg); border-bottom: 1px solid var(--border); position: relative; transition: background-color 0.15s ease, border-color 0.15s ease; }
         
         .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
-        .control-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; cursor: pointer; color: var(--dark); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
+        /* FIX: Specific transitions instead of "all" */
+        .control-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; cursor: pointer; color: var(--dark); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
         .control-btn:hover { border-color: var(--accent); transform: scale(1.05); }
         .control-btn:active { transform: scale(0.98); }
 
         header h1 { margin: 0; font-weight: 300; font-size: 2.5rem; letter-spacing: 3px; transition: color 0.15s ease; }
         
-        #searchBar { width: 90%; max-width: 550px; padding: 14px 22px; border-radius: 30px; border: 1px solid var(--border); margin-top: -35px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); outline: none; z-index: 10; position: relative; background: var(--card-bg); color: var(--dark); font-size: 0.95rem; transition: all 0.2s ease; }
+        #searchBar { width: 90%; max-width: 550px; padding: 14px 22px; border-radius: 30px; border: 1px solid var(--border); margin-top: -35px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); outline: none; z-index: 10; position: relative; background: var(--card-bg); color: var(--dark); font-size: 0.95rem; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
         #searchBar:focus { border-color: var(--accent); box-shadow: 0 8px 25px rgba(163, 64, 84, 0.15); }
         
         .filter-container { width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 40px; gap: 15px; }
         nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 20px; max-width: 1200px; }
-        nav span { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: all 0.2s ease; }
+        nav span { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
         nav span:hover { border-color: var(--accent); }
         nav span.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163, 64, 84, 0.25); }
 
-        #adminPanel { width: 90%; max-width: 600px; background: var(--card-bg); padding: 30px; border-radius: 25px; border: 1px solid var(--border); display: none; margin-top: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); transition: all 0.15s ease; }
+        #adminPanel { width: 90%; max-width: 600px; background: var(--card-bg); padding: 30px; border-radius: 25px; border: 1px solid var(--border); display: none; margin-top: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); transition: background-color 0.15s ease, border-color 0.15s ease; }
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .full-w { grid-column: span 2; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); color: var(--dark); box-sizing: border-box; outline: none; font-size: 0.9rem; transition: all 0.2s ease; font-family: inherit; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); color: var(--dark); box-sizing: border-box; outline: none; font-size: 0.9rem; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; font-family: inherit; }
         input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(163, 64, 84, 0.1); }
         
-        .file-drop-zone { grid-column: span 2; border: 2px dashed var(--accent); padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; background: rgba(163, 64, 84, 0.04); transition: all 0.2s ease; }
-        .file-drop-zone:hover { background: rgba(163, 64, 84, 0.08); border-color: var(--accent); }
+        .file-drop-zone { grid-column: span 2; border: 2px dashed var(--accent); padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; background: rgba(163, 64, 84, 0.04); transition: background-color 0.15s ease; }
+        .file-drop-zone:hover { background: rgba(163, 64, 84, 0.08); }
         .file-drop-zone p { margin: 0; font-size: 0.9rem; }
         
-        .btn-pub { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 18px; transition: all 0.2s ease; }
+        .btn-pub { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 18px; transition: filter 0.15s ease, transform 0.1s ease; }
         .btn-pub:hover { filter: brightness(1.15); }
         .btn-pub:active { transform: scale(0.98); }
         .btn-pub:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .content { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1400px; padding: 45px 0; will-change: contents; }
+        .content { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1400px; padding: 45px 0; }
         
-        .card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); min-height: 220px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease, border-color 0.15s ease; min-height: 220px; }
         .card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
         .subj-tag { font-size: 0.65rem; font-weight: 800; color: var(--accent); text-transform: uppercase; background: rgba(163, 64, 84, 0.1); padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
-        .type-tag { font-size: 0.65rem; color: var(--text); background: var(--input-bg); padding: 4px 9px; border-radius: 6px; border: 1px solid var(--border); white-space: nowrap; }
+        .type-tag { font-size: 0.65rem; color: var(--text); background: var(--input-bg); padding: 4px 9px; border-radius: 6px; border: 1px solid var(--border); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
         
         .card h3 { margin: 8px 0; font-size: 1.1rem; line-height: 1.35; word-break: break-word; }
         .card p { font-size: 0.8rem; color: var(--text); margin-bottom: 15px; flex-grow: 1; line-height: 1.4; }
         
         .btn-group { display: flex; gap: 8px; }
-        .btn-preview { flex: 1; display: flex; align-items: center; justify-content: center; background: #007bff; color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s ease; }
+        .btn-preview { flex: 1; display: flex; align-items: center; justify-content: center; background: #007bff; color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: filter 0.15s ease, transform 0.1s ease; }
         .btn-preview:hover { filter: brightness(1.12); }
         .btn-preview:active { transform: scale(0.97); }
         
-        .btn-dl { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--accent); color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s ease; text-decoration: none; }
+        .btn-dl { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--accent); color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: filter 0.15s ease, transform 0.1s ease; text-decoration: none; }
         .btn-dl:hover { filter: brightness(1.12); }
         .btn-dl:active { transform: scale(0.97); }
         
-        .del-btn { position: absolute; top: -8px; right: -8px; background: #ff4d4d; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3); transition: all 0.2s ease; font-size: 1rem; }
+        .del-btn { position: absolute; top: -8px; right: -8px; background: #ff4d4d; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3); transition: background-color 0.15s ease, transform 0.1s ease; font-size: 1rem; }
         .del-btn:hover { background: #ff2e2e; transform: scale(1.1); }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px); transition: all 0.2s ease; }
+        /* FIX: Removed backdrop-filter: blur - very expensive on repaint */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
-        .modal-content { background: var(--card-bg); padding: 35px; border-radius: 25px; width: 320px; text-align: center; border: 1px solid var(--border); animation: slideUp 0.3s ease; }
+        .modal-content { background: var(--card-bg); padding: 35px; border-radius: 25px; width: 320px; text-align: center; border: 1px solid var(--border); animation: slideUp 0.25s ease; transition: background-color 0.15s ease, border-color 0.15s ease; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1001; justify-content: center; align-items: center; }
         .preview-modal.show { display: flex; }
-        .preview-wrapper { position: relative; width: 90%; max-width: 800px; max-height: 90vh; background: var(--card-bg); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; }
+        .preview-wrapper { position: relative; width: 90%; max-width: 800px; max-height: 90vh; background: var(--card-bg); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.15s ease; }
         .preview-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); }
         .preview-header h2 { margin: 0; font-size: 1.1rem; }
         .close-preview { background: #ff4d4d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold; }
@@ -92,15 +95,16 @@
         .preview-body img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .preview-body p { text-align: center; }
 
-        footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: all 0.15s ease; }
+        footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: color 0.15s ease, border-color 0.15s ease; }
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
-        .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: all 0.3s ease; pointer-events: none; min-width: 250px; }
+        .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; min-width: 280px; }
         .progress-container.show { opacity: 1; pointer-events: auto; }
         .progress-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; }
         .progress-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s ease; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.15s ease; }
         .progress-text { font-size: 0.75rem; color: var(--text); margin-top: 6px; }
+        .progress-size { font-size: 0.7rem; color: var(--text); margin-top: 4px; }
 
         .no-resources { grid-column: 1/-1; text-align: center; color: var(--text); padding: 60px 20px; font-size: 0.95rem; }
     </style>
@@ -140,8 +144,8 @@
         
         <select id="subIn"></select>
 
-        <div class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
-            <p id="fileNameDisplay">📂 Click to Upload File (PDF, Image, etc.)</p>
+        <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
             <input type="file" id="fileInput" hidden onchange="processFile(this)">
         </div>
 
@@ -176,11 +180,12 @@
 </div>
 
 <div class="progress-container" id="progressContainer">
-    <div class="progress-title">📤 Uploading...</div>
+    <div class="progress-title" id="progressTitle">📤 Uploading...</div>
     <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
     </div>
     <div class="progress-text"><span id="progressPercent">0</span>%</div>
+    <div class="progress-size" id="progressSizeInfo"></div>
 </div>
 
 <footer>
@@ -211,18 +216,31 @@ const subjectData = [
 const subjectMap = {};
 subjectData.forEach(s => { subjectMap[s.name] = s; });
 
-let db, currentGrade = 'All', currentSub = 'All', uploadedFile64 = "", uploadedFileName = "";
+let db, currentGrade = 'All', currentSub = 'All';
+// FIX: Store file as Blob reference, NOT base64 string
+let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
-let cachedItems = null;
+
+function formatSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
 
 class StorageManager {
     static init() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("SideraDrive_V9", 1);
+            // FIX: V10 schema - separate stores for metadata and file blobs
+            const request = indexedDB.open("SideraDrive_V10", 1);
             request.onupgradeneeded = e => {
                 const database = e.target.result;
                 if (!database.objectStoreNames.contains("files")) {
                     database.createObjectStore("files", { keyPath: "id", autoIncrement: true });
+                }
+                if (!database.objectStoreNames.contains("blobs")) {
+                    database.createObjectStore("blobs", { keyPath: "id" });
                 }
             };
             request.onsuccess = e => { db = e.target.result; this.requestPersistence(); resolve(db); };
@@ -237,87 +255,124 @@ class StorageManager {
     static async getAllData() {
         return new Promise((resolve) => {
             const tx = db.transaction("files", "readonly");
-            const store = tx.objectStore("files");
-            store.getAll().onsuccess = (e) => resolve(e.target.result || []);
+            tx.objectStore("files").getAll().onsuccess = (e) => resolve(e.target.result || []);
         });
     }
 
-    static async saveData(entry, onProgress) {
+    static async getBlob(id) {
+        return new Promise((resolve) => {
+            const tx = db.transaction("blobs", "readonly");
+            const req = tx.objectStore("blobs").get(id);
+            req.onsuccess = (e) => resolve(e.target.result ? e.target.result.blob : null);
+            req.onerror = () => resolve(null);
+        });
+    }
+
+    // FIX: Store file as native Blob - no base64 conversion, no memory explosion
+    static async saveData(entry, fileBlob, onProgress) {
         return new Promise((resolve, reject) => {
-            onProgress?.(10);
-            const tx = db.transaction("files", "readwrite");
-            const store = tx.objectStore("files");
-            const addRequest = store.add(entry);
-            onProgress?.(50);
-            addRequest.onsuccess = () => {
-                onProgress?.(100);
-                cachedItems = null;
-                setTimeout(() => this.backupToLocalStorage(), 100);
-                resolve();
+            onProgress?.(20);
+            const tx = db.transaction(["files", "blobs"], "readwrite");
+            const filesStore = tx.objectStore("files");
+            const blobsStore = tx.objectStore("blobs");
+
+            const addReq = filesStore.add(entry);
+            addReq.onsuccess = (e) => {
+                const newId = e.target.result;
+                onProgress?.(50);
+                if (fileBlob) {
+                    // Store blob separately with same ID
+                    const blobReq = blobsStore.put({ id: newId, blob: fileBlob });
+                    blobReq.onsuccess = () => { onProgress?.(100); resolve(newId); };
+                    blobReq.onerror = () => reject(new Error('Blob save failed'));
+                } else {
+                    onProgress?.(100);
+                    resolve(newId);
+                }
             };
-            addRequest.onerror = () => reject();
+            addReq.onerror = () => reject(new Error('Entry save failed'));
         });
     }
 
     static async deleteData(id) {
         return new Promise((resolve, reject) => {
-            const tx = db.transaction("files", "readwrite");
-            const store = tx.objectStore("files");
-            const req = store.delete(id);
-            req.onsuccess = () => { cachedItems = null; setTimeout(() => this.backupToLocalStorage(), 100); resolve(); };
-            req.onerror = () => reject();
+            const tx = db.transaction(["files", "blobs"], "readwrite");
+            tx.objectStore("files").delete(id);
+            tx.objectStore("blobs").delete(id);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject();
         });
     }
 
-    static async backupToLocalStorage() {
-        try {
-            const data = await this.getAllData();
-            const lightweight = data.map(item => ({
-                ...item,
-                url: item.url && item.url.startsWith('data:') ? '__local_file__' : item.url
-            }));
-            localStorage.setItem('sideraData', JSON.stringify(lightweight));
-            localStorage.setItem('sideraLastBackup', new Date().getTime());
-        } catch (err) {}
-    }
-
-    static async restoreFromBackup() {
-        try {
-            const backup = localStorage.getItem('sideraData');
-            if (!backup) return false;
-            const data = JSON.parse(backup);
-            const restorable = data.filter(item => item.url !== '__local_file__');
-            if (restorable.length === 0) return false;
-            const tx = db.transaction("files", "readwrite");
-            const store = tx.objectStore("files");
-            return new Promise((resolve) => {
-                let restored = 0;
-                const total = restorable.length;
-                restorable.forEach(item => {
-                    const req = store.add(item);
-                    req.onsuccess = () => { if (++restored >= total) resolve(true); };
-                    req.onerror = () => { if (++restored >= total) resolve(true); };
-                });
-            });
-        } catch (err) { return false; }
+    // Migrate from V9 to V10 if needed
+    static async migrateFromV9() {
+        return new Promise((resolve) => {
+            const request = indexedDB.open("SideraDrive_V9", 1);
+            request.onsuccess = async (e) => {
+                const oldDb = e.target.result;
+                if (!oldDb.objectStoreNames.contains("files")) { oldDb.close(); resolve(); return; }
+                const tx = oldDb.transaction("files", "readonly");
+                tx.objectStore("files").getAll().onsuccess = async (ev) => {
+                    const oldItems = ev.target.result || [];
+                    oldDb.close();
+                    if (oldItems.length === 0) { resolve(); return; }
+                    
+                    for (const item of oldItems) {
+                        const url = item.url || '';
+                        let blob = null;
+                        const meta = {
+                            title: item.title,
+                            grade: item.grade,
+                            subject: item.subject,
+                            desc: item.desc,
+                            type: item.type,
+                            fileName: item.fileName,
+                            fileSize: 0,
+                            fileType: '',
+                            createdAt: item.createdAt
+                        };
+                        if (url.startsWith('data:')) {
+                            // Convert base64 back to blob
+                            try {
+                                const resp = await fetch(url);
+                                blob = await resp.blob();
+                                meta.fileSize = blob.size;
+                                meta.fileType = blob.type;
+                                meta.url = '';
+                            } catch(err) {
+                                meta.url = '';
+                            }
+                        } else {
+                            meta.url = url;
+                        }
+                        await StorageManager.saveData(meta, blob, () => {});
+                    }
+                    // Delete old DB after migration
+                    indexedDB.deleteDatabase("SideraDrive_V9");
+                    resolve();
+                };
+                tx.onerror = () => { oldDb.close(); resolve(); };
+            };
+            request.onerror = () => resolve();
+        });
     }
 }
 
 function showUploadProgress(show = true) {
     const container = document.getElementById('progressContainer');
     if (show) container.classList.add('show');
-    else setTimeout(() => container.classList.remove('show'), 300);
+    else setTimeout(() => container.classList.remove('show'), 500);
 }
 
-function updateUploadProgress(percent) {
+function updateUploadProgress(percent, sizeInfo) {
     document.getElementById('progressFill').style.width = percent + '%';
-    document.getElementById('progressPercent').textContent = percent;
+    document.getElementById('progressPercent').textContent = Math.round(percent);
+    if (sizeInfo) document.getElementById('progressSizeInfo').textContent = sizeInfo;
 }
 
 function openPreview(itemId) {
     const tx = db.transaction("files", "readonly");
-    const store = tx.objectStore("files");
-    store.get(itemId).onsuccess = (e) => {
+    tx.objectStore("files").get(itemId).onsuccess = async (e) => {
         const item = e.target.result;
         if (!item) return;
         const modal = document.getElementById('previewModal');
@@ -326,41 +381,61 @@ function openPreview(itemId) {
         previewTitle.textContent = item.fileName || item.title;
         previewBody.innerHTML = '<p>Loading preview...</p>';
         modal.classList.add('show');
-        const url = item.url;
-        requestAnimationFrame(() => {
-            if (url.startsWith('data:image')) {
-                const img = new Image();
-                img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
-                img.src = url;
-            } else if (url.startsWith('data:application/pdf')) {
-                previewBody.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;"></iframe>';
-            } else if (url.includes('drive.google.com')) {
+
+        if (item.url && !item.url.startsWith('data:') && item.url !== '') {
+            // External link
+            const url = item.url;
+            if (url.includes('drive.google.com')) {
                 const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
                 if (fileId) previewBody.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%;height:100%;border:none;"></iframe>';
                 else previewBody.innerHTML = '<p>Cannot preview. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
             } else {
-                previewBody.innerHTML = '<p>Preview not available for this file type.</p>';
+                previewBody.innerHTML = '<p>Preview not available. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
             }
-        });
+        } else {
+            // Local file - get blob
+            const blob = await StorageManager.getBlob(itemId);
+            if (!blob) { previewBody.innerHTML = '<p>File data not found.</p>'; return; }
+            const objectUrl = URL.createObjectURL(blob);
+            if (blob.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+                img.src = objectUrl;
+            } else if (blob.type === 'application/pdf') {
+                previewBody.innerHTML = '<iframe src="' + objectUrl + '" style="width:100%;height:100%;border:none;"></iframe>';
+            } else {
+                previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + objectUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
+            }
+        }
     };
 }
 
 function downloadFile(itemId) {
     const tx = db.transaction("files", "readonly");
-    const store = tx.objectStore("files");
-    store.get(itemId).onsuccess = (e) => {
+    tx.objectStore("files").get(itemId).onsuccess = async (e) => {
         const item = e.target.result;
         if (!item) return;
-        const url = item.url;
-        const fileName = item.fileName || item.title;
-        if (url.startsWith('data:')) {
+
+        if (item.url && item.url !== '') {
+            const url = item.url;
+            if (url.includes('drive.google.com')) {
+                const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+                if (fileId) window.open('https://drive.google.com/uc?export=download&id=' + fileId, '_blank');
+            } else { window.open(url, '_blank'); }
+        } else {
+            // Local file - get blob and create download
+            const blob = await StorageManager.getBlob(itemId);
+            if (!blob) { alert('File data not found'); return; }
+            const objectUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url; link.download = fileName || 'download';
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        } else if (url.includes('drive.google.com')) {
-            const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-            if (fileId) window.open('https://drive.google.com/uc?export=download&id=' + fileId, '_blank');
-        } else { window.open(url, '_blank'); }
+            link.href = objectUrl;
+            link.download = item.fileName || 'download';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            // Revoke after a delay to allow download to start
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+        }
     };
 }
 
@@ -374,8 +449,8 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 async function initApp() {
     try {
         await StorageManager.init();
-        const allData = await StorageManager.getAllData();
-        if (allData.length === 0) await StorageManager.restoreFromBackup();
+        // Migrate old data from V9
+        await StorageManager.migrateFromV9();
         setupApp();
         render();
     } catch (err) { console.error('Init failed:', err); setupApp(); render(); }
@@ -401,10 +476,8 @@ function setupApp() {
         opt.value = s.name; opt.textContent = s.icon + ' ' + s.name;
         selFrag.appendChild(opt);
     });
-    nav.innerHTML = '';
-    nav.appendChild(navFrag);
-    sel.innerHTML = '';
-    sel.appendChild(selFrag);
+    nav.innerHTML = ''; nav.appendChild(navFrag);
+    sel.innerHTML = ''; sel.appendChild(selFrag);
 
     if(isAdmin) {
         document.getElementById('adminPanel').style.display = 'block';
@@ -413,52 +486,91 @@ function setupApp() {
     }
     if(localStorage.getItem('theme') === 'dark') document.getElementById('themeBtn').innerText = "☀️ Mode";
 
+    // Debounced search
     let searchTimer;
     document.getElementById('searchBar').addEventListener('input', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(search, 150);
     });
+
+    // Drag and drop support
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(163,64,84,0.12)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.background = ''; });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.background = '';
+        if (e.dataTransfer.files.length > 0) {
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+            processFile(document.getElementById('fileInput'));
+        }
+    });
 }
 
+// FIX: No more readAsDataURL - just keep the File object reference (zero memory cost)
 function processFile(input) {
     const file = input.files[0];
-    if (file) {
-        if (file.size > 50 * 1024 * 1024) { alert("File too large (>50MB). Use an external link."); return; }
-        uploadedFileName = file.name;
-        document.getElementById('fileNameDisplay').innerText = "✅ " + file.name;
-        showUploadProgress(true); updateUploadProgress(0);
-        const reader = new FileReader();
-        reader.onprogress = (e) => { if (e.lengthComputable) updateUploadProgress(Math.round((e.loaded / e.total) * 50)); };
-        reader.onload = e => { uploadedFile64 = e.target.result; updateUploadProgress(50); showUploadProgress(false); };
-        reader.onerror = () => { showUploadProgress(false); alert("Error reading file"); };
-        reader.readAsDataURL(file);
+    if (!file) return;
+    
+    const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
+    if (file.size > maxSize) {
+        alert("File exceeds 5GB limit. Please use an external link.");
+        return;
     }
+    
+    uploadedFileBlob = file; // Keep as File/Blob - NO base64 conversion
+    uploadedFileName = file.name;
+    uploadedFileType = file.type;
+    uploadedFileSize = file.size;
+    document.getElementById('fileNameDisplay').innerText = "✅ " + file.name + " (" + formatSize(file.size) + ")";
 }
 
 async function saveToHub() {
     const title = document.getElementById('title').value;
-    const link = document.getElementById('linkIn').value || uploadedFile64;
-    if(!title || !link) return alert("Please provide a file or a link!");
+    const hasFile = uploadedFileBlob !== null;
+    const hasLink = document.getElementById('linkIn').value.trim() !== '';
+    
+    if (!title || (!hasFile && !hasLink)) return alert("Please provide a title and a file or link!");
+
     const btn = document.getElementById('publishBtn');
     btn.disabled = true;
+
     const entry = {
-        title, grade: document.getElementById('gradeIn').value,
-        subject: document.getElementById('subIn').value, url: link,
+        title,
+        grade: document.getElementById('gradeIn').value,
+        subject: document.getElementById('subIn').value,
+        url: hasLink ? document.getElementById('linkIn').value.trim() : '',
         desc: document.getElementById('desc').value,
-        type: uploadedFile64 ? "Local File" : "Web Link",
-        fileName: uploadedFileName, createdAt: new Date().toISOString()
+        type: hasFile ? "Local File" : "Web Link",
+        fileName: uploadedFileName || '',
+        fileSize: uploadedFileSize,
+        fileType: uploadedFileType,
+        createdAt: new Date().toISOString()
     };
+
     try {
-        showUploadProgress(true); updateUploadProgress(0);
-        await StorageManager.saveData(entry, (percent) => updateUploadProgress(percent));
+        showUploadProgress(true);
+        document.getElementById('progressTitle').textContent = hasFile ? '📤 Saving ' + formatSize(uploadedFileSize) + '...' : '📤 Saving...';
+        updateUploadProgress(0, hasFile ? '0 / ' + formatSize(uploadedFileSize) : '');
+
+        await StorageManager.saveData(entry, hasFile ? uploadedFileBlob : null, (percent) => {
+            updateUploadProgress(percent, hasFile ? formatSize(uploadedFileSize * percent / 100) + ' / ' + formatSize(uploadedFileSize) : '');
+        });
+
         showUploadProgress(false);
         document.getElementById('title').value = '';
         document.getElementById('linkIn').value = '';
         document.getElementById('desc').value = '';
-        document.getElementById('fileNameDisplay').innerText = '📂 Click to Upload File (PDF, Image, etc.)';
-        uploadedFile64 = ''; uploadedFileName = ''; btn.disabled = false;
+        document.getElementById('fileNameDisplay').innerText = '📂 Click or Drop File Here (up to 5GB)';
+        uploadedFileBlob = null; uploadedFileName = ''; uploadedFileType = ''; uploadedFileSize = 0;
+        btn.disabled = false;
         render();
-    } catch (err) { showUploadProgress(false); btn.disabled = false; alert('Error uploading file'); }
+    } catch (err) {
+        console.error('Save error:', err);
+        showUploadProgress(false);
+        btn.disabled = false;
+        alert('Error saving: ' + err.message);
+    }
 }
 
 async function render() {
@@ -474,7 +586,8 @@ async function render() {
                 const sInfo = subjectMap[item.subject];
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button><div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + '</span></div><h3>' + item.title + '</h3><p>' + (item.desc || 'No additional notes.') + '</p><div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+                const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
+                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button><div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div><h3>' + item.title + '</h3><p>' + (item.desc || 'No additional notes.') + '</p><div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
                 frag.appendChild(card);
                 count++;
             }
@@ -510,6 +623,7 @@ async function deleteItem(id) {
     }
 }
 
+// FIX: Instant theme toggle - just swap attribute, CSS variables handle the rest
 function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
@@ -536,12 +650,6 @@ function search() {
 }
 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePreview(); hideLogin(); } });
-
-setInterval(() => {
-    if (window.requestIdleCallback) requestIdleCallback(() => StorageManager.backupToLocalStorage());
-    else StorageManager.backupToLocalStorage();
-}, 5 * 60 * 1000);
-window.addEventListener('beforeunload', () => StorageManager.backupToLocalStorage());
 
 initApp();
 </script>
