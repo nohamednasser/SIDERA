@@ -723,7 +723,7 @@ document.getElementById('container').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-id]');
     if (!btn) return;
 
-    const id = Number(btn.dataset.id);
+    const id = btn.dataset.id;
     if (btn.classList.contains('btn-preview')) openPreview(id);
     else if (btn.classList.contains('btn-dl')) downloadFile(id);
     else if (btn.classList.contains('del-btn')) deleteItem(id);
