@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      stem_drive_files: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          grade: string
+          id: string
+          storage_path: string | null
+          subject: string
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          grade: string
+          id?: string
+          storage_path?: string | null
+          subject: string
+          title: string
+          type?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          grade?: string
+          id?: string
+          storage_path?: string | null
+          subject?: string
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
