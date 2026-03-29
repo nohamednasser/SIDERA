@@ -107,6 +107,13 @@
         .progress-size { font-size: 0.7rem; color: var(--text); margin-top: 4px; }
 
         .no-resources { grid-column: 1/-1; text-align: center; color: var(--text); padding: 60px 20px; font-size: 0.95rem; }
+
+        html.theme-switching *,
+        html.theme-switching *::before,
+        html.theme-switching *::after {
+            transition: none !important;
+            animation: none !important;
+        }
     </style>
 </head>
 <body>
@@ -216,15 +223,18 @@ const subjectData = [
 const subjectMap = {};
 subjectData.forEach(s => { subjectMap[s.name] = s; });
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
+const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks for smooth non-blocking writes
+
 let db, currentGrade = 'All', currentSub = 'All';
-// FIX: Store file as Blob reference, NOT base64 string
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
+let currentPreviewObjectUrl = null;
 
 function formatSize(bytes) {
-    if (bytes === 0) return '0 B';
+    if (!bytes) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
@@ -232,19 +242,36 @@ function formatSize(bytes) {
 class StorageManager {
     static init() {
         return new Promise((resolve, reject) => {
-            // FIX: V10 schema - separate stores for metadata and file blobs
-            const request = indexedDB.open("SideraDrive_V10", 1);
+            const request = indexedDB.open("SideraDrive_V10", 2);
             request.onupgradeneeded = e => {
                 const database = e.target.result;
+
                 if (!database.objectStoreNames.contains("files")) {
                     database.createObjectStore("files", { keyPath: "id", autoIncrement: true });
                 }
                 if (!database.objectStoreNames.contains("blobs")) {
                     database.createObjectStore("blobs", { keyPath: "id" });
                 }
+                if (!database.objectStoreNames.contains("blob_chunks")) {
+                    const chunkStore = database.createObjectStore("blob_chunks", { keyPath: ["fileId", "chunkIndex"] });
+                    chunkStore.createIndex("fileId", "fileId", { unique: false });
+                } else {
+                    const tx = e.target.transaction;
+                    const store = tx.objectStore("blob_chunks");
+                    if (!store.indexNames.contains("fileId")) {
+                        store.createIndex("fileId", "fileId", { unique: false });
+                    }
+                }
             };
-            request.onsuccess = e => { db = e.target.result; this.requestPersistence(); resolve(db); };
-            request.onerror = () => { console.error('IndexedDB failed'); reject(); };
+            request.onsuccess = e => {
+                db = e.target.result;
+                this.requestPersistence();
+                resolve(db);
+            };
+            request.onerror = () => {
+                console.error('IndexedDB failed');
+                reject(new Error('IndexedDB failed'));
+            };
         });
     }
 
@@ -256,70 +283,196 @@ class StorageManager {
         return new Promise((resolve) => {
             const tx = db.transaction("files", "readonly");
             tx.objectStore("files").getAll().onsuccess = (e) => resolve(e.target.result || []);
+            tx.onerror = () => resolve([]);
         });
     }
 
-    static async getBlob(id) {
+    static async getFile(id) {
         return new Promise((resolve) => {
+            const tx = db.transaction("files", "readonly");
+            const req = tx.objectStore("files").get(id);
+            req.onsuccess = (e) => resolve(e.target.result || null);
+            req.onerror = () => resolve(null);
+        });
+    }
+
+    static async _addFile(entry) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("files", "readwrite");
+            const req = tx.objectStore("files").add(entry);
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = () => reject(new Error('Entry save failed'));
+        });
+    }
+
+    static async _updateFile(id, patch) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("files", "readwrite");
+            const store = tx.objectStore("files");
+            const getReq = store.get(id);
+            getReq.onsuccess = () => {
+                const current = getReq.result;
+                if (!current) {
+                    resolve();
+                    return;
+                }
+                store.put({ ...current, ...patch, id });
+            };
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(new Error('Update failed'));
+        });
+    }
+
+    static async _saveBlob(id, blob) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("blobs", "readwrite");
+            tx.objectStore("blobs").put({ id, blob });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(new Error('Blob save failed'));
+        });
+    }
+
+    static async _saveChunk(fileId, chunkIndex, blob) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("blob_chunks", "readwrite");
+            tx.objectStore("blob_chunks").put({ fileId, chunkIndex, blob });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(new Error('Chunk save failed'));
+        });
+    }
+
+    static async getBlob(id, fallbackType = '') {
+        const directBlob = await new Promise((resolve) => {
             const tx = db.transaction("blobs", "readonly");
             const req = tx.objectStore("blobs").get(id);
             req.onsuccess = (e) => resolve(e.target.result ? e.target.result.blob : null);
             req.onerror = () => resolve(null);
         });
+
+        if (directBlob) return directBlob;
+
+        return new Promise((resolve) => {
+            const tx = db.transaction("blob_chunks", "readonly");
+            const store = tx.objectStore("blob_chunks");
+            const index = store.index("fileId");
+            const req = index.getAll(IDBKeyRange.only(id));
+            req.onsuccess = (e) => {
+                const rows = (e.target.result || []).sort((a, b) => a.chunkIndex - b.chunkIndex);
+                if (!rows.length) {
+                    resolve(null);
+                    return;
+                }
+                const chunks = rows.map(r => r.blob);
+                resolve(new Blob(chunks, { type: fallbackType || (chunks[0] && chunks[0].type) || '' }));
+            };
+            req.onerror = () => resolve(null);
+        });
     }
 
-    // FIX: Store file as native Blob - no base64 conversion, no memory explosion
     static async saveData(entry, fileBlob, onProgress) {
-        return new Promise((resolve, reject) => {
-            onProgress?.(20);
-            const tx = db.transaction(["files", "blobs"], "readwrite");
-            const filesStore = tx.objectStore("files");
-            const blobsStore = tx.objectStore("blobs");
-
-            const addReq = filesStore.add(entry);
-            addReq.onsuccess = (e) => {
-                const newId = e.target.result;
-                onProgress?.(50);
-                if (fileBlob) {
-                    // Store blob separately with same ID
-                    const blobReq = blobsStore.put({ id: newId, blob: fileBlob });
-                    blobReq.onsuccess = () => { onProgress?.(100); resolve(newId); };
-                    blobReq.onerror = () => reject(new Error('Blob save failed'));
-                } else {
-                    onProgress?.(100);
-                    resolve(newId);
-                }
-            };
-            addReq.onerror = () => reject(new Error('Entry save failed'));
+        const id = await this._addFile({
+            ...entry,
+            storageMode: fileBlob ? 'pending' : 'link',
+            chunkSize: 0,
+            chunkCount: 0
         });
+
+        if (!fileBlob) {
+            onProgress?.(100);
+            return id;
+        }
+
+        onProgress?.(20);
+
+        if (fileBlob.size <= CHUNK_SIZE * 2) {
+            await this._saveBlob(id, fileBlob);
+            await this._updateFile(id, {
+                storageMode: 'blob',
+                chunkSize: fileBlob.size,
+                chunkCount: 1
+            });
+            onProgress?.(100);
+            return id;
+        }
+
+        const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
+            const chunk = fileBlob.slice(start, end, fileBlob.type || 'application/octet-stream');
+            await this._saveChunk(id, i, chunk);
+
+            const pct = 20 + ((i + 1) / totalChunks) * 80;
+            onProgress?.(pct);
+
+            if (i % 3 === 0) {
+                await new Promise(r => setTimeout(r, 0));
+            }
+        }
+
+        await this._updateFile(id, {
+            storageMode: 'chunks',
+            chunkSize: CHUNK_SIZE,
+            chunkCount: totalChunks
+        });
+
+        return id;
     }
 
     static async deleteData(id) {
         return new Promise((resolve, reject) => {
-            const tx = db.transaction(["files", "blobs"], "readwrite");
+            const tx = db.transaction(["files", "blobs", "blob_chunks"], "readwrite");
             tx.objectStore("files").delete(id);
             tx.objectStore("blobs").delete(id);
+
+            const chunkStore = tx.objectStore("blob_chunks");
+            const index = chunkStore.index("fileId");
+            index.openCursor(IDBKeyRange.only(id)).onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    cursor.delete();
+                    cursor.continue();
+                }
+            };
+
             tx.oncomplete = () => resolve();
-            tx.onerror = () => reject();
+            tx.onerror = () => reject(new Error('Delete failed'));
         });
     }
 
-    // Migrate from V9 to V10 if needed
     static async migrateFromV9() {
+        if (localStorage.getItem('sideraV10Migrated') === 'true') return false;
+
         return new Promise((resolve) => {
             const request = indexedDB.open("SideraDrive_V9", 1);
+
             request.onsuccess = async (e) => {
                 const oldDb = e.target.result;
-                if (!oldDb.objectStoreNames.contains("files")) { oldDb.close(); resolve(); return; }
+                if (!oldDb.objectStoreNames.contains("files")) {
+                    oldDb.close();
+                    localStorage.setItem('sideraV10Migrated', 'true');
+                    resolve(false);
+                    return;
+                }
+
                 const tx = oldDb.transaction("files", "readonly");
-                tx.objectStore("files").getAll().onsuccess = async (ev) => {
+                const getAllReq = tx.objectStore("files").getAll();
+
+                getAllReq.onsuccess = async (ev) => {
                     const oldItems = ev.target.result || [];
                     oldDb.close();
-                    if (oldItems.length === 0) { resolve(); return; }
-                    
-                    for (const item of oldItems) {
+
+                    if (!oldItems.length) {
+                        localStorage.setItem('sideraV10Migrated', 'true');
+                        resolve(false);
+                        return;
+                    }
+
+                    let migratedCount = 0;
+                    for (let i = 0; i < oldItems.length; i++) {
+                        const item = oldItems[i];
                         const url = item.url || '';
-                        let blob = null;
+
                         const meta = {
                             title: item.title,
                             grade: item.grade,
@@ -327,33 +480,41 @@ class StorageManager {
                             desc: item.desc,
                             type: item.type,
                             fileName: item.fileName,
-                            fileSize: 0,
-                            fileType: '',
+                            fileSize: item.fileSize || 0,
+                            fileType: item.fileType || '',
+                            // Keep legacy data URLs as-is to avoid heavy conversion freeze
+                            url,
                             createdAt: item.createdAt
                         };
-                        if (url.startsWith('data:')) {
-                            // Convert base64 back to blob
-                            try {
-                                const resp = await fetch(url);
-                                blob = await resp.blob();
-                                meta.fileSize = blob.size;
-                                meta.fileType = blob.type;
-                                meta.url = '';
-                            } catch(err) {
-                                meta.url = '';
-                            }
-                        } else {
-                            meta.url = url;
+
+                        try {
+                            await this._addFile({ ...meta, storageMode: 'legacy', chunkSize: 0, chunkCount: 0 });
+                            migratedCount++;
+                        } catch (_) {
+                            // ignore bad row
                         }
-                        await StorageManager.saveData(meta, blob, () => {});
+
+                        if (i % 10 === 0) {
+                            await new Promise(r => setTimeout(r, 0));
+                        }
                     }
-                    // Delete old DB after migration
-                    indexedDB.deleteDatabase("SideraDrive_V9");
-                    resolve();
+
+                    localStorage.setItem('sideraV10Migrated', 'true');
+                    try { indexedDB.deleteDatabase("SideraDrive_V9"); } catch (_) {}
+                    resolve(migratedCount > 0);
                 };
-                tx.onerror = () => { oldDb.close(); resolve(); };
+
+                tx.onerror = () => {
+                    oldDb.close();
+                    localStorage.setItem('sideraV10Migrated', 'true');
+                    resolve(false);
+                };
             };
-            request.onerror = () => resolve();
+
+            request.onerror = () => {
+                localStorage.setItem('sideraV10Migrated', 'true');
+                resolve(false);
+            };
         });
     }
 }
@@ -364,84 +525,119 @@ function showUploadProgress(show = true) {
     else setTimeout(() => container.classList.remove('show'), 500);
 }
 
-function updateUploadProgress(percent, sizeInfo) {
+function updateUploadProgress(percent, sizeInfo = '') {
     document.getElementById('progressFill').style.width = percent + '%';
     document.getElementById('progressPercent').textContent = Math.round(percent);
-    if (sizeInfo) document.getElementById('progressSizeInfo').textContent = sizeInfo;
+    document.getElementById('progressSizeInfo').textContent = sizeInfo;
 }
 
-function openPreview(itemId) {
-    const tx = db.transaction("files", "readonly");
-    tx.objectStore("files").get(itemId).onsuccess = async (e) => {
-        const item = e.target.result;
-        if (!item) return;
-        const modal = document.getElementById('previewModal');
-        const previewBody = document.getElementById('previewBody');
-        const previewTitle = document.getElementById('previewTitle');
-        previewTitle.textContent = item.fileName || item.title;
-        previewBody.innerHTML = '<p>Loading preview...</p>';
-        modal.classList.add('show');
-
-        if (item.url && !item.url.startsWith('data:') && item.url !== '') {
-            // External link
-            const url = item.url;
-            if (url.includes('drive.google.com')) {
-                const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-                if (fileId) previewBody.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%;height:100%;border:none;"></iframe>';
-                else previewBody.innerHTML = '<p>Cannot preview. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
-            } else {
-                previewBody.innerHTML = '<p>Preview not available. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
-            }
-        } else {
-            // Local file - get blob
-            const blob = await StorageManager.getBlob(itemId);
-            if (!blob) { previewBody.innerHTML = '<p>File data not found.</p>'; return; }
-            const objectUrl = URL.createObjectURL(blob);
-            if (blob.type.startsWith('image/')) {
-                const img = new Image();
-                img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
-                img.src = objectUrl;
-            } else if (blob.type === 'application/pdf') {
-                previewBody.innerHTML = '<iframe src="' + objectUrl + '" style="width:100%;height:100%;border:none;"></iframe>';
-            } else {
-                previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + objectUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
-            }
-        }
-    };
+function cleanupPreviewUrl() {
+    if (currentPreviewObjectUrl) {
+        URL.revokeObjectURL(currentPreviewObjectUrl);
+        currentPreviewObjectUrl = null;
+    }
 }
 
-function downloadFile(itemId) {
-    const tx = db.transaction("files", "readonly");
-    tx.objectStore("files").get(itemId).onsuccess = async (e) => {
-        const item = e.target.result;
-        if (!item) return;
+async function openPreview(itemId) {
+    const item = await StorageManager.getFile(itemId);
+    if (!item) return;
 
-        if (item.url && item.url !== '') {
-            const url = item.url;
-            if (url.includes('drive.google.com')) {
-                const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-                if (fileId) window.open('https://drive.google.com/uc?export=download&id=' + fileId, '_blank');
-            } else { window.open(url, '_blank'); }
+    const modal = document.getElementById('previewModal');
+    const previewBody = document.getElementById('previewBody');
+    const previewTitle = document.getElementById('previewTitle');
+
+    cleanupPreviewUrl();
+    previewTitle.textContent = item.fileName || item.title;
+    previewBody.innerHTML = '<p>Loading preview...</p>';
+    modal.classList.add('show');
+
+    const url = item.url || '';
+
+    if (url.startsWith('data:image')) {
+        const img = new Image();
+        img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+        img.src = url;
+        return;
+    }
+
+    if (url.startsWith('data:application/pdf')) {
+        previewBody.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;"></iframe>';
+        return;
+    }
+
+    if (url) {
+        if (url.includes('drive.google.com')) {
+            const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+            if (fileId) previewBody.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%;height:100%;border:none;"></iframe>';
+            else previewBody.innerHTML = '<p>Cannot preview. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
         } else {
-            // Local file - get blob and create download
-            const blob = await StorageManager.getBlob(itemId);
-            if (!blob) { alert('File data not found'); return; }
-            const objectUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = objectUrl;
-            link.download = item.fileName || 'download';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            // Revoke after a delay to allow download to start
-            setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+            previewBody.innerHTML = '<p>Preview not available. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
         }
-    };
+        return;
+    }
+
+    const blob = await StorageManager.getBlob(itemId, item.fileType || '');
+    if (!blob) {
+        previewBody.innerHTML = '<p>File data not found.</p>';
+        return;
+    }
+
+    currentPreviewObjectUrl = URL.createObjectURL(blob);
+
+    if (blob.type.startsWith('image/')) {
+        const img = new Image();
+        img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+        img.src = currentPreviewObjectUrl;
+    } else if (blob.type === 'application/pdf') {
+        previewBody.innerHTML = '<iframe src="' + currentPreviewObjectUrl + '" style="width:100%;height:100%;border:none;"></iframe>';
+    } else {
+        previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + currentPreviewObjectUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
+    }
+}
+
+async function downloadFile(itemId) {
+    const item = await StorageManager.getFile(itemId);
+    if (!item) return;
+
+    const url = item.url || '';
+
+    if (url.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = item.fileName || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+    }
+
+    if (url) {
+        if (url.includes('drive.google.com')) {
+            const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+            if (fileId) window.open('https://drive.google.com/uc?export=download&id=' + fileId, '_blank');
+        } else {
+            window.open(url, '_blank');
+        }
+        return;
+    }
+
+    const blob = await StorageManager.getBlob(itemId, item.fileType || '');
+    if (!blob) { alert('File data not found'); return; }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = item.fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
 }
 
 function closePreview() {
     document.getElementById('previewModal').classList.remove('show');
     document.getElementById('previewBody').innerHTML = '';
+    cleanupPreviewUrl();
 }
 
 if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -449,16 +645,30 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 async function initApp() {
     try {
         await StorageManager.init();
-        // Migrate old data from V9
-        await StorageManager.migrateFromV9();
         setupApp();
         render();
-    } catch (err) { console.error('Init failed:', err); setupApp(); render(); }
+
+        const runMigration = async () => {
+            const migrated = await StorageManager.migrateFromV9();
+            if (migrated) render();
+        };
+
+        if (window.requestIdleCallback) {
+            requestIdleCallback(() => runMigration(), { timeout: 1500 });
+        } else {
+            setTimeout(runMigration, 700);
+        }
+    } catch (err) {
+        console.error('Init failed:', err);
+        setupApp();
+        render();
+    }
 }
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
     const sel = document.getElementById('subIn');
+
     const navFrag = document.createDocumentFragment();
     const allSpan = document.createElement('span');
     allSpan.className = 'active';
@@ -472,89 +682,119 @@ function setupApp() {
         span.textContent = s.icon + ' ' + s.name;
         span.onclick = function() { filterSub(s.name, this); };
         navFrag.appendChild(span);
+
         const opt = document.createElement('option');
-        opt.value = s.name; opt.textContent = s.icon + ' ' + s.name;
+        opt.value = s.name;
+        opt.textContent = s.icon + ' ' + s.name;
         selFrag.appendChild(opt);
     });
-    nav.innerHTML = ''; nav.appendChild(navFrag);
-    sel.innerHTML = ''; sel.appendChild(selFrag);
 
-    if(isAdmin) {
+    nav.innerHTML = '';
+    nav.appendChild(navFrag);
+    sel.innerHTML = '';
+    sel.appendChild(selFrag);
+
+    if (isAdmin) {
         document.getElementById('adminPanel').style.display = 'block';
-        document.getElementById('loginBtn').innerText = "Logout";
+        document.getElementById('loginBtn').innerText = 'Logout';
         document.getElementById('loginBtn').onclick = logout;
     }
-    if(localStorage.getItem('theme') === 'dark') document.getElementById('themeBtn').innerText = "☀️ Mode";
 
-    // Debounced search
+    if (localStorage.getItem('theme') === 'dark') {
+        document.getElementById('themeBtn').innerText = '☀️ Mode';
+    }
+
     let searchTimer;
     document.getElementById('searchBar').addEventListener('input', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(search, 150);
     });
 
-    // Drag and drop support
     const dropZone = document.getElementById('dropZone');
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(163,64,84,0.12)'; });
-    dropZone.addEventListener('dragleave', () => { dropZone.style.background = ''; });
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.background = 'rgba(163,64,84,0.12)';
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.background = '';
+    });
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.background = '';
-        if (e.dataTransfer.files.length > 0) {
-            document.getElementById('fileInput').files = e.dataTransfer.files;
-            processFile(document.getElementById('fileInput'));
-        }
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) processSelectedFile(file);
     });
 }
 
-// FIX: No more readAsDataURL - just keep the File object reference (zero memory cost)
-function processFile(input) {
-    const file = input.files[0];
+function processSelectedFile(file) {
     if (!file) return;
-    
-    const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
-    if (file.size > maxSize) {
-        alert("File exceeds 5GB limit. Please use an external link.");
+
+    if (file.size > MAX_FILE_SIZE) {
+        alert('File exceeds 5GB limit.');
         return;
     }
-    
-    uploadedFileBlob = file; // Keep as File/Blob - NO base64 conversion
+
+    uploadedFileBlob = file;
     uploadedFileName = file.name;
-    uploadedFileType = file.type;
+    uploadedFileType = file.type || 'application/octet-stream';
     uploadedFileSize = file.size;
-    document.getElementById('fileNameDisplay').innerText = "✅ " + file.name + " (" + formatSize(file.size) + ")";
+
+    document.getElementById('fileNameDisplay').innerText = '✅ ' + file.name + ' (' + formatSize(file.size) + ')';
+}
+
+function processFile(input) {
+    const file = input && input.files ? input.files[0] : null;
+    processSelectedFile(file);
 }
 
 async function saveToHub() {
-    const title = document.getElementById('title').value;
+    const title = document.getElementById('title').value.trim();
     const hasFile = uploadedFileBlob !== null;
-    const hasLink = document.getElementById('linkIn').value.trim() !== '';
-    
-    if (!title || (!hasFile && !hasLink)) return alert("Please provide a title and a file or link!");
+    const linkValue = document.getElementById('linkIn').value.trim();
+    const hasLink = linkValue !== '';
+
+    if (!title || (!hasFile && !hasLink)) {
+        alert('Please provide a title and a file or link!');
+        return;
+    }
 
     const btn = document.getElementById('publishBtn');
     btn.disabled = true;
 
-    const entry = {
-        title,
-        grade: document.getElementById('gradeIn').value,
-        subject: document.getElementById('subIn').value,
-        url: hasLink ? document.getElementById('linkIn').value.trim() : '',
-        desc: document.getElementById('desc').value,
-        type: hasFile ? "Local File" : "Web Link",
-        fileName: uploadedFileName || '',
-        fileSize: uploadedFileSize,
-        fileType: uploadedFileType,
-        createdAt: new Date().toISOString()
-    };
-
     try {
+        if (hasFile && navigator.storage?.estimate) {
+            const estimate = await navigator.storage.estimate();
+            const quota = estimate.quota || 0;
+            const usage = estimate.usage || 0;
+            const free = Math.max(0, quota - usage);
+
+            if (free && uploadedFileSize > free * 0.9) {
+                btn.disabled = false;
+                alert('Not enough browser storage for this file on this device. Use an external link for large files.');
+                return;
+            }
+        }
+
+        const entry = {
+            title,
+            grade: document.getElementById('gradeIn').value,
+            subject: document.getElementById('subIn').value,
+            url: hasLink ? linkValue : '',
+            desc: document.getElementById('desc').value,
+            type: hasFile ? 'Local File' : 'Web Link',
+            fileName: uploadedFileName || '',
+            fileSize: uploadedFileSize || 0,
+            fileType: uploadedFileType || '',
+            createdAt: new Date().toISOString()
+        };
+
         showUploadProgress(true);
         document.getElementById('progressTitle').textContent = hasFile ? '📤 Saving ' + formatSize(uploadedFileSize) + '...' : '📤 Saving...';
         updateUploadProgress(0, hasFile ? '0 / ' + formatSize(uploadedFileSize) : '');
 
         await StorageManager.saveData(entry, hasFile ? uploadedFileBlob : null, (percent) => {
-            updateUploadProgress(percent, hasFile ? formatSize(uploadedFileSize * percent / 100) + ' / ' + formatSize(uploadedFileSize) : '');
+            const saved = hasFile ? Math.floor(uploadedFileSize * (percent / 100)) : 0;
+            updateUploadProgress(percent, hasFile ? formatSize(saved) + ' / ' + formatSize(uploadedFileSize) : '');
         });
 
         showUploadProgress(false);
@@ -562,24 +802,34 @@ async function saveToHub() {
         document.getElementById('linkIn').value = '';
         document.getElementById('desc').value = '';
         document.getElementById('fileNameDisplay').innerText = '📂 Click or Drop File Here (up to 5GB)';
-        uploadedFileBlob = null; uploadedFileName = ''; uploadedFileType = ''; uploadedFileSize = 0;
+        uploadedFileBlob = null;
+        uploadedFileName = '';
+        uploadedFileType = '';
+        uploadedFileSize = 0;
         btn.disabled = false;
-        render();
+
+        await render();
     } catch (err) {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        alert('Error saving: ' + err.message);
+        alert('Error saving file. If file is very large, use an external link.');
     }
 }
 
 async function render() {
     const cont = document.getElementById('container');
+
     try {
         const items = await StorageManager.getAllData();
-        if (items.length === 0) { cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>'; return; }
+        if (items.length === 0) {
+            cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>';
+            return;
+        }
+
         const frag = document.createDocumentFragment();
         let count = 0;
+
         for (let i = items.length - 1; i >= 0; i--) {
             const item = items[i];
             if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
@@ -587,20 +837,34 @@ async function render() {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
-                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button><div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div><h3>' + item.title + '</h3><p>' + (item.desc || 'No additional notes.') + '</p><div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+
+                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button>' +
+                    '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
+                    '<h3>' + item.title + '</h3>' +
+                    '<p>' + (item.desc || 'No additional notes.') + '</p>' +
+                    '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+
                 frag.appendChild(card);
                 count++;
             }
         }
-        if (count === 0) { cont.innerHTML = '<p class="no-resources">📚 No resources match current filters.</p>'; return; }
+
+        if (count === 0) {
+            cont.innerHTML = '<p class="no-resources">📚 No resources match current filters.</p>';
+            return;
+        }
+
         cont.innerHTML = '';
         cont.appendChild(frag);
-    } catch (err) { console.error('Render error:', err); }
+    } catch (err) {
+        console.error('Render error:', err);
+    }
 }
 
 document.getElementById('container').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-id]');
     if (!btn) return;
+
     const id = Number(btn.dataset.id);
     if (btn.classList.contains('btn-preview')) openPreview(id);
     else if (btn.classList.contains('btn-dl')) downloadFile(id);
@@ -610,25 +874,43 @@ document.getElementById('container').addEventListener('click', (e) => {
 function checkAuth() {
     const user = document.getElementById('adminUser').value;
     const pass = document.getElementById('adminPass').value;
-    if(admins.find(a => a.u === user && a.p === pass)) { localStorage.setItem('isSideraAdmin', 'true'); location.reload(); }
-    else alert("Invalid Credentials!");
-}
 
-function logout() { localStorage.removeItem('isSideraAdmin'); location.reload(); }
-
-async function deleteItem(id) {
-    if(confirm("Delete this resource?")) {
-        try { await StorageManager.deleteData(id); render(); }
-        catch (err) { console.error('Delete error:', err); }
+    if (admins.find(a => a.u === user && a.p === pass)) {
+        localStorage.setItem('isSideraAdmin', 'true');
+        location.reload();
+    } else {
+        alert('Invalid Credentials!');
     }
 }
 
-// FIX: Instant theme toggle - just swap attribute, CSS variables handle the rest
+function logout() {
+    localStorage.removeItem('isSideraAdmin');
+    location.reload();
+}
+
+async function deleteItem(id) {
+    if (!confirm('Delete this resource?')) return;
+
+    try {
+        await StorageManager.deleteData(id);
+        render();
+    } catch (err) {
+        console.error('Delete error:', err);
+    }
+}
+
 function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    const root = document.documentElement;
+    root.classList.add('theme-switching');
+
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    document.getElementById('themeBtn').innerText = isDark ? "🌙 Mode" : "☀️ Mode";
+    document.getElementById('themeBtn').innerText = isDark ? '🌙 Mode' : '☀️ Mode';
+
+    requestAnimationFrame(() => {
+        root.classList.remove('theme-switching');
+    });
 }
 
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
@@ -636,20 +918,31 @@ function hideLogin() { document.getElementById('loginModal').classList.remove('s
 
 function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
-    el.classList.add('active'); currentGrade = g; render();
+    el.classList.add('active');
+    currentGrade = g;
+    render();
 }
 
 function filterSub(s, el) {
     document.querySelectorAll('#subjectNav span').forEach(s => s.classList.remove('active'));
-    el.classList.add('active'); currentSub = s; render();
+    el.classList.add('active');
+    currentSub = s;
+    render();
 }
 
 function search() {
     const v = document.getElementById('searchBar').value.toLowerCase();
-    document.querySelectorAll('.card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v) ? 'flex' : 'none');
+    document.querySelectorAll('.card').forEach(c => {
+        c.style.display = c.innerText.toLowerCase().includes(v) ? 'flex' : 'none';
+    });
 }
 
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePreview(); hideLogin(); } });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closePreview();
+        hideLogin();
+    }
+});
 
 initApp();
 </script>
