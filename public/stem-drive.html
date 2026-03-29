@@ -476,16 +476,6 @@ async function downloadFile(itemId) {
 
     const url = item.url || '';
 
-    if (url.startsWith('data:')) {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = item.fileName || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        return;
-    }
-
     if (url) {
         if (url.includes('drive.google.com')) {
             const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
@@ -496,17 +486,19 @@ async function downloadFile(itemId) {
         return;
     }
 
-    const blob = await StorageManager.getBlob(itemId, item.fileType || '');
-    if (!blob) { alert('File data not found'); return; }
+    if (item.storagePath) {
+        const publicUrl = StorageManager.getPublicUrl(item.storagePath);
+        const link = document.createElement('a');
+        link.href = publicUrl;
+        link.download = item.fileName || 'download';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+    }
 
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = item.fileName || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+    alert('File data not found');
 }
 
 function closePreview() {
@@ -522,12 +514,12 @@ async function initApp() {
         await StorageManager.init();
         setupApp();
         render();
-
-        const runMigration = async () => {
-            const migrated = await StorageManager.migrateFromV9();
-            if (migrated) render();
-        };
-
+    } catch (err) {
+        console.error('Init failed:', err);
+        setupApp();
+        render();
+    }
+}
         if (window.requestIdleCallback) {
             requestIdleCallback(() => runMigration(), { timeout: 1500 });
         } else {
