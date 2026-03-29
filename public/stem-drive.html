@@ -520,17 +520,8 @@ async function initApp() {
         render();
     }
 }
-        if (window.requestIdleCallback) {
-            requestIdleCallback(() => runMigration(), { timeout: 1500 });
-        } else {
-            setTimeout(runMigration, 700);
-        }
-    } catch (err) {
-        console.error('Init failed:', err);
-        setupApp();
-        render();
-    }
-}
+
+
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
