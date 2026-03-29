@@ -620,18 +620,6 @@ async function saveToHub() {
     btn.disabled = true;
 
     try {
-        if (hasFile && navigator.storage?.estimate) {
-            const estimate = await navigator.storage.estimate();
-            const quota = estimate.quota || 0;
-            const usage = estimate.usage || 0;
-            const free = Math.max(0, quota - usage);
-
-            if (free && uploadedFileSize > free * 0.9) {
-                btn.disabled = false;
-                alert('Not enough browser storage for this file on this device. Use an external link for large files.');
-                return;
-            }
-        }
 
         const entry = {
             title,
