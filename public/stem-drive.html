@@ -224,9 +224,13 @@ const subjectMap = {};
 subjectData.forEach(s => { subjectMap[s.name] = s; });
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
-const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks for smooth non-blocking writes
 
-let db, currentGrade = 'All', currentSub = 'All';
+// Supabase config
+const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
+const STORAGE_BUCKET = 'stem-drive-files';
+
+let currentGrade = 'All', currentSub = 'All';
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
@@ -239,282 +243,163 @@ function formatSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+// Supabase REST helpers
+const sbHeaders = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+};
+
 class StorageManager {
-    static init() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("SideraDrive_V10", 2);
-            request.onupgradeneeded = e => {
-                const database = e.target.result;
-
-                if (!database.objectStoreNames.contains("files")) {
-                    database.createObjectStore("files", { keyPath: "id", autoIncrement: true });
-                }
-                if (!database.objectStoreNames.contains("blobs")) {
-                    database.createObjectStore("blobs", { keyPath: "id" });
-                }
-                if (!database.objectStoreNames.contains("blob_chunks")) {
-                    const chunkStore = database.createObjectStore("blob_chunks", { keyPath: ["fileId", "chunkIndex"] });
-                    chunkStore.createIndex("fileId", "fileId", { unique: false });
-                } else {
-                    const tx = e.target.transaction;
-                    const store = tx.objectStore("blob_chunks");
-                    if (!store.indexNames.contains("fileId")) {
-                        store.createIndex("fileId", "fileId", { unique: false });
-                    }
-                }
-            };
-            request.onsuccess = e => {
-                db = e.target.result;
-                this.requestPersistence();
-                resolve(db);
-            };
-            request.onerror = () => {
-                console.error('IndexedDB failed');
-                reject(new Error('IndexedDB failed'));
-            };
-        });
-    }
-
-    static requestPersistence() {
-        if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+    static async init() {
+        // No init needed for cloud storage
+        return true;
     }
 
     static async getAllData() {
-        return new Promise((resolve) => {
-            const tx = db.transaction("files", "readonly");
-            tx.objectStore("files").getAll().onsuccess = (e) => resolve(e.target.result || []);
-            tx.onerror = () => resolve([]);
-        });
+        try {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?select=*&order=created_at.desc', {
+                headers: sbHeaders
+            });
+            if (!res.ok) throw new Error('Fetch failed');
+            const data = await res.json();
+            return data.map(r => ({
+                id: r.id,
+                title: r.title,
+                grade: r.grade,
+                subject: r.subject,
+                url: r.url || '',
+                desc: r.description || '',
+                type: r.type,
+                fileName: r.file_name || '',
+                fileSize: r.file_size || 0,
+                fileType: r.file_type || '',
+                storagePath: r.storage_path || '',
+                createdAt: r.created_at
+            }));
+        } catch (err) {
+            console.error('getAllData error:', err);
+            return [];
+        }
     }
 
     static async getFile(id) {
-        return new Promise((resolve) => {
-            const tx = db.transaction("files", "readonly");
-            const req = tx.objectStore("files").get(id);
-            req.onsuccess = (e) => resolve(e.target.result || null);
-            req.onerror = () => resolve(null);
-        });
-    }
-
-    static async _addFile(entry) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction("files", "readwrite");
-            const req = tx.objectStore("files").add(entry);
-            req.onsuccess = (e) => resolve(e.target.result);
-            req.onerror = () => reject(new Error('Entry save failed'));
-        });
-    }
-
-    static async _updateFile(id, patch) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction("files", "readwrite");
-            const store = tx.objectStore("files");
-            const getReq = store.get(id);
-            getReq.onsuccess = () => {
-                const current = getReq.result;
-                if (!current) {
-                    resolve();
-                    return;
-                }
-                store.put({ ...current, ...patch, id });
+        try {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id + '&select=*', {
+                headers: sbHeaders
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (!data.length) return null;
+            const r = data[0];
+            return {
+                id: r.id,
+                title: r.title,
+                grade: r.grade,
+                subject: r.subject,
+                url: r.url || '',
+                desc: r.description || '',
+                type: r.type,
+                fileName: r.file_name || '',
+                fileSize: r.file_size || 0,
+                fileType: r.file_type || '',
+                storagePath: r.storage_path || '',
+                createdAt: r.created_at
             };
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(new Error('Update failed'));
-        });
+        } catch (err) {
+            console.error('getFile error:', err);
+            return null;
+        }
     }
 
-    static async _saveBlob(id, blob) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction("blobs", "readwrite");
-            tx.objectStore("blobs").put({ id, blob });
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(new Error('Blob save failed'));
-        });
-    }
-
-    static async _saveChunk(fileId, chunkIndex, blob) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction("blob_chunks", "readwrite");
-            tx.objectStore("blob_chunks").put({ fileId, chunkIndex, blob });
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(new Error('Chunk save failed'));
-        });
-    }
-
-    static async getBlob(id, fallbackType = '') {
-        const directBlob = await new Promise((resolve) => {
-            const tx = db.transaction("blobs", "readonly");
-            const req = tx.objectStore("blobs").get(id);
-            req.onsuccess = (e) => resolve(e.target.result ? e.target.result.blob : null);
-            req.onerror = () => resolve(null);
-        });
-
-        if (directBlob) return directBlob;
-
-        return new Promise((resolve) => {
-            const tx = db.transaction("blob_chunks", "readonly");
-            const store = tx.objectStore("blob_chunks");
-            const index = store.index("fileId");
-            const req = index.getAll(IDBKeyRange.only(id));
-            req.onsuccess = (e) => {
-                const rows = (e.target.result || []).sort((a, b) => a.chunkIndex - b.chunkIndex);
-                if (!rows.length) {
-                    resolve(null);
-                    return;
-                }
-                const chunks = rows.map(r => r.blob);
-                resolve(new Blob(chunks, { type: fallbackType || (chunks[0] && chunks[0].type) || '' }));
-            };
-            req.onerror = () => resolve(null);
-        });
+    static getPublicUrl(storagePath) {
+        return SUPABASE_URL + '/storage/v1/object/public/' + STORAGE_BUCKET + '/' + storagePath;
     }
 
     static async saveData(entry, fileBlob, onProgress) {
-        const id = await this._addFile({
-            ...entry,
-            storageMode: fileBlob ? 'pending' : 'link',
-            chunkSize: 0,
-            chunkCount: 0
-        });
+        let storagePath = '';
 
-        if (!fileBlob) {
-            onProgress?.(100);
-            return id;
-        }
+        if (fileBlob) {
+            // Upload file to Supabase Storage using XHR for progress
+            const timestamp = Date.now();
+            const safeName = (entry.fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+            storagePath = entry.grade + '/' + entry.subject + '/' + timestamp + '_' + safeName;
 
-        onProgress?.(20);
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
+                xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
+                xhr.setRequestHeader('x-upsert', 'true');
 
-        if (fileBlob.size <= CHUNK_SIZE * 2) {
-            await this._saveBlob(id, fileBlob);
-            await this._updateFile(id, {
-                storageMode: 'blob',
-                chunkSize: fileBlob.size,
-                chunkCount: 1
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable && onProgress) {
+                        onProgress((e.loaded / e.total) * 90);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error('Upload failed: ' + xhr.status + ' ' + xhr.responseText));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Upload network error'));
+                xhr.send(fileBlob);
             });
-            onProgress?.(100);
-            return id;
         }
 
-        const totalChunks = Math.ceil(fileBlob.size / CHUNK_SIZE);
-        for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, fileBlob.size);
-            const chunk = fileBlob.slice(start, end, fileBlob.type || 'application/octet-stream');
-            await this._saveChunk(id, i, chunk);
+        onProgress?.(92);
 
-            const pct = 20 + ((i + 1) / totalChunks) * 80;
-            onProgress?.(pct);
+        // Save metadata to DB
+        const dbEntry = {
+            title: entry.title,
+            grade: entry.grade,
+            subject: entry.subject,
+            url: entry.url || '',
+            description: entry.desc || '',
+            type: entry.type,
+            file_name: entry.fileName || '',
+            file_size: entry.fileSize || 0,
+            file_type: entry.fileType || '',
+            storage_path: storagePath
+        };
 
-            if (i % 3 === 0) {
-                await new Promise(r => setTimeout(r, 0));
-            }
-        }
-
-        await this._updateFile(id, {
-            storageMode: 'chunks',
-            chunkSize: CHUNK_SIZE,
-            chunkCount: totalChunks
+        const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
+            method: 'POST',
+            headers: sbHeaders,
+            body: JSON.stringify(dbEntry)
         });
 
-        return id;
+        if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
+        const result = await res.json();
+        onProgress?.(100);
+        return result[0]?.id;
     }
 
     static async deleteData(id) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(["files", "blobs", "blob_chunks"], "readwrite");
-            tx.objectStore("files").delete(id);
-            tx.objectStore("blobs").delete(id);
+        // Get file info first
+        const item = await this.getFile(id);
+        if (!item) return;
 
-            const chunkStore = tx.objectStore("blob_chunks");
-            const index = chunkStore.index("fileId");
-            index.openCursor(IDBKeyRange.only(id)).onsuccess = (e) => {
-                const cursor = e.target.result;
-                if (cursor) {
-                    cursor.delete();
-                    cursor.continue();
+        // Delete from storage if it has a file
+        if (item.storagePath) {
+            await fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
                 }
-            };
+            });
+        }
 
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(new Error('Delete failed'));
-        });
-    }
-
-    static async migrateFromV9() {
-        if (localStorage.getItem('sideraV10Migrated') === 'true') return false;
-
-        return new Promise((resolve) => {
-            const request = indexedDB.open("SideraDrive_V9", 1);
-
-            request.onsuccess = async (e) => {
-                const oldDb = e.target.result;
-                if (!oldDb.objectStoreNames.contains("files")) {
-                    oldDb.close();
-                    localStorage.setItem('sideraV10Migrated', 'true');
-                    resolve(false);
-                    return;
-                }
-
-                const tx = oldDb.transaction("files", "readonly");
-                const getAllReq = tx.objectStore("files").getAll();
-
-                getAllReq.onsuccess = async (ev) => {
-                    const oldItems = ev.target.result || [];
-                    oldDb.close();
-
-                    if (!oldItems.length) {
-                        localStorage.setItem('sideraV10Migrated', 'true');
-                        resolve(false);
-                        return;
-                    }
-
-                    let migratedCount = 0;
-                    for (let i = 0; i < oldItems.length; i++) {
-                        const item = oldItems[i];
-                        const url = item.url || '';
-
-                        const meta = {
-                            title: item.title,
-                            grade: item.grade,
-                            subject: item.subject,
-                            desc: item.desc,
-                            type: item.type,
-                            fileName: item.fileName,
-                            fileSize: item.fileSize || 0,
-                            fileType: item.fileType || '',
-                            // Keep legacy data URLs as-is to avoid heavy conversion freeze
-                            url,
-                            createdAt: item.createdAt
-                        };
-
-                        try {
-                            await this._addFile({ ...meta, storageMode: 'legacy', chunkSize: 0, chunkCount: 0 });
-                            migratedCount++;
-                        } catch (_) {
-                            // ignore bad row
-                        }
-
-                        if (i % 10 === 0) {
-                            await new Promise(r => setTimeout(r, 0));
-                        }
-                    }
-
-                    localStorage.setItem('sideraV10Migrated', 'true');
-                    try { indexedDB.deleteDatabase("SideraDrive_V9"); } catch (_) {}
-                    resolve(migratedCount > 0);
-                };
-
-                tx.onerror = () => {
-                    oldDb.close();
-                    localStorage.setItem('sideraV10Migrated', 'true');
-                    resolve(false);
-                };
-            };
-
-            request.onerror = () => {
-                localStorage.setItem('sideraV10Migrated', 'true');
-                resolve(false);
-            };
+        // Delete metadata
+        await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
+            method: 'DELETE',
+            headers: sbHeaders
         });
     }
 }
@@ -551,20 +436,8 @@ async function openPreview(itemId) {
     previewBody.innerHTML = '<p>Loading preview...</p>';
     modal.classList.add('show');
 
+    // External link
     const url = item.url || '';
-
-    if (url.startsWith('data:image')) {
-        const img = new Image();
-        img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
-        img.src = url;
-        return;
-    }
-
-    if (url.startsWith('data:application/pdf')) {
-        previewBody.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;"></iframe>';
-        return;
-    }
-
     if (url) {
         if (url.includes('drive.google.com')) {
             const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
@@ -576,23 +449,25 @@ async function openPreview(itemId) {
         return;
     }
 
-    const blob = await StorageManager.getBlob(itemId, item.fileType || '');
-    if (!blob) {
-        previewBody.innerHTML = '<p>File data not found.</p>';
+    // Cloud storage file
+    if (item.storagePath) {
+        const publicUrl = StorageManager.getPublicUrl(item.storagePath);
+        const ft = (item.fileType || '').toLowerCase();
+
+        if (ft.startsWith('image/')) {
+            const img = new Image();
+            img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+            img.onerror = () => { previewBody.innerHTML = '<p>Failed to load image.</p>'; };
+            img.src = publicUrl;
+        } else if (ft === 'application/pdf') {
+            previewBody.innerHTML = '<iframe src="' + publicUrl + '" style="width:100%;height:100%;border:none;"></iframe>';
+        } else {
+            previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + publicUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
+        }
         return;
     }
 
-    currentPreviewObjectUrl = URL.createObjectURL(blob);
-
-    if (blob.type.startsWith('image/')) {
-        const img = new Image();
-        img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
-        img.src = currentPreviewObjectUrl;
-    } else if (blob.type === 'application/pdf') {
-        previewBody.innerHTML = '<iframe src="' + currentPreviewObjectUrl + '" style="width:100%;height:100%;border:none;"></iframe>';
-    } else {
-        previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + currentPreviewObjectUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
-    }
+    previewBody.innerHTML = '<p>No file data available.</p>';
 }
 
 async function downloadFile(itemId) {
@@ -600,16 +475,6 @@ async function downloadFile(itemId) {
     if (!item) return;
 
     const url = item.url || '';
-
-    if (url.startsWith('data:')) {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = item.fileName || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        return;
-    }
 
     if (url) {
         if (url.includes('drive.google.com')) {
@@ -621,17 +486,19 @@ async function downloadFile(itemId) {
         return;
     }
 
-    const blob = await StorageManager.getBlob(itemId, item.fileType || '');
-    if (!blob) { alert('File data not found'); return; }
+    if (item.storagePath) {
+        const publicUrl = StorageManager.getPublicUrl(item.storagePath);
+        const link = document.createElement('a');
+        link.href = publicUrl;
+        link.download = item.fileName || 'download';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+    }
 
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = item.fileName || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+    alert('File data not found');
 }
 
 function closePreview() {
@@ -647,23 +514,14 @@ async function initApp() {
         await StorageManager.init();
         setupApp();
         render();
-
-        const runMigration = async () => {
-            const migrated = await StorageManager.migrateFromV9();
-            if (migrated) render();
-        };
-
-        if (window.requestIdleCallback) {
-            requestIdleCallback(() => runMigration(), { timeout: 1500 });
-        } else {
-            setTimeout(runMigration, 700);
-        }
     } catch (err) {
         console.error('Init failed:', err);
         setupApp();
         render();
     }
 }
+
+
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
@@ -762,18 +620,6 @@ async function saveToHub() {
     btn.disabled = true;
 
     try {
-        if (hasFile && navigator.storage?.estimate) {
-            const estimate = await navigator.storage.estimate();
-            const quota = estimate.quota || 0;
-            const usage = estimate.usage || 0;
-            const free = Math.max(0, quota - usage);
-
-            if (free && uploadedFileSize > free * 0.9) {
-                btn.disabled = false;
-                alert('Not enough browser storage for this file on this device. Use an external link for large files.');
-                return;
-            }
-        }
 
         const entry = {
             title,
@@ -830,7 +676,7 @@ async function render() {
         const frag = document.createDocumentFragment();
         let count = 0;
 
-        for (let i = items.length - 1; i >= 0; i--) {
+        for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
                 const sInfo = subjectMap[item.subject];
@@ -865,7 +711,7 @@ document.getElementById('container').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-id]');
     if (!btn) return;
 
-    const id = Number(btn.dataset.id);
+    const id = btn.dataset.id;
     if (btn.classList.contains('btn-preview')) openPreview(id);
     else if (btn.classList.contains('btn-dl')) downloadFile(id);
     else if (btn.classList.contains('del-btn')) deleteItem(id);
