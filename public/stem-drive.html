@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIDERA | STEM DRIVE ULTIMATE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root { 
+            --dark: #1B1931; --accent: #A34054; --bg: #F8F9FA; --card-bg: #ffffff;
+            --text: #6c757d; --header-bg: #ffffff; --border: #eeeeee; --input-bg: #fafafa;
+        }
+        [data-theme="dark"] {
+            --dark: #ffffff; --accent: #ff4d6d; --bg: #0a0812; --card-bg: #16131f;
+            --text: #b0b0b0; --header-bg: #16131f; --border: #2a2740; --input-bg: #1f1c2e;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: background-color 0.15s ease, color 0.15s ease; }
+        
+        header { width: 100%; padding: 30px 0 60px; text-align: center; background: var(--header-bg); border-bottom: 1px solid var(--border); position: relative; transition: background-color 0.15s ease; }
+        
+        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
+        .control-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; cursor: pointer; color: var(--dark); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
+        .control-btn:hover { border-color: var(--accent); transform: scale(1.05); }
+        .control-btn:active { transform: scale(0.98); }
+
+        header h1 { margin: 0; font-weight: 300; font-size: 2.5rem; letter-spacing: 3px; transition: color 0.15s ease; }
+        
+        #searchBar { width: 90%; max-width: 550px; padding: 14px 22px; border-radius: 30px; border: 1px solid var(--border); margin-top: -35px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); outline: none; z-index: 10; position: relative; background: var(--card-bg); color: var(--dark); font-size: 0.95rem; transition: all 0.2s ease; }
+        #searchBar:focus { border-color: var(--accent); box-shadow: 0 8px 25px rgba(163, 64, 84, 0.15); }
+        
+        .filter-container { width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 40px; gap: 15px; }
+        nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 20px; max-width: 1200px; }
+        nav span { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: all 0.2s ease; }
+        nav span:hover { border-color: var(--accent); }
+        nav span.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163, 64, 84, 0.25); }
+
+        #adminPanel { width: 90%; max-width: 600px; background: var(--card-bg); padding: 30px; border-radius: 25px; border: 1px solid var(--border); display: none; margin-top: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); transition: all 0.15s ease; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full-w { grid-column: span 2; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); color: var(--dark); box-sizing: border-box; outline: none; font-size: 0.9rem; transition: all 0.2s ease; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(163, 64, 84, 0.1); }
+        
+        .file-drop-zone { grid-column: span 2; border: 2px dashed var(--accent); padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; background: rgba(163, 64, 84, 0.04); transition: all 0.2s ease; }
+        .file-drop-zone:hover { background: rgba(163, 64, 84, 0.08); border-color: var(--accent); }
+        .file-drop-zone p { margin: 0; font-size: 0.9rem; }
+        
+        .btn-pub { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 18px; transition: all 0.2s ease; }
+        .btn-pub:hover { filter: brightness(1.15); }
+        .btn-pub:active { transform: scale(0.98); }
+        .btn-pub:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .content { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1400px; padding: 45px 0; will-change: contents; }
+        
+        .card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); min-height: 220px; }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
+        .subj-tag { font-size: 0.65rem; font-weight: 800; color: var(--accent); text-transform: uppercase; background: rgba(163, 64, 84, 0.1); padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+        .type-tag { font-size: 0.65rem; color: var(--text); background: var(--input-bg); padding: 4px 9px; border-radius: 6px; border: 1px solid var(--border); white-space: nowrap; }
+        
+        .card h3 { margin: 8px 0; font-size: 1.1rem; line-height: 1.35; word-break: break-word; }
+        .card p { font-size: 0.8rem; color: var(--text); margin-bottom: 15px; flex-grow: 1; line-height: 1.4; }
+        
+        .btn-group { display: flex; gap: 8px; }
+        .btn-preview { flex: 1; display: flex; align-items: center; justify-content: center; background: #007bff; color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s ease; }
+        .btn-preview:hover { filter: brightness(1.12); }
+        .btn-preview:active { transform: scale(0.97); }
+        
+        .btn-dl { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--accent); color: white; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s ease; text-decoration: none; }
+        .btn-dl:hover { filter: brightness(1.12); }
+        .btn-dl:active { transform: scale(0.97); }
+        
+        .del-btn { position: absolute; top: -8px; right: -8px; background: #ff4d4d; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3); transition: all 0.2s ease; font-size: 1rem; }
+        .del-btn:hover { background: #ff2e2e; transform: scale(1.1); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px); transition: all 0.2s ease; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--card-bg); padding: 35px; border-radius: 25px; width: 320px; text-align: center; border: 1px solid var(--border); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1001; justify-content: center; align-items: center; }
+        .preview-modal.show { display: flex; }
+        .preview-wrapper { position: relative; width: 90%; max-width: 800px; max-height: 90vh; background: var(--card-bg); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); }
+        .preview-header h2 { margin: 0; font-size: 1.1rem; }
+        .close-preview { background: #ff4d4d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+        .preview-body { flex: 1; overflow: auto; padding: 20px; display: flex; align-items: center; justify-content: center; }
+        .preview-body img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .preview-body p { text-align: center; }
+
+        footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: all 0.15s ease; }
+        footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
+
+        .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: all 0.3s ease; pointer-events: none; min-width: 250px; }
+        .progress-container.show { opacity: 1; pointer-events: auto; }
+        .progress-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; }
+        .progress-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s ease; }
+        .progress-text { font-size: 0.75rem; color: var(--text); margin-top: 6px; }
+
+        .no-resources { grid-column: 1/-1; text-align: center; color: var(--text); padding: 60px 20px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="top-controls">
+        <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 Mode</button>
+        <button class="control-btn" id="loginBtn" onclick="showLogin()">➞ Admin</button>
+    </div>
+    <h1>SIDERA</h1>
+</header>
+
+<input type="text" id="searchBar" placeholder="Search for files, subjects, or notes...">
+
+<div class="filter-container">
+    <nav id="gradeNav">
+        <span class="active" onclick="filterGrade('All', this)">All Grades</span>
+        <span onclick="filterGrade('G10', this)">Grade 10</span>
+        <span onclick="filterGrade('G11', this)">Grade 11</span>
+        <span onclick="filterGrade('G12', this)">Grade 12</span>
+    </nav>
+    <nav id="subjectNav"></nav>
+</div>
+
+<div id="adminPanel">
+    <h2 style="margin-bottom: 20px; text-align: center; font-size: 1.2rem;">Upload New Resource</h2>
+    <div class="form-grid">
+        <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+        
+        <select id="gradeIn">
+            <option value="G10">Grade 10</option>
+            <option value="G11">Grade 11</option>
+            <option value="G12">Grade 12</option>
+        </select>
+        
+        <select id="subIn"></select>
+
+        <div class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
+            <p id="fileNameDisplay">📂 Click to Upload File (PDF, Image, etc.)</p>
+            <input type="file" id="fileInput" hidden onchange="processFile(this)">
+        </div>
+
+        <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+        <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+    </div>
+    <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+</div>
+
+<div class="content" id="container"></div>
+
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0; font-size: 1.3rem;">Admin Portal</h2>
+        <input type="text" id="adminUser" placeholder="Username" style="margin-bottom:12px;">
+        <input type="password" id="adminPass" placeholder="Password" style="margin-bottom:20px;">
+        <button onclick="checkAuth()" class="btn-pub" style="margin:0">Sign In</button>
+        <p onclick="hideLogin()" style="cursor:pointer; margin-top:16px; color:var(--text); font-size:0.8rem;">Close Window</p>
+    </div>
+</div>
+
+<div id="previewModal" class="preview-modal">
+    <div class="preview-wrapper">
+        <div class="preview-header">
+            <h2 id="previewTitle">Preview</h2>
+            <button class="close-preview" onclick="closePreview()">✕</button>
+        </div>
+        <div class="preview-body" id="previewBody">
+            <p>Loading...</p>
+        </div>
+    </div>
+</div>
+
+<div class="progress-container" id="progressContainer">
+    <div class="progress-title">📤 Uploading...</div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text"><span id="progressPercent">0</span>%</div>
+</div>
+
+<footer>
+    Developed by <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & Team
+</footer>
+
+<script>
+const admins = [
+    {u: "admin1", p: "Sid3ra@2026"},
+    {u: "admin2", p: "Dr1ve#Secure"},
+    {u: "admin3", p: "St3m!Pass99"},
+    {u: "admin4", p: "Upp3r$Lev3l"},
+    {u: "admin5", p: "M@nage2026!"}
+];
+
+const subjectData = [
+    { name: "computer science", icon: "💻" }, { name: "chemistry", icon: "🧪" },
+    { name: "capstone", icon: "🏗️" }, { name: "biology", icon: "🧬" },
+    { name: "arabic", icon: "🇪🇬" }, { name: "math", icon: "🧮" },
+    { name: "Important", icon: "⚠️" }, { name: "geology", icon: "🌍" },
+    { name: "FINAL", icon: "🏁" }, { name: "Exercise", icon: "🏋️" },
+    { name: "quiz", icon: "⏱️" }, { name: "physics", icon: "⚡" },
+    { name: "midterm", icon: "📝" }, { name: "MEO", icon: "🏢" },
+    { name: "mechanics", icon: "⚙️" }, { name: "social studies", icon: "🗺️" },
+    { name: "religion", icon: "🌙" }
+];
+
+const subjectMap = {};
+subjectData.forEach(s => { subjectMap[s.name] = s; });
+
+let db, currentGrade = 'All', currentSub = 'All', uploadedFile64 = "", uploadedFileName = "";
+let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
+let cachedItems = null;
+
+class StorageManager {
+    static init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("SideraDrive_V9", 1);
+            request.onupgradeneeded = e => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains("files")) {
+                    database.createObjectStore("files", { keyPath: "id", autoIncrement: true });
+                }
+            };
+            request.onsuccess = e => { db = e.target.result; this.requestPersistence(); resolve(db); };
+            request.onerror = () => { console.error('IndexedDB failed'); reject(); };
+        });
+    }
+
+    static requestPersistence() {
+        if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+    }
+
+    static async getAllData() {
+        return new Promise((resolve) => {
+            const tx = db.transaction("files", "readonly");
+            const store = tx.objectStore("files");
+            store.getAll().onsuccess = (e) => resolve(e.target.result || []);
+        });
+    }
+
+    static async saveData(entry, onProgress) {
+        return new Promise((resolve, reject) => {
+            onProgress?.(10);
+            const tx = db.transaction("files", "readwrite");
+            const store = tx.objectStore("files");
+            const addRequest = store.add(entry);
+            onProgress?.(50);
+            addRequest.onsuccess = () => {
+                onProgress?.(100);
+                cachedItems = null;
+                setTimeout(() => this.backupToLocalStorage(), 100);
+                resolve();
+            };
+            addRequest.onerror = () => reject();
+        });
+    }
+
+    static async deleteData(id) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("files", "readwrite");
+            const store = tx.objectStore("files");
+            const req = store.delete(id);
+            req.onsuccess = () => { cachedItems = null; setTimeout(() => this.backupToLocalStorage(), 100); resolve(); };
+            req.onerror = () => reject();
+        });
+    }
+
+    static async backupToLocalStorage() {
+        try {
+            const data = await this.getAllData();
+            const lightweight = data.map(item => ({
+                ...item,
+                url: item.url && item.url.startsWith('data:') ? '__local_file__' : item.url
+            }));
+            localStorage.setItem('sideraData', JSON.stringify(lightweight));
+            localStorage.setItem('sideraLastBackup', new Date().getTime());
+        } catch (err) {}
+    }
+
+    static async restoreFromBackup() {
+        try {
+            const backup = localStorage.getItem('sideraData');
+            if (!backup) return false;
+            const data = JSON.parse(backup);
+            const restorable = data.filter(item => item.url !== '__local_file__');
+            if (restorable.length === 0) return false;
+            const tx = db.transaction("files", "readwrite");
+            const store = tx.objectStore("files");
+            return new Promise((resolve) => {
+                let restored = 0;
+                const total = restorable.length;
+                restorable.forEach(item => {
+                    const req = store.add(item);
+                    req.onsuccess = () => { if (++restored >= total) resolve(true); };
+                    req.onerror = () => { if (++restored >= total) resolve(true); };
+                });
+            });
+        } catch (err) { return false; }
+    }
+}
+
+function showUploadProgress(show = true) {
+    const container = document.getElementById('progressContainer');
+    if (show) container.classList.add('show');
+    else setTimeout(() => container.classList.remove('show'), 300);
+}
+
+function updateUploadProgress(percent) {
+    document.getElementById('progressFill').style.width = percent + '%';
+    document.getElementById('progressPercent').textContent = percent;
+}
+
+function openPreview(itemId) {
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+    store.get(itemId).onsuccess = (e) => {
+        const item = e.target.result;
+        if (!item) return;
+        const modal = document.getElementById('previewModal');
+        const previewBody = document.getElementById('previewBody');
+        const previewTitle = document.getElementById('previewTitle');
+        previewTitle.textContent = item.fileName || item.title;
+        previewBody.innerHTML = '<p>Loading preview...</p>';
+        modal.classList.add('show');
+        const url = item.url;
+        requestAnimationFrame(() => {
+            if (url.startsWith('data:image')) {
+                const img = new Image();
+                img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+                img.src = url;
+            } else if (url.startsWith('data:application/pdf')) {
+                previewBody.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;"></iframe>';
+            } else if (url.includes('drive.google.com')) {
+                const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+                if (fileId) previewBody.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%;height:100%;border:none;"></iframe>';
+                else previewBody.innerHTML = '<p>Cannot preview. <a href="' + url + '" target="_blank" style="color:var(--accent);">Open in new tab</a></p>';
+            } else {
+                previewBody.innerHTML = '<p>Preview not available for this file type.</p>';
+            }
+        });
+    };
+}
+
+function downloadFile(itemId) {
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+    store.get(itemId).onsuccess = (e) => {
+        const item = e.target.result;
+        if (!item) return;
+        const url = item.url;
+        const fileName = item.fileName || item.title;
+        if (url.startsWith('data:')) {
+            const link = document.createElement('a');
+            link.href = url; link.download = fileName || 'download';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        } else if (url.includes('drive.google.com')) {
+            const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+            if (fileId) window.open('https://drive.google.com/uc?export=download&id=' + fileId, '_blank');
+        } else { window.open(url, '_blank'); }
+    };
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.remove('show');
+    document.getElementById('previewBody').innerHTML = '';
+}
+
+if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+async function initApp() {
+    try {
+        await StorageManager.init();
+        const allData = await StorageManager.getAllData();
+        if (allData.length === 0) await StorageManager.restoreFromBackup();
+        setupApp();
+        render();
+    } catch (err) { console.error('Init failed:', err); setupApp(); render(); }
+}
+
+function setupApp() {
+    const nav = document.getElementById('subjectNav');
+    const sel = document.getElementById('subIn');
+    const navFrag = document.createDocumentFragment();
+    const allSpan = document.createElement('span');
+    allSpan.className = 'active';
+    allSpan.textContent = 'All Subjects';
+    allSpan.onclick = function() { filterSub('All', this); };
+    navFrag.appendChild(allSpan);
+
+    const selFrag = document.createDocumentFragment();
+    subjectData.forEach(s => {
+        const span = document.createElement('span');
+        span.textContent = s.icon + ' ' + s.name;
+        span.onclick = function() { filterSub(s.name, this); };
+        navFrag.appendChild(span);
+        const opt = document.createElement('option');
+        opt.value = s.name; opt.textContent = s.icon + ' ' + s.name;
+        selFrag.appendChild(opt);
+    });
+    nav.innerHTML = '';
+    nav.appendChild(navFrag);
+    sel.innerHTML = '';
+    sel.appendChild(selFrag);
+
+    if(isAdmin) {
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('loginBtn').innerText = "Logout";
+        document.getElementById('loginBtn').onclick = logout;
+    }
+    if(localStorage.getItem('theme') === 'dark') document.getElementById('themeBtn').innerText = "☀️ Mode";
+
+    let searchTimer;
+    document.getElementById('searchBar').addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(search, 150);
+    });
+}
+
+function processFile(input) {
+    const file = input.files[0];
+    if (file) {
+        if (file.size > 50 * 1024 * 1024) { alert("File too large (>50MB). Use an external link."); return; }
+        uploadedFileName = file.name;
+        document.getElementById('fileNameDisplay').innerText = "✅ " + file.name;
+        showUploadProgress(true); updateUploadProgress(0);
+        const reader = new FileReader();
+        reader.onprogress = (e) => { if (e.lengthComputable) updateUploadProgress(Math.round((e.loaded / e.total) * 50)); };
+        reader.onload = e => { uploadedFile64 = e.target.result; updateUploadProgress(50); showUploadProgress(false); };
+        reader.onerror = () => { showUploadProgress(false); alert("Error reading file"); };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function saveToHub() {
+    const title = document.getElementById('title').value;
+    const link = document.getElementById('linkIn').value || uploadedFile64;
+    if(!title || !link) return alert("Please provide a file or a link!");
+    const btn = document.getElementById('publishBtn');
+    btn.disabled = true;
+    const entry = {
+        title, grade: document.getElementById('gradeIn').value,
+        subject: document.getElementById('subIn').value, url: link,
+        desc: document.getElementById('desc').value,
+        type: uploadedFile64 ? "Local File" : "Web Link",
+        fileName: uploadedFileName, createdAt: new Date().toISOString()
+    };
+    try {
+        showUploadProgress(true); updateUploadProgress(0);
+        await StorageManager.saveData(entry, (percent) => updateUploadProgress(percent));
+        showUploadProgress(false);
+        document.getElementById('title').value = '';
+        document.getElementById('linkIn').value = '';
+        document.getElementById('desc').value = '';
+        document.getElementById('fileNameDisplay').innerText = '📂 Click to Upload File (PDF, Image, etc.)';
+        uploadedFile64 = ''; uploadedFileName = ''; btn.disabled = false;
+        render();
+    } catch (err) { showUploadProgress(false); btn.disabled = false; alert('Error uploading file'); }
+}
+
+async function render() {
+    const cont = document.getElementById('container');
+    try {
+        const items = await StorageManager.getAllData();
+        if (items.length === 0) { cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>'; return; }
+        const frag = document.createDocumentFragment();
+        let count = 0;
+        for (let i = items.length - 1; i >= 0; i--) {
+            const item = items[i];
+            if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
+                const sInfo = subjectMap[item.subject];
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button><div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + '</span></div><h3>' + item.title + '</h3><p>' + (item.desc || 'No additional notes.') + '</p><div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+                frag.appendChild(card);
+                count++;
+            }
+        }
+        if (count === 0) { cont.innerHTML = '<p class="no-resources">📚 No resources match current filters.</p>'; return; }
+        cont.innerHTML = '';
+        cont.appendChild(frag);
+    } catch (err) { console.error('Render error:', err); }
+}
+
+document.getElementById('container').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-id]');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    if (btn.classList.contains('btn-preview')) openPreview(id);
+    else if (btn.classList.contains('btn-dl')) downloadFile(id);
+    else if (btn.classList.contains('del-btn')) deleteItem(id);
+});
+
+function checkAuth() {
+    const user = document.getElementById('adminUser').value;
+    const pass = document.getElementById('adminPass').value;
+    if(admins.find(a => a.u === user && a.p === pass)) { localStorage.setItem('isSideraAdmin', 'true'); location.reload(); }
+    else alert("Invalid Credentials!");
+}
+
+function logout() { localStorage.removeItem('isSideraAdmin'); location.reload(); }
+
+async function deleteItem(id) {
+    if(confirm("Delete this resource?")) {
+        try { await StorageManager.deleteData(id); render(); }
+        catch (err) { console.error('Delete error:', err); }
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').innerText = isDark ? "🌙 Mode" : "☀️ Mode";
+}
+
+function showLogin() { document.getElementById('loginModal').classList.add('show'); }
+function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
+
+function filterGrade(g, el) {
+    document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
+    el.classList.add('active'); currentGrade = g; render();
+}
+
+function filterSub(s, el) {
+    document.querySelectorAll('#subjectNav span').forEach(s => s.classList.remove('active'));
+    el.classList.add('active'); currentSub = s; render();
+}
+
+function search() {
+    const v = document.getElementById('searchBar').value.toLowerCase();
+    document.querySelectorAll('.card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v) ? 'flex' : 'none');
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePreview(); hideLogin(); } });
+
+setInterval(() => {
+    if (window.requestIdleCallback) requestIdleCallback(() => StorageManager.backupToLocalStorage());
+    else StorageManager.backupToLocalStorage();
+}, 5 * 60 * 1000);
+window.addEventListener('beforeunload', () => StorageManager.backupToLocalStorage());
+
+initApp();
+</script>
+</body>
+</html>
