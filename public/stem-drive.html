@@ -842,10 +842,25 @@ function search() {
     });
 }
 
+function toggleTeam() {
+    const dd = document.getElementById('teamDropdown');
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('teamDropdown');
+    const toggle = document.getElementById('teamToggle');
+    if (dd && dd.style.display === 'block' && !dd.contains(e.target) && e.target !== toggle) {
+        dd.style.display = 'none';
+    }
+});
+
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closePreview();
         hideLogin();
+        const dd = document.getElementById('teamDropdown');
+        if (dd) dd.style.display = 'none';
     }
 });
 
