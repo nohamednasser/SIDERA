@@ -833,6 +833,95 @@ function toggleTheme() {
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
 function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
 
+function showAdminTab(tab) {
+    document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
+    document.getElementById('adminSubjectsTab').style.display = tab === 'subjects' ? 'block' : 'none';
+    document.getElementById('tabUpload').style.borderColor = tab === 'upload' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('tabUpload').style.color = tab === 'upload' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('tabSubjects').style.borderColor = tab === 'subjects' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('tabSubjects').style.color = tab === 'subjects' ? 'var(--accent)' : 'var(--text)';
+    if (tab === 'subjects') renderSubjectsList();
+}
+
+function renderSubjectsList() {
+    const container = document.getElementById('subjectsList');
+    if (!container) return;
+    container.innerHTML = subjectData.map(s =>
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--input-bg);">' +
+            '<span style="font-size:0.9rem;">' + s.icon + ' ' + s.name + '</span>' +
+            '<button onclick="deleteSubject(\'' + s.name.replace(/'/g, "\\'") + '\')" style="background:#ff4d4d;color:white;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;">🗑️ Delete</button>' +
+        '</div>'
+    ).join('');
+}
+
+async function addSubject() {
+    const name = document.getElementById('newSubjectName').value.trim();
+    const icon = document.getElementById('newSubjectIcon').value.trim() || '📚';
+    if (!name) { alert('Please enter a subject name!'); return; }
+    if (subjectMap[name]) { alert('Subject already exists!'); return; }
+
+    try {
+        const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
+        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects', {
+            method: 'POST', headers: sbHeaders,
+            body: JSON.stringify({ name, icon, sort_order: maxOrder })
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        await loadSubjectsFromDB();
+        rebuildSubjectUI();
+        renderSubjectsList();
+        document.getElementById('newSubjectName').value = '';
+        document.getElementById('newSubjectIcon').value = '';
+    } catch (err) {
+        console.error('addSubject error:', err);
+        alert('Failed to add subject.');
+    }
+}
+
+async function deleteSubject(name) {
+    if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
+            method: 'DELETE', headers: sbHeaders
+        });
+        await loadSubjectsFromDB();
+        rebuildSubjectUI();
+        renderSubjectsList();
+    } catch (err) {
+        console.error('deleteSubject error:', err);
+        alert('Failed to delete subject.');
+    }
+}
+
+function rebuildSubjectUI() {
+    const nav = document.getElementById('subjectNav');
+    const sel = document.getElementById('subIn');
+    const navFrag = document.createDocumentFragment();
+    const allSpan = document.createElement('span');
+    allSpan.className = 'active';
+    allSpan.textContent = 'All Subjects';
+    allSpan.onclick = function() { filterSub('All', this); };
+    navFrag.appendChild(allSpan);
+    const selFrag = document.createDocumentFragment();
+    subjectData.forEach(s => {
+        const span = document.createElement('span');
+        span.textContent = s.icon + ' ' + s.name;
+        span.onclick = function() { filterSub(s.name, this); };
+        navFrag.appendChild(span);
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.icon + ' ' + s.name;
+        selFrag.appendChild(opt);
+    });
+    nav.innerHTML = '';
+    nav.appendChild(navFrag);
+    sel.innerHTML = '';
+    sel.appendChild(selFrag);
+    currentSub = 'All';
+    render();
+}
+
 function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
