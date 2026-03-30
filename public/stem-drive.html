@@ -187,27 +187,38 @@
 </div>
 
 <div id="adminPanel">
-    <h2 style="margin-bottom: 20px; text-align: center; font-size: 1.2rem;">Upload New Resource</h2>
-    <div class="form-grid">
-        <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-        
-        <select id="gradeIn">
-            <option value="G10">Grade 10</option>
-            <option value="G11">Grade 11</option>
-            <option value="G12">Grade 12</option>
-        </select>
-        
-        <select id="subIn"></select>
-
-        <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
-            <input type="file" id="fileInput" hidden onchange="processFile(this)">
-        </div>
-
-        <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-        <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
     </div>
-    <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+
+    <div id="adminUploadTab">
+        <div class="form-grid">
+            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+            <select id="gradeIn">
+                <option value="G10">Grade 10</option>
+                <option value="G11">Grade 11</option>
+                <option value="G12">Grade 12</option>
+            </select>
+            <select id="subIn"></select>
+            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
+                <input type="file" id="fileInput" hidden onchange="processFile(this)">
+            </div>
+            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+        </div>
+        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+    </div>
+
+    <div id="adminSubjectsTab" style="display:none;">
+        <div class="form-grid">
+            <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
+            <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
+        </div>
+        <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
+        <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+    </div>
 </div>
 
 <div class="content" id="container"></div>
