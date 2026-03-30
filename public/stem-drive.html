@@ -277,7 +277,8 @@ const admins = [
     {u: "admin5", p: "M@nage2026!"}
 ];
 
-const subjectData = [
+// Fallback subjects (used if DB fetch fails)
+const fallbackSubjects = [
     { name: "SAT", icon: "📐" }, { name: "ACT", icon: "📊" },
     { name: "computer science", icon: "💻" }, { name: "chemistry", icon: "🧪" },
     { name: "capstone", icon: "🏗️" }, { name: "biology", icon: "🧬" },
@@ -290,8 +291,26 @@ const subjectData = [
     { name: "religion", icon: "🌙" }
 ];
 
-const subjectMap = {};
+let subjectData = [...fallbackSubjects];
+let subjectMap = {};
 subjectData.forEach(s => { subjectMap[s.name] = s; });
+
+async function loadSubjectsFromDB() {
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects?select=*&order=sort_order.asc', {
+            headers: sbHeaders
+        });
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        if (data.length > 0) {
+            subjectData = data.map(s => ({ name: s.name, icon: s.icon, id: s.id }));
+            subjectMap = {};
+            subjectData.forEach(s => { subjectMap[s.name] = s; });
+        }
+    } catch (err) {
+        console.error('loadSubjects error:', err);
+    }
+}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
