@@ -244,7 +244,17 @@
 </div>
 
 <footer>
-    Developed by <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & Team
+    <div style="position:relative;display:inline-block;">
+        Developed by <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & 
+        <span id="teamToggle" style="cursor:pointer;color:var(--accent);font-weight:bold;text-decoration:underline;" onclick="toggleTeam()">Team Jump</span>
+        <div id="teamDropdown" style="display:none;position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,0.15);white-space:nowrap;z-index:100;text-align:left;">
+            <div style="margin-bottom:8px;font-weight:700;font-size:0.85rem;color:var(--accent);">👥 Team Members</div>
+            <div style="margin-bottom:6px;font-size:0.82rem;"><a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">Youssef Salama</a></div>
+            <div style="margin-bottom:6px;font-size:0.82rem;color:var(--dark);">Jina Hany</div>
+            <div style="margin-bottom:6px;font-size:0.82rem;color:var(--dark);">Mariam Moamen</div>
+            <div style="font-size:0.82rem;color:var(--dark);">Eyad Atef</div>
+        </div>
+    </div>
 </footer>
 
 <script>
