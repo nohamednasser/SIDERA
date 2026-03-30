@@ -302,6 +302,10 @@ function formatSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+let _cachedItems = null;
+let _cacheTime = 0;
+const CACHE_TTL = 30000; // 30s cache
+
 // Supabase REST helpers
 const sbHeaders = {
     'apikey': SUPABASE_ANON_KEY,
@@ -310,40 +314,49 @@ const sbHeaders = {
     'Prefer': 'return=representation'
 };
 
-class StorageManager {
-    static async init() {
-        // No init needed for cloud storage
-        return true;
-    }
+function mapRow(r) {
+    return {
+        id: r.id, title: r.title, grade: r.grade, subject: r.subject,
+        url: r.url || '', desc: r.description || '', type: r.type,
+        fileName: r.file_name || '', fileSize: r.file_size || 0,
+        fileType: r.file_type || '', storagePath: r.storage_path || '',
+        createdAt: r.created_at
+    };
+}
 
-    static async getAllData() {
+class StorageManager {
+    static async init() { return true; }
+
+    static async getAllData(forceRefresh = false) {
+        if (!forceRefresh && _cachedItems && (Date.now() - _cacheTime < CACHE_TTL)) {
+            return _cachedItems;
+        }
         try {
             const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?select=*&order=created_at.desc', {
                 headers: sbHeaders
             });
             if (!res.ok) throw new Error('Fetch failed');
             const data = await res.json();
-            return data.map(r => ({
-                id: r.id,
-                title: r.title,
-                grade: r.grade,
-                subject: r.subject,
-                url: r.url || '',
-                desc: r.description || '',
-                type: r.type,
-                fileName: r.file_name || '',
-                fileSize: r.file_size || 0,
-                fileType: r.file_type || '',
-                storagePath: r.storage_path || '',
-                createdAt: r.created_at
-            }));
+            _cachedItems = data.map(mapRow);
+            _cacheTime = Date.now();
+            return _cachedItems;
         } catch (err) {
             console.error('getAllData error:', err);
-            return [];
+            return _cachedItems || [];
         }
     }
 
+    static getFileFromCache(id) {
+        if (_cachedItems) {
+            const found = _cachedItems.find(i => i.id === id);
+            if (found) return found;
+        }
+        return null;
+    }
+
     static async getFile(id) {
+        const cached = this.getFileFromCache(id);
+        if (cached) return cached;
         try {
             const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id + '&select=*', {
                 headers: sbHeaders
@@ -351,21 +364,7 @@ class StorageManager {
             if (!res.ok) return null;
             const data = await res.json();
             if (!data.length) return null;
-            const r = data[0];
-            return {
-                id: r.id,
-                title: r.title,
-                grade: r.grade,
-                subject: r.subject,
-                url: r.url || '',
-                desc: r.description || '',
-                type: r.type,
-                fileName: r.file_name || '',
-                fileSize: r.file_size || 0,
-                fileType: r.file_type || '',
-                storagePath: r.storage_path || '',
-                createdAt: r.created_at
-            };
+            return mapRow(data[0]);
         } catch (err) {
             console.error('getFile error:', err);
             return null;
@@ -380,7 +379,6 @@ class StorageManager {
         let storagePath = '';
 
         if (fileBlob) {
-            // Upload file to Supabase Storage using XHR for progress
             const timestamp = Date.now();
             const safeName = (entry.fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
             storagePath = entry.grade + '/' + entry.subject + '/' + timestamp + '_' + safeName;
@@ -400,11 +398,8 @@ class StorageManager {
                 };
 
                 xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve();
-                    } else {
-                        reject(new Error('Upload failed: ' + xhr.status + ' ' + xhr.responseText));
-                    }
+                    if (xhr.status >= 200 && xhr.status < 300) resolve();
+                    else reject(new Error('Upload failed: ' + xhr.status));
                 };
                 xhr.onerror = () => reject(new Error('Upload network error'));
                 xhr.send(fileBlob);
@@ -413,53 +408,43 @@ class StorageManager {
 
         onProgress?.(92);
 
-        // Save metadata to DB
         const dbEntry = {
-            title: entry.title,
-            grade: entry.grade,
-            subject: entry.subject,
-            url: entry.url || '',
-            description: entry.desc || '',
-            type: entry.type,
-            file_name: entry.fileName || '',
-            file_size: entry.fileSize || 0,
-            file_type: entry.fileType || '',
-            storage_path: storagePath
+            title: entry.title, grade: entry.grade, subject: entry.subject,
+            url: entry.url || '', description: entry.desc || '', type: entry.type,
+            file_name: entry.fileName || '', file_size: entry.fileSize || 0,
+            file_type: entry.fileType || '', storage_path: storagePath
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
-            method: 'POST',
-            headers: sbHeaders,
-            body: JSON.stringify(dbEntry)
+            method: 'POST', headers: sbHeaders, body: JSON.stringify(dbEntry)
         });
 
         if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
         const result = await res.json();
         onProgress?.(100);
+
+        // Invalidate cache
+        _cachedItems = null;
         return result[0]?.id;
     }
 
     static async deleteData(id) {
-        // Get file info first
         const item = await this.getFile(id);
         if (!item) return;
 
-        // Delete from storage if it has a file
+        const promises = [];
         if (item.storagePath) {
-            await fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
+            promises.push(fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
                 method: 'DELETE',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                }
-            });
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+            }));
         }
+        promises.push(fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
+            method: 'DELETE', headers: sbHeaders
+        }));
 
-        // Delete metadata
-        await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
-            method: 'DELETE',
-            headers: sbHeaders
-        });
+        await Promise.all(promises);
+        _cachedItems = null;
     }
 }
 
