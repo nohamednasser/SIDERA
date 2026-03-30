@@ -187,27 +187,38 @@
 </div>
 
 <div id="adminPanel">
-    <h2 style="margin-bottom: 20px; text-align: center; font-size: 1.2rem;">Upload New Resource</h2>
-    <div class="form-grid">
-        <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-        
-        <select id="gradeIn">
-            <option value="G10">Grade 10</option>
-            <option value="G11">Grade 11</option>
-            <option value="G12">Grade 12</option>
-        </select>
-        
-        <select id="subIn"></select>
-
-        <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
-            <input type="file" id="fileInput" hidden onchange="processFile(this)">
-        </div>
-
-        <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-        <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
     </div>
-    <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+
+    <div id="adminUploadTab">
+        <div class="form-grid">
+            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+            <select id="gradeIn">
+                <option value="G10">Grade 10</option>
+                <option value="G11">Grade 11</option>
+                <option value="G12">Grade 12</option>
+            </select>
+            <select id="subIn"></select>
+            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
+                <input type="file" id="fileInput" hidden onchange="processFile(this)">
+            </div>
+            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+        </div>
+        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+    </div>
+
+    <div id="adminSubjectsTab" style="display:none;">
+        <div class="form-grid">
+            <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
+            <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
+        </div>
+        <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
+        <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+    </div>
 </div>
 
 <div class="content" id="container"></div>
@@ -266,7 +277,8 @@ const admins = [
     {u: "admin5", p: "M@nage2026!"}
 ];
 
-const subjectData = [
+// Fallback subjects (used if DB fetch fails)
+const fallbackSubjects = [
     { name: "SAT", icon: "📐" }, { name: "ACT", icon: "📊" },
     { name: "computer science", icon: "💻" }, { name: "chemistry", icon: "🧪" },
     { name: "capstone", icon: "🏗️" }, { name: "biology", icon: "🧬" },
@@ -279,8 +291,26 @@ const subjectData = [
     { name: "religion", icon: "🌙" }
 ];
 
-const subjectMap = {};
+let subjectData = [...fallbackSubjects];
+let subjectMap = {};
 subjectData.forEach(s => { subjectMap[s.name] = s; });
+
+async function loadSubjectsFromDB() {
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects?select=*&order=sort_order.asc', {
+            headers: sbHeaders
+        });
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        if (data.length > 0) {
+            subjectData = data.map(s => ({ name: s.name, icon: s.icon, id: s.id }));
+            subjectMap = {};
+            subjectData.forEach(s => { subjectMap[s.name] = s; });
+        }
+    } catch (err) {
+        console.error('loadSubjects error:', err);
+    }
+}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
@@ -552,6 +582,7 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 async function initApp() {
     try {
         await StorageManager.init();
+        await loadSubjectsFromDB();
         setupApp();
         render();
     } catch (err) {
@@ -801,6 +832,95 @@ function toggleTheme() {
 
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
 function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
+
+function showAdminTab(tab) {
+    document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
+    document.getElementById('adminSubjectsTab').style.display = tab === 'subjects' ? 'block' : 'none';
+    document.getElementById('tabUpload').style.borderColor = tab === 'upload' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('tabUpload').style.color = tab === 'upload' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('tabSubjects').style.borderColor = tab === 'subjects' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('tabSubjects').style.color = tab === 'subjects' ? 'var(--accent)' : 'var(--text)';
+    if (tab === 'subjects') renderSubjectsList();
+}
+
+function renderSubjectsList() {
+    const container = document.getElementById('subjectsList');
+    if (!container) return;
+    container.innerHTML = subjectData.map(s =>
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--input-bg);">' +
+            '<span style="font-size:0.9rem;">' + s.icon + ' ' + s.name + '</span>' +
+            '<button onclick="deleteSubject(\'' + s.name.replace(/'/g, "\\'") + '\')" style="background:#ff4d4d;color:white;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;">🗑️ Delete</button>' +
+        '</div>'
+    ).join('');
+}
+
+async function addSubject() {
+    const name = document.getElementById('newSubjectName').value.trim();
+    const icon = document.getElementById('newSubjectIcon').value.trim() || '📚';
+    if (!name) { alert('Please enter a subject name!'); return; }
+    if (subjectMap[name]) { alert('Subject already exists!'); return; }
+
+    try {
+        const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
+        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects', {
+            method: 'POST', headers: sbHeaders,
+            body: JSON.stringify({ name, icon, sort_order: maxOrder })
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        await loadSubjectsFromDB();
+        rebuildSubjectUI();
+        renderSubjectsList();
+        document.getElementById('newSubjectName').value = '';
+        document.getElementById('newSubjectIcon').value = '';
+    } catch (err) {
+        console.error('addSubject error:', err);
+        alert('Failed to add subject.');
+    }
+}
+
+async function deleteSubject(name) {
+    if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
+            method: 'DELETE', headers: sbHeaders
+        });
+        await loadSubjectsFromDB();
+        rebuildSubjectUI();
+        renderSubjectsList();
+    } catch (err) {
+        console.error('deleteSubject error:', err);
+        alert('Failed to delete subject.');
+    }
+}
+
+function rebuildSubjectUI() {
+    const nav = document.getElementById('subjectNav');
+    const sel = document.getElementById('subIn');
+    const navFrag = document.createDocumentFragment();
+    const allSpan = document.createElement('span');
+    allSpan.className = 'active';
+    allSpan.textContent = 'All Subjects';
+    allSpan.onclick = function() { filterSub('All', this); };
+    navFrag.appendChild(allSpan);
+    const selFrag = document.createDocumentFragment();
+    subjectData.forEach(s => {
+        const span = document.createElement('span');
+        span.textContent = s.icon + ' ' + s.name;
+        span.onclick = function() { filterSub(s.name, this); };
+        navFrag.appendChild(span);
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.icon + ' ' + s.name;
+        selFrag.appendChild(opt);
+    });
+    nav.innerHTML = '';
+    nav.appendChild(navFrag);
+    sel.innerHTML = '';
+    sel.appendChild(selFrag);
+    currentSub = 'All';
+    render();
+}
 
 function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
