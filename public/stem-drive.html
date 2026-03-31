@@ -409,6 +409,7 @@ const sbHeaders = {
 function mapRow(r) {
     return {
         id: r.id, title: r.title, grade: r.grade, subject: r.subject,
+        semester: r.semester || 'S1',
         url: r.url || '', desc: r.description || '', type: r.type,
         fileName: r.file_name || '', fileSize: r.file_size || 0,
         fileType: r.file_type || '', storagePath: r.storage_path || '',
