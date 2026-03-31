@@ -782,7 +782,7 @@ async function downloadFile(itemId) {
         return;
     }
 
-    alert('File data not found');
+    showToast('File data not found', 'error');
 }
 
 function closePreview() {
@@ -879,7 +879,7 @@ function processSelectedFile(file) {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-        alert('File exceeds 5GB limit.');
+        showToast('File exceeds 5GB limit.', 'warning');
         return;
     }
 
@@ -932,7 +932,7 @@ async function saveToHub() {
     const hasLink = linkValue !== '';
 
     if (!title || (!hasFile && !hasLink)) {
-        alert('Please provide a title and a file or link!');
+        showToast('Please provide a title and a file or link!', 'warning');
         return;
     }
 
@@ -981,7 +981,7 @@ async function saveToHub() {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        alert('Error saving file. If file is very large, use an external link.');
+        showToast('Error saving file. Try using an external link for large files.', 'error');
     }
 }
 
@@ -1138,8 +1138,8 @@ function renderSubjectsList() {
 async function addSubject() {
     const name = document.getElementById('newSubjectName').value.trim();
     const icon = document.getElementById('newSubjectIcon').value.trim() || '📚';
-    if (!name) { alert('Please enter a subject name!'); return; }
-    if (subjectMap[name]) { alert('Subject already exists!'); return; }
+    if (!name) { showToast('Please enter a subject name!', 'warning'); return; }
+    if (subjectMap[name]) { showToast('Subject already exists!', 'warning'); return; }
 
     try {
         const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
@@ -1156,7 +1156,7 @@ async function addSubject() {
         document.getElementById('newSubjectIcon').value = '';
     } catch (err) {
         console.error('addSubject error:', err);
-        alert('Failed to add subject.');
+        showToast('Failed to add subject.', 'error');
     }
 }
 
@@ -1171,7 +1171,7 @@ async function deleteSubject(name) {
         renderSubjectsList();
     } catch (err) {
         console.error('deleteSubject error:', err);
-        alert('Failed to delete subject.');
+        showToast('Failed to delete subject.', 'error');
     }
 }
 
@@ -1450,7 +1450,7 @@ async function previewZipEntry(storagePath, entryPath, fileName) {
 async function downloadZipEntry(storagePath, entryPath, fileName) {
     try {
         const blob = await getZipBlob(storagePath, entryPath);
-        if (!blob) { alert('File not found in archive'); return; }
+        if (!blob) { showToast('File not found in archive', 'error'); return; }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1461,7 +1461,7 @@ async function downloadZipEntry(storagePath, entryPath, fileName) {
         setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (err) {
         console.error('ZIP extract error:', err);
-        alert('Failed to extract file from ZIP.');
+        showToast('Failed to extract file from ZIP.', 'error');
     }
 }
 
