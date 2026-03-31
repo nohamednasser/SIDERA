@@ -674,11 +674,13 @@ async function openPreview(itemId) {
                     const safeStorage = encodeURIComponent(item.storagePath);
                     const safeEntry = encodeURIComponent(e.name);
                     const safeName = encodeURIComponent(name);
-                    html += '<div class="zip-item-card" onclick="downloadZipEntry(decodeURIComponent(\'' + safeStorage + '\'), decodeURIComponent(\'' + safeEntry + '\'), decodeURIComponent(\'' + safeName + '\'))">';
+                    html += '<div class="zip-item-card" style="cursor:default;">';
                     html += '<span class="zip-item-icon">' + getFileIcon(name) + '</span>';
-                    html += '<div class="zip-item-info"><div class="zip-item-name" title="' + e.name + '">' + name + '</div><div class="zip-item-size">' + formatSize(e.size) + '</div></div>';
-                    html += '<button class="zip-item-dl">📥</button>';
-                    html += '</div>';
+                    html += '<div class="zip-item-info"><div class="zip-item-name">' + name + '</div><div class="zip-item-size">' + formatSize(e.size) + '</div></div>';
+                    html += '<div class="zip-item-actions">';
+                    html += '<button class="zip-item-btn preview" onclick="previewZipEntry(decodeURIComponent(\'' + safeStorage + '\'), decodeURIComponent(\'' + safeEntry + '\'), decodeURIComponent(\'' + safeName + '\'))">👁️</button>';
+                    html += '<button class="zip-item-btn download" onclick="downloadZipEntry(decodeURIComponent(\'' + safeStorage + '\'), decodeURIComponent(\'' + safeEntry + '\'), decodeURIComponent(\'' + safeName + '\'))">📥</button>';
+                    html += '</div></div>';
                 });
                 html += '</div></div>';
                 previewBody.innerHTML = html;
