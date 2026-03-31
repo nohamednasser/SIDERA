@@ -758,6 +758,7 @@ async function saveToHub() {
         const entry = {
             title,
             grade: document.getElementById('gradeIn').value,
+            semester: document.getElementById('semesterIn').value,
             subject: document.getElementById('subIn').value,
             url: hasLink ? linkValue : '',
             desc: document.getElementById('desc').value,
