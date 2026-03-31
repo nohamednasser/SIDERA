@@ -719,8 +719,56 @@ function closePreview() {
 
 if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
+async function restoreSession() {
+    try {
+        const saved = sessionStorage.getItem('sideraSession');
+        if (!saved) return;
+        const session = JSON.parse(saved);
+        // Verify token is still valid
+        const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token }
+        });
+        if (res.ok) {
+            const user = await res.json();
+            // Verify admin status
+            const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/admins?user_id=eq.' + user.id + '&select=user_id', {
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' }
+            });
+            const adminData = await adminCheck.json();
+            if (adminData && adminData.length > 0) {
+                _authSession = session;
+                isAdmin = true;
+            } else {
+                sessionStorage.removeItem('sideraSession');
+            }
+        } else {
+            // Try refresh
+            if (session.refresh_token) {
+                const refreshRes = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: session.refresh_token })
+                });
+                if (refreshRes.ok) {
+                    const newSession = await refreshRes.json();
+                    _authSession = newSession;
+                    sessionStorage.setItem('sideraSession', JSON.stringify(newSession));
+                    isAdmin = true;
+                } else {
+                    sessionStorage.removeItem('sideraSession');
+                }
+            } else {
+                sessionStorage.removeItem('sideraSession');
+            }
+        }
+    } catch (e) {
+        sessionStorage.removeItem('sideraSession');
+    }
+}
+
 async function initApp() {
     try {
+        await restoreSession();
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
