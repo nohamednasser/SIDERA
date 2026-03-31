@@ -394,8 +394,57 @@
     </div>
 </footer>
 
+<!-- Toast Container -->
+<div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:100000;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+
+<style>
+.sidera-toast {
+    pointer-events:auto;
+    min-width:280px;max-width:400px;padding:14px 20px;border-radius:12px;
+    font-size:0.88rem;font-weight:500;line-height:1.4;
+    box-shadow:0 8px 32px rgba(0,0,0,0.18);backdrop-filter:blur(12px);
+    display:flex;align-items:center;gap:10px;
+    animation:toastSlideIn 0.35s cubic-bezier(0.22,1,0.36,1);
+    transition:opacity 0.3s ease,transform 0.3s ease;
+    font-family:'Segoe UI',Tahoma,sans-serif;
+}
+.sidera-toast.toast-error {
+    background:rgba(220,38,38,0.12);color:#ef4444;border:1px solid rgba(220,38,38,0.25);
+}
+.sidera-toast.toast-success {
+    background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.25);
+}
+.sidera-toast.toast-warning {
+    background:rgba(234,179,8,0.12);color:#eab308;border:1px solid rgba(234,179,8,0.25);
+}
+.sidera-toast.toast-info {
+    background:rgba(59,130,246,0.12);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);
+}
+.sidera-toast.toast-exit {
+    opacity:0;transform:translateX(100%);
+}
+@keyframes toastSlideIn {
+    from { opacity:0;transform:translateX(100%); }
+    to { opacity:1;transform:translateX(0); }
+}
+</style>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
+// Toast notification system
+const TOAST_ICONS = { error:'❌', success:'✅', warning:'⚠️', info:'ℹ️' };
+function showToast(message, type = 'error', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'sidera-toast toast-' + type;
+    toast.innerHTML = '<span>' + (TOAST_ICONS[type]||'') + '</span><span>' + message + '</span>';
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 const admins = [
     {u: "admin1", p: "Sid3ra@2026"},
     {u: "admin2", p: "Dr1ve#Secure"},
@@ -733,7 +782,7 @@ async function downloadFile(itemId) {
         return;
     }
 
-    alert('File data not found');
+    showToast('File data not found', 'error');
 }
 
 function closePreview() {
@@ -830,7 +879,7 @@ function processSelectedFile(file) {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-        alert('File exceeds 5GB limit.');
+        showToast('File exceeds 5GB limit.', 'warning');
         return;
     }
 
@@ -883,7 +932,7 @@ async function saveToHub() {
     const hasLink = linkValue !== '';
 
     if (!title || (!hasFile && !hasLink)) {
-        alert('Please provide a title and a file or link!');
+        showToast('Please provide a title and a file or link!', 'warning');
         return;
     }
 
@@ -932,7 +981,7 @@ async function saveToHub() {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        alert('Error saving file. If file is very large, use an external link.');
+        showToast('Error saving file. Try using an external link for large files.', 'error');
     }
 }
 
@@ -1089,8 +1138,8 @@ function renderSubjectsList() {
 async function addSubject() {
     const name = document.getElementById('newSubjectName').value.trim();
     const icon = document.getElementById('newSubjectIcon').value.trim() || '📚';
-    if (!name) { alert('Please enter a subject name!'); return; }
-    if (subjectMap[name]) { alert('Subject already exists!'); return; }
+    if (!name) { showToast('Please enter a subject name!', 'warning'); return; }
+    if (subjectMap[name]) { showToast('Subject already exists!', 'warning'); return; }
 
     try {
         const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
@@ -1107,7 +1156,7 @@ async function addSubject() {
         document.getElementById('newSubjectIcon').value = '';
     } catch (err) {
         console.error('addSubject error:', err);
-        alert('Failed to add subject.');
+        showToast('Failed to add subject.', 'error');
     }
 }
 
@@ -1122,7 +1171,7 @@ async function deleteSubject(name) {
         renderSubjectsList();
     } catch (err) {
         console.error('deleteSubject error:', err);
-        alert('Failed to delete subject.');
+        showToast('Failed to delete subject.', 'error');
     }
 }
 
@@ -1401,7 +1450,7 @@ async function previewZipEntry(storagePath, entryPath, fileName) {
 async function downloadZipEntry(storagePath, entryPath, fileName) {
     try {
         const blob = await getZipBlob(storagePath, entryPath);
-        if (!blob) { alert('File not found in archive'); return; }
+        if (!blob) { showToast('File not found in archive', 'error'); return; }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1412,7 +1461,7 @@ async function downloadZipEntry(storagePath, entryPath, fileName) {
         setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (err) {
         console.error('ZIP extract error:', err);
-        alert('Failed to extract file from ZIP.');
+        showToast('Failed to extract file from ZIP.', 'error');
     }
 }
 
