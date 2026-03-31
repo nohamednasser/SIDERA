@@ -76,8 +76,22 @@
         .btn-dl:hover { filter: brightness(1.12); }
         .btn-dl:active { transform: scale(0.97); }
         
-        .del-btn { position: absolute; top: -8px; right: -8px; background: #ff4d4d; color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3); transition: background-color 0.15s ease, transform 0.1s ease; font-size: 1rem; }
-        .del-btn:hover { background: #ff2e2e; transform: scale(1.1); }
+        .del-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-weight: bold; display: none; transition: all 0.2s ease; font-size: 0.85rem; backdrop-filter: blur(4px); z-index: 2; }
+        .del-btn:hover { background: #ff4d4d; color: white; transform: scale(1.08); box-shadow: 0 4px 14px rgba(255,77,77,0.35); }
+        .delete-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; }
+        .delete-modal.show { opacity: 1; visibility: visible; }
+        .delete-modal-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 340px; max-width: 90vw; text-align: center; animation: slideUp 0.25s ease; }
+        .delete-modal-content .del-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,77,77,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem; }
+        .delete-modal-content h3 { font-size: 1.15rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+        .delete-modal-content p { font-size: 0.85rem; color: var(--text); margin-bottom: 20px; line-height: 1.5; }
+        .delete-modal-content .del-title { color: var(--accent); font-weight: 600; }
+        .del-actions { display: flex; gap: 10px; }
+        .del-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.15s ease; }
+        .del-cancel { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border) !important; }
+        .del-cancel:hover { background: var(--border); }
+        .del-confirm { background: #ff4d4d; color: white; }
+        .del-confirm:hover { background: #e63939; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,77,77,0.3); }
+        .del-confirm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         /* FIX: Removed backdrop-filter: blur - very expensive on repaint */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
@@ -291,6 +305,18 @@
     </div>
     <div class="progress-text"><span id="progressPercent">0</span>%</div>
     <div class="progress-size" id="progressSizeInfo"></div>
+</div>
+
+<div id="deleteModal" class="delete-modal" onclick="if(event.target===this)closeDeleteModal()">
+    <div class="delete-modal-content">
+        <div class="del-icon">🗑️</div>
+        <h3>Delete Resource</h3>
+        <p>Are you sure you want to delete<br><span class="del-title" id="deleteItemTitle"></span>?</p>
+        <div class="del-actions">
+            <button class="del-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="del-confirm" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
 </div>
 
 <div id="dashModal" class="dash-modal">
@@ -819,7 +845,7 @@ async function render() {
                 card.className = 'card';
                 const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
 
-                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button>' +
+                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:flex;align-items:center;justify-content:center' : '') + '" data-id="' + item.id + '" title="Delete">🗑️</button>' +
                     '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
                     '<h3>' + item.title + '</h3>' +
                     '<p>' + (item.desc || 'No additional notes.') + '</p>' +
@@ -869,14 +895,36 @@ function logout() {
     location.reload();
 }
 
-async function deleteItem(id) {
-    if (!confirm('Delete this resource?')) return;
+let pendingDeleteId = null;
 
+function deleteItem(id) {
+    pendingDeleteId = id;
+    const items = _cachedItems || [];
+    const item = items.find(i => i.id === id);
+    document.getElementById('deleteItemTitle').textContent = item ? item.title : 'this resource';
+    document.getElementById('confirmDeleteBtn').disabled = false;
+    document.getElementById('confirmDeleteBtn').textContent = 'Delete';
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    pendingDeleteId = null;
+}
+
+async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
     try {
-        await StorageManager.deleteData(id);
+        await StorageManager.deleteData(pendingDeleteId);
+        closeDeleteModal();
         render();
     } catch (err) {
         console.error('Delete error:', err);
+        btn.disabled = false;
+        btn.textContent = 'Retry';
     }
 }
 
