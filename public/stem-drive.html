@@ -823,6 +823,20 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
+        // Restore Supabase session
+        const { data: { session } } = await sbClient.auth.getSession();
+        if (session) {
+            authToken = session.access_token;
+            // Check if user is in admins table
+            const { data: adminCheck } = await sbClient.rpc('is_admin', { _user_id: session.user.id });
+            isAdmin = !!adminCheck;
+        }
+        
+        // Listen for auth changes
+        sbClient.auth.onAuthStateChange((_event, session) => {
+            authToken = session?.access_token || null;
+        });
+        
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
