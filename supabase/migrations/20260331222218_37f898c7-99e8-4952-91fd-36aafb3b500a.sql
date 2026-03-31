@@ -1,0 +1,1 @@
+ALTER TABLE public.stem_drive_files ADD COLUMN semester text DEFAULT 'S1';
