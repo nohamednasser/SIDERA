@@ -23,6 +23,7 @@ export type Database = {
           file_type: string | null
           grade: string
           id: string
+          semester: string | null
           storage_path: string | null
           subject: string
           title: string
@@ -37,6 +38,7 @@ export type Database = {
           file_type?: string | null
           grade: string
           id?: string
+          semester?: string | null
           storage_path?: string | null
           subject: string
           title: string
@@ -51,6 +53,7 @@ export type Database = {
           file_type?: string | null
           grade?: string
           id?: string
+          semester?: string | null
           storage_path?: string | null
           subject?: string
           title?: string

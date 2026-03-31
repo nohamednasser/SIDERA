@@ -213,6 +213,11 @@
         <span onclick="filterGrade('G11', this)">Grade 11</span>
         <span onclick="filterGrade('G12', this)">Grade 12</span>
     </nav>
+    <nav id="semesterNav" style="display:none;">
+        <span class="active" onclick="filterSemester('All', this)">All Semesters</span>
+        <span onclick="filterSemester('S1', this)">Semester 1</span>
+        <span onclick="filterSemester('S2', this)">Semester 2</span>
+    </nav>
     <nav id="subjectNav"></nav>
 </div>
 
@@ -229,6 +234,10 @@
                 <option value="G10">Grade 10</option>
                 <option value="G11">Grade 11</option>
                 <option value="G12">Grade 12</option>
+            </select>
+            <select id="semesterIn">
+                <option value="S1">Semester 1</option>
+                <option value="S2">Semester 2</option>
             </select>
             <select id="subIn"></select>
             <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -372,7 +381,7 @@ const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
 const STORAGE_BUCKET = 'stem-drive-files';
 
-let currentGrade = 'All', currentSub = 'All';
+let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
@@ -400,6 +409,7 @@ const sbHeaders = {
 function mapRow(r) {
     return {
         id: r.id, title: r.title, grade: r.grade, subject: r.subject,
+        semester: r.semester || 'S1',
         url: r.url || '', desc: r.description || '', type: r.type,
         fileName: r.file_name || '', fileSize: r.file_size || 0,
         fileType: r.file_type || '', storagePath: r.storage_path || '',
@@ -492,7 +502,7 @@ class StorageManager {
         onProgress?.(92);
 
         const dbEntry = {
-            title: entry.title, grade: entry.grade, subject: entry.subject,
+            title: entry.title, grade: entry.grade, subject: entry.subject, semester: entry.semester || 'S1',
             url: entry.url || '', description: entry.desc || '', type: entry.type,
             file_name: entry.fileName || '', file_size: entry.fileSize || 0,
             file_type: entry.fileType || '', storage_path: storagePath
@@ -748,6 +758,7 @@ async function saveToHub() {
         const entry = {
             title,
             grade: document.getElementById('gradeIn').value,
+            semester: document.getElementById('semesterIn').value,
             subject: document.getElementById('subIn').value,
             url: hasLink ? linkValue : '',
             desc: document.getElementById('desc').value,
@@ -802,7 +813,7 @@ async function render() {
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
+            if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub) && (currentSemester === 'All' || item.semester === currentSemester)) {
                 const sInfo = subjectMap[item.subject];
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -979,6 +990,22 @@ function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
     currentGrade = g;
+    currentSemester = 'All';
+    var semNav = document.getElementById('semesterNav');
+    if (g === 'All') {
+        semNav.style.display = 'none';
+    } else {
+        semNav.style.display = '';
+        semNav.querySelectorAll('span').forEach(s => s.classList.remove('active'));
+        semNav.querySelector('span').classList.add('active');
+    }
+    render();
+}
+
+function filterSemester(s, el) {
+    document.querySelectorAll('#semesterNav span').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    currentSemester = s;
     render();
 }
 
