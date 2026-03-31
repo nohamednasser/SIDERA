@@ -981,7 +981,7 @@ async function saveToHub() {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        showToast('Error saving file. Try using an external link for large files.', 'error');
+        showToast('Error saving: ' + (err.message || 'Unknown error'), 'error');
     }
 }
 
