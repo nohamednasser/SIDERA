@@ -899,7 +899,7 @@ let pendingDeleteId = null;
 
 function deleteItem(id) {
     pendingDeleteId = id;
-    const items = StorageManager._cache || [];
+    const items = _cachedItems || [];
     const item = items.find(i => i.id === id);
     document.getElementById('deleteItemTitle').textContent = item ? item.title : 'this resource';
     document.getElementById('confirmDeleteBtn').disabled = false;
