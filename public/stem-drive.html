@@ -650,7 +650,7 @@ class StorageManager {
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
                 xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + getAuthToken());
                 xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
                 xhr.setRequestHeader('x-upsert', 'true');
 
