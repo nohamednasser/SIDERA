@@ -152,6 +152,33 @@
 
         .no-resources { grid-column: 1/-1; text-align: center; color: var(--text); padding: 60px 20px; font-size: 0.95rem; }
 
+        /* ZIP Preview Styles */
+        .zip-contents { margin-top: 12px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); }
+        .zip-file-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--dark); }
+        .zip-file-row:last-child { border-bottom: none; }
+        .zip-file-row .zip-icon { font-size: 1rem; flex-shrink: 0; }
+        .zip-file-row .zip-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .zip-file-row .zip-size { color: var(--text); font-size: 0.7rem; flex-shrink: 0; }
+        .zip-header-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-weight: 700; font-size: 0.85rem; color: var(--accent); border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.05); border-radius: 10px 10px 0 0; }
+
+        /* ZIP folder preview in preview modal */
+        .zip-browser { width: 100%; height: 100%; overflow-y: auto; padding: 20px; }
+        .zip-browser-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .zip-browser-header h3 { margin: 0; font-size: 1rem; }
+        .zip-browser-header .zip-count { font-size: 0.8rem; color: var(--text); }
+        .zip-browser-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .zip-item-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+        .zip-item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .zip-item-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .zip-item-info { flex: 1; overflow: hidden; }
+        .zip-item-name { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dark); }
+        .zip-item-size { font-size: 0.7rem; color: var(--text); margin-top: 2px; }
+        .zip-item-dl { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: filter 0.15s ease; }
+        .zip-item-dl:hover { filter: brightness(1.15); }
+        .zip-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: var(--text); }
+        .zip-loading .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         html.theme-switching *,
         html.theme-switching *::before,
         html.theme-switching *::after {
@@ -256,7 +283,8 @@
             <select id="subIn"></select>
             <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
-                <input type="file" id="fileInput" hidden onchange="processFile(this)">
+                <div id="zipPreviewArea"></div>
+                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
             </div>
             <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
             <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
@@ -356,6 +384,7 @@
     </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const admins = [
     {u: "admin1", p: "Sid3ra@2026"},
@@ -615,6 +644,32 @@ async function openPreview(itemId) {
     if (item.storagePath) {
         const publicUrl = StorageManager.getPublicUrl(item.storagePath);
         const ft = (item.fileType || '').toLowerCase();
+        const fn = (item.fileName || '').toLowerCase();
+        const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
+
+        if (isZip && typeof JSZip !== 'undefined') {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
+            fetch(publicUrl).then(r => r.arrayBuffer()).then(buf => JSZip.loadAsync(buf)).then(zip => {
+                const entries = [];
+                zip.forEach((path, entry) => { if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0, entry }); });
+                let html = '<div class="zip-browser">';
+                html += '<div class="zip-browser-header"><span style="font-size:2rem;">📦</span><div><h3>' + (item.fileName || 'Archive') + '</h3><span class="zip-count">' + entries.length + ' files · ' + formatSize(item.fileSize) + '</span></div></div>';
+                html += '<div class="zip-browser-grid">';
+                entries.forEach((e, idx) => {
+                    const name = e.name.split('/').pop() || e.name;
+                    html += '<div class="zip-item-card" onclick="downloadZipEntry(\'' + item.storagePath + '\', \'' + e.name.replace(/'/g, "\\'") + '\', \'' + name.replace(/'/g, "\\'") + '\')">';
+                    html += '<span class="zip-item-icon">' + getFileIcon(name) + '</span>';
+                    html += '<div class="zip-item-info"><div class="zip-item-name" title="' + e.name + '">' + name + '</div><div class="zip-item-size">' + formatSize(e.size) + '</div></div>';
+                    html += '<button class="zip-item-dl">📥</button>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
+                previewBody.innerHTML = html;
+            }).catch(() => {
+                previewBody.innerHTML = '<p>Could not read ZIP. <a href="' + publicUrl + '" download style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
+            });
+            return;
+        }
 
         if (ft.startsWith('image/')) {
             previewBody.innerHTML = '<img src="' + publicUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="preview">';
@@ -744,6 +799,12 @@ function setupApp() {
     });
 }
 
+function getFileIcon(name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    const icons = { pdf: '📄', doc: '📝', docx: '📝', ppt: '📊', pptx: '📊', xls: '📗', xlsx: '📗', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', mp4: '🎬', mp3: '🎵', txt: '📃', zip: '📦', rar: '📦' };
+    return icons[ext] || '📁';
+}
+
 function processSelectedFile(file) {
     if (!file) return;
 
@@ -758,6 +819,35 @@ function processSelectedFile(file) {
     uploadedFileSize = file.size;
 
     document.getElementById('fileNameDisplay').innerText = '✅ ' + file.name + ' (' + formatSize(file.size) + ')';
+
+    const zipArea = document.getElementById('zipPreviewArea');
+    zipArea.innerHTML = '';
+
+    const isZip = file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed';
+    if (isZip && typeof JSZip !== 'undefined') {
+        zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⏳ Reading ZIP contents...</div>';
+        JSZip.loadAsync(file).then(zip => {
+            const entries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0 });
+            });
+            if (entries.length === 0) {
+                zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">📦 Empty ZIP file</div>';
+                return;
+            }
+            let html = '<div class="zip-contents" onclick="event.stopPropagation()">';
+            html += '<div class="zip-header-row">📦 ' + entries.length + ' files inside</div>';
+            entries.slice(0, 50).forEach(e => {
+                const name = e.name.split('/').pop() || e.name;
+                html += '<div class="zip-file-row"><span class="zip-icon">' + getFileIcon(name) + '</span><span class="zip-name" title="' + e.name + '">' + name + '</span><span class="zip-size">' + formatSize(e.size) + '</span></div>';
+            });
+            if (entries.length > 50) html += '<div class="zip-file-row" style="justify-content:center;color:var(--text);">...and ' + (entries.length - 50) + ' more files</div>';
+            html += '</div>';
+            zipArea.innerHTML = html;
+        }).catch(() => {
+            zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⚠️ Could not read ZIP contents</div>';
+        });
+    }
 }
 
 function processFile(input) {
@@ -809,6 +899,7 @@ async function saveToHub() {
         document.getElementById('linkIn').value = '';
         document.getElementById('desc').value = '';
         document.getElementById('fileNameDisplay').innerText = '📂 Click or Drop File Here (up to 5GB)';
+        document.getElementById('zipPreviewArea').innerHTML = '';
         uploadedFileBlob = null;
         uploadedFileName = '';
         uploadedFileType = '';
@@ -1215,6 +1306,29 @@ document.addEventListener('keydown', (e) => {
         if (dd) dd.style.display = 'none';
     }
 });
+
+async function downloadZipEntry(storagePath, entryPath, fileName) {
+    try {
+        const publicUrl = StorageManager.getPublicUrl(storagePath);
+        const res = await fetch(publicUrl);
+        const buf = await res.arrayBuffer();
+        const zip = await JSZip.loadAsync(buf);
+        const file = zip.file(entryPath);
+        if (!file) { alert('File not found in archive'); return; }
+        const blob = await file.async('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+        console.error('ZIP extract error:', err);
+        alert('Failed to extract file from ZIP.');
+    }
+}
 
 initApp();
 </script>
