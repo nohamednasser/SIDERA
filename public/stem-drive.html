@@ -670,15 +670,15 @@ class StorageManager {
         const item = await this.getFile(id);
         if (!item) return;
 
+        const authHdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON_KEY) };
         const promises = [];
         if (item.storagePath) {
             promises.push(fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
-                method: 'DELETE',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                method: 'DELETE', headers: authHdrs
             }));
         }
         promises.push(fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
-            method: 'DELETE', headers: sbHeaders
+            method: 'DELETE', headers: getAuthHeaders()
         }));
 
         await Promise.all(promises);
