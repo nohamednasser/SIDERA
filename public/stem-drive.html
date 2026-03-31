@@ -310,10 +310,9 @@
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0; font-size: 1.3rem;">Admin Portal</h2>
-        <input type="email" id="adminEmail" placeholder="Email" style="margin-bottom:12px;">
+        <input type="text" id="adminUser" placeholder="Username" style="margin-bottom:12px;">
         <input type="password" id="adminPass" placeholder="Password" style="margin-bottom:20px;">
-        <div id="loginError" style="color:#ff4d4d;font-size:0.8rem;margin-bottom:12px;display:none;"></div>
-        <button onclick="checkAuth()" id="loginSubmitBtn" class="btn-pub" style="margin:0">Sign In</button>
+        <button onclick="checkAuth()" class="btn-pub" style="margin:0">Sign In</button>
         <p onclick="hideLogin()" style="cursor:pointer; margin-top:16px; color:var(--text); font-size:0.8rem;">Close Window</p>
     </div>
 </div>
@@ -396,8 +395,48 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-// Supabase Auth - no hardcoded credentials
-let _authSession = null;
+const admins = [
+    {u: "admin1", p: "Sid3ra@2026"},
+    {u: "admin2", p: "Dr1ve#Secure"},
+    {u: "admin3", p: "St3m!Pass99"},
+    {u: "admin4", p: "Upp3r$Lev3l"},
+    {u: "admin5", p: "M@nage2026!"}
+];
+
+// Fallback subjects (used if DB fetch fails)
+const fallbackSubjects = [
+    { name: "SAT", icon: "📐" }, { name: "ACT", icon: "📊" },
+    { name: "computer science", icon: "💻" }, { name: "chemistry", icon: "🧪" },
+    { name: "capstone", icon: "🏗️" }, { name: "biology", icon: "🧬" },
+    { name: "arabic", icon: "🇪🇬" }, { name: "math", icon: "🧮" },
+    { name: "Important", icon: "⚠️" }, { name: "geology", icon: "🌍" },
+    { name: "FINAL", icon: "🏁" }, { name: "Exercise", icon: "🏋️" },
+    { name: "quiz", icon: "⏱️" }, { name: "physics", icon: "⚡" },
+    { name: "midterm", icon: "📝" }, { name: "MEO", icon: "🏢" },
+    { name: "mechanics", icon: "⚙️" }, { name: "social studies", icon: "🗺️" },
+    { name: "religion", icon: "🌙" }
+];
+
+let subjectData = [...fallbackSubjects];
+let subjectMap = {};
+subjectData.forEach(s => { subjectMap[s.name] = s; });
+
+async function loadSubjectsFromDB() {
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects?select=*&order=sort_order.asc', {
+            headers: sbHeaders
+        });
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        if (data.length > 0) {
+            subjectData = data.map(s => ({ name: s.name, icon: s.icon, id: s.id }));
+            subjectMap = {};
+            subjectData.forEach(s => { subjectMap[s.name] = s; });
+        }
+    } catch (err) {
+        console.error('loadSubjects error:', err);
+    }
+}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
@@ -411,23 +450,8 @@ let _zipCache = {}; // Cache loaded ZIP objects by storagePath
 let _zipBlobCache = {}; // Cache extracted blobs
 let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = false;
+let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
-
-// Dynamic auth headers - uses session token when logged in
-function getAuthHeaders() {
-    const token = _authSession?.access_token || SUPABASE_ANON_KEY;
-    return {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-    };
-}
-
-function getAuthToken() {
-    return _authSession?.access_token || SUPABASE_ANON_KEY;
-}
 
 function formatSize(bytes) {
     if (!bytes) return '0 B';
@@ -441,7 +465,7 @@ let _cachedItems = null;
 let _cacheTime = 0;
 const CACHE_TTL = 30000; // 30s cache
 
-// sbHeaders kept as alias for read-only operations (anon key is fine for SELECT)
+// Supabase REST helpers
 const sbHeaders = {
     'apikey': SUPABASE_ANON_KEY,
     'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -523,7 +547,7 @@ class StorageManager {
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
                 xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + getAuthToken());
+                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
                 xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
                 xhr.setRequestHeader('x-upsert', 'true');
 
@@ -552,7 +576,7 @@ class StorageManager {
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
-            method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(dbEntry)
+            method: 'POST', headers: sbHeaders, body: JSON.stringify(dbEntry)
         });
 
         if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
@@ -572,11 +596,11 @@ class StorageManager {
         if (item.storagePath) {
             promises.push(fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
                 method: 'DELETE',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + getAuthToken() }
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
             }));
         }
         promises.push(fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
-            method: 'DELETE', headers: getAuthHeaders()
+            method: 'DELETE', headers: sbHeaders
         }));
 
         await Promise.all(promises);
@@ -719,56 +743,8 @@ function closePreview() {
 
 if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
-async function restoreSession() {
-    try {
-        const saved = sessionStorage.getItem('sideraSession');
-        if (!saved) return;
-        const session = JSON.parse(saved);
-        // Verify token is still valid
-        const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token }
-        });
-        if (res.ok) {
-            const user = await res.json();
-            // Verify admin status
-            const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/admins?user_id=eq.' + user.id + '&select=user_id', {
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' }
-            });
-            const adminData = await adminCheck.json();
-            if (adminData && adminData.length > 0) {
-                _authSession = session;
-                isAdmin = true;
-            } else {
-                sessionStorage.removeItem('sideraSession');
-            }
-        } else {
-            // Try refresh
-            if (session.refresh_token) {
-                const refreshRes = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
-                    method: 'POST',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: session.refresh_token })
-                });
-                if (refreshRes.ok) {
-                    const newSession = await refreshRes.json();
-                    _authSession = newSession;
-                    sessionStorage.setItem('sideraSession', JSON.stringify(newSession));
-                    isAdmin = true;
-                } else {
-                    sessionStorage.removeItem('sideraSession');
-                }
-            } else {
-                sessionStorage.removeItem('sideraSession');
-            }
-        }
-    } catch (e) {
-        sessionStorage.removeItem('sideraSession');
-    }
-}
-
 async function initApp() {
     try {
-        await restoreSession();
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
@@ -1013,62 +989,20 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-async function checkAuth() {
-    const email = document.getElementById('adminEmail').value.trim();
+function checkAuth() {
+    const user = document.getElementById('adminUser').value;
     const pass = document.getElementById('adminPass').value;
-    const errorEl = document.getElementById('loginError');
-    const btn = document.getElementById('loginSubmitBtn');
 
-    if (!email || !pass) { errorEl.textContent = 'Please fill all fields.'; errorEl.style.display = 'block'; return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Signing in...';
-    errorEl.style.display = 'none';
-
-    try {
-        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.access_token) {
-            throw new Error(data.error_description || data.msg || 'Invalid credentials');
-        }
-
-        // Check if user is in admins table
-        const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/admins?user_id=eq.' + data.user.id + '&select=user_id', {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + data.access_token, 'Content-Type': 'application/json' }
-        });
-        const adminData = await adminCheck.json();
-        if (!adminData || adminData.length === 0) {
-            throw new Error('This account does not have admin privileges.');
-        }
-
-        _authSession = data;
-        isAdmin = true;
-        sessionStorage.setItem('sideraSession', JSON.stringify(data));
-        hideLogin();
+    if (admins.find(a => a.u === user && a.p === pass)) {
+        localStorage.setItem('isSideraAdmin', 'true');
         location.reload();
-    } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.style.display = 'block';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
+    } else {
+        alert('Invalid Credentials!');
     }
 }
 
-async function logout() {
-    if (_authSession?.access_token) {
-        await fetch(SUPABASE_URL + '/auth/v1/logout', {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + _authSession.access_token }
-        }).catch(() => {});
-    }
-    _authSession = null;
-    isAdmin = false;
-    sessionStorage.removeItem('sideraSession');
+function logout() {
+    localStorage.removeItem('isSideraAdmin');
     location.reload();
 }
 
@@ -1152,7 +1086,7 @@ async function addSubject() {
     try {
         const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
         const res = await fetch(SUPABASE_URL + '/rest/v1/subjects', {
-            method: 'POST', headers: getAuthHeaders(),
+            method: 'POST', headers: sbHeaders,
             body: JSON.stringify({ name, icon, sort_order: maxOrder })
         });
         if (!res.ok) throw new Error(await res.text());
@@ -1172,7 +1106,7 @@ async function deleteSubject(name) {
     if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
-            method: 'DELETE', headers: getAuthHeaders()
+            method: 'DELETE', headers: sbHeaders
         });
         await loadSubjectsFromDB();
         rebuildSubjectUI();
