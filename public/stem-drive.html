@@ -773,6 +773,12 @@ function setupApp() {
     });
 }
 
+function getFileIcon(name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    const icons = { pdf: '📄', doc: '📝', docx: '📝', ppt: '📊', pptx: '📊', xls: '📗', xlsx: '📗', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', mp4: '🎬', mp3: '🎵', txt: '📃', zip: '📦', rar: '📦' };
+    return icons[ext] || '📁';
+}
+
 function processSelectedFile(file) {
     if (!file) return;
 
@@ -787,6 +793,35 @@ function processSelectedFile(file) {
     uploadedFileSize = file.size;
 
     document.getElementById('fileNameDisplay').innerText = '✅ ' + file.name + ' (' + formatSize(file.size) + ')';
+
+    const zipArea = document.getElementById('zipPreviewArea');
+    zipArea.innerHTML = '';
+
+    const isZip = file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed';
+    if (isZip && typeof JSZip !== 'undefined') {
+        zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⏳ Reading ZIP contents...</div>';
+        JSZip.loadAsync(file).then(zip => {
+            const entries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0 });
+            });
+            if (entries.length === 0) {
+                zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">📦 Empty ZIP file</div>';
+                return;
+            }
+            let html = '<div class="zip-contents" onclick="event.stopPropagation()">';
+            html += '<div class="zip-header-row">📦 ' + entries.length + ' files inside</div>';
+            entries.slice(0, 50).forEach(e => {
+                const name = e.name.split('/').pop() || e.name;
+                html += '<div class="zip-file-row"><span class="zip-icon">' + getFileIcon(name) + '</span><span class="zip-name" title="' + e.name + '">' + name + '</span><span class="zip-size">' + formatSize(e.size) + '</span></div>';
+            });
+            if (entries.length > 50) html += '<div class="zip-file-row" style="justify-content:center;color:var(--text);">...and ' + (entries.length - 50) + ' more files</div>';
+            html += '</div>';
+            zipArea.innerHTML = html;
+        }).catch(() => {
+            zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⚠️ Could not read ZIP contents</div>';
+        });
+    }
 }
 
 function processFile(input) {
