@@ -445,13 +445,7 @@ function showToast(message, type = 'error', duration = 4000) {
     }, duration);
 }
 
-const admins = [
-    {u: "admin1", p: "Sid3ra@2026"},
-    {u: "admin2", p: "Dr1ve#Secure"},
-    {u: "admin3", p: "St3m!Pass99"},
-    {u: "admin4", p: "Upp3r$Lev3l"},
-    {u: "admin5", p: "M@nage2026!"}
-];
+// Admin credentials are now managed via Supabase Auth - no hardcoded passwords
 
 // Fallback subjects (used if DB fetch fails)
 const fallbackSubjects = [
@@ -474,7 +468,7 @@ subjectData.forEach(s => { subjectMap[s.name] = s; });
 async function loadSubjectsFromDB() {
     try {
         const res = await fetch(SUPABASE_URL + '/rest/v1/subjects?select=*&order=sort_order.asc', {
-            headers: sbHeaders
+            headers: getSbHeaders()
         });
         if (!res.ok) throw new Error('Failed');
         const data = await res.json();
@@ -502,6 +496,7 @@ let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
+let authAccessToken = null; // Supabase Auth JWT token
 
 function formatSize(bytes) {
     if (!bytes) return '0 B';
@@ -515,13 +510,58 @@ let _cachedItems = null;
 let _cacheTime = 0;
 const CACHE_TTL = 30000; // 30s cache
 
-// Supabase REST helpers
-const sbHeaders = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
-};
+// Get the current auth token (use admin JWT if logged in, else anon key)
+function getAuthToken() {
+    return authAccessToken || SUPABASE_ANON_KEY;
+}
+
+// Supabase REST helpers - dynamic headers
+function getSbHeaders() {
+    return {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + getAuthToken(),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+}
+
+// Legacy alias
+function sbHeaders_get() { return getSbHeaders(); }
+
+// Restore session on load
+async function restoreSession() {
+    const storedSession = localStorage.getItem('sideraAuthSession');
+    if (storedSession) {
+        try {
+            const session = JSON.parse(storedSession);
+            // Try to refresh the token
+            const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: session.refresh_token })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                authAccessToken = data.access_token;
+                localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
+                isAdmin = true;
+                localStorage.setItem('isSideraAdmin', 'true');
+            } else {
+                // Session expired
+                localStorage.removeItem('sideraAuthSession');
+                localStorage.removeItem('isSideraAdmin');
+                authAccessToken = null;
+                isAdmin = false;
+            }
+        } catch (e) {
+            console.error('Session restore error:', e);
+            localStorage.removeItem('sideraAuthSession');
+            localStorage.removeItem('isSideraAdmin');
+            authAccessToken = null;
+            isAdmin = false;
+        }
+    }
+}
 
 function mapRow(r) {
     return {
@@ -543,7 +583,7 @@ class StorageManager {
         }
         try {
             const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?select=*&order=created_at.desc', {
-                headers: sbHeaders
+                headers: getSbHeaders()
             });
             if (!res.ok) throw new Error('Fetch failed');
             const data = await res.json();
@@ -569,7 +609,7 @@ class StorageManager {
         if (cached) return cached;
         try {
             const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id + '&select=*', {
-                headers: sbHeaders
+                headers: getSbHeaders()
             });
             if (!res.ok) return null;
             const data = await res.json();
@@ -597,7 +637,7 @@ class StorageManager {
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
                 xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + getAuthToken());
                 xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
                 xhr.setRequestHeader('x-upsert', 'true');
 
@@ -626,7 +666,7 @@ class StorageManager {
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
-            method: 'POST', headers: sbHeaders, body: JSON.stringify(dbEntry)
+            method: 'POST', headers: getSbHeaders(), body: JSON.stringify(dbEntry)
         });
 
         if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
@@ -646,11 +686,11 @@ class StorageManager {
         if (item.storagePath) {
             promises.push(fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
                 method: 'DELETE',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + getAuthToken() }
             }));
         }
         promises.push(fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
-            method: 'DELETE', headers: sbHeaders
+            method: 'DELETE', headers: getSbHeaders()
         }));
 
         await Promise.all(promises);
@@ -795,6 +835,7 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
+        await restoreSession();
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
@@ -981,7 +1022,7 @@ async function saveToHub() {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        showToast('Error saving file. Try using an external link for large files.', 'error');
+        showToast('Error saving: ' + (err.message || 'Unknown error'), 'error');
     }
 }
 
@@ -1039,27 +1080,50 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-function checkAuth() {
+async function checkAuth() {
     const user = document.getElementById('adminUser').value.trim().toLowerCase();
     const pass = document.getElementById('adminPass').value;
     const errEl = document.getElementById('loginError');
 
-    // Accept both "admin1" and "admin1@sidera.app"
-    const normalizedUser = user.replace(/@sidera\.app$/i, '');
+    // Build email from username
+    const email = user.includes('@') ? user : user + '@sidera.app';
 
-    const found = admins.find(a => a.u === normalizedUser && a.p === pass);
-    if (found) {
-        errEl.style.display = 'none';
+    try {
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+        });
+
+        if (!res.ok) {
+            errEl.textContent = '❌ Invalid username or password. Please try again.';
+            errEl.style.display = 'block';
+            document.getElementById('adminPass').value = '';
+            return;
+        }
+
+        const data = await res.json();
+        authAccessToken = data.access_token;
+        localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
         localStorage.setItem('isSideraAdmin', 'true');
+        errEl.style.display = 'none';
         location.reload();
-    } else {
-        errEl.textContent = '❌ Invalid username or password. Please try again.';
+    } catch (err) {
+        errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
-        document.getElementById('adminPass').value = '';
     }
 }
 
-function logout() {
+async function logout() {
+    // Sign out from Supabase
+    try {
+        await fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authAccessToken || '') }
+        });
+    } catch (e) {}
+    authAccessToken = null;
+    localStorage.removeItem('sideraAuthSession');
     localStorage.removeItem('isSideraAdmin');
     location.reload();
 }
@@ -1144,7 +1208,7 @@ async function addSubject() {
     try {
         const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
         const res = await fetch(SUPABASE_URL + '/rest/v1/subjects', {
-            method: 'POST', headers: sbHeaders,
+            method: 'POST', headers: getSbHeaders(),
             body: JSON.stringify({ name, icon, sort_order: maxOrder })
         });
         if (!res.ok) throw new Error(await res.text());
@@ -1164,7 +1228,7 @@ async function deleteSubject(name) {
     if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
-            method: 'DELETE', headers: sbHeaders
+            method: 'DELETE', headers: getSbHeaders()
         });
         await loadSubjectsFromDB();
         rebuildSubjectUI();
