@@ -1329,39 +1329,62 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+async function getZipCached(storagePath) {
+    if (_zipCache[storagePath]) return _zipCache[storagePath];
+    const publicUrl = StorageManager.getPublicUrl(storagePath);
+    const res = await fetch(publicUrl);
+    const buf = await res.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    _zipCache[storagePath] = zip;
+    return zip;
+}
+
+async function getZipBlob(storagePath, entryPath) {
+    const cacheKey = storagePath + '::' + entryPath;
+    if (_zipBlobCache[cacheKey]) return _zipBlobCache[cacheKey];
+    const zip = await getZipCached(storagePath);
+    const file = zip.file(entryPath);
+    if (!file) return null;
+    const blob = await file.async('blob');
+    _zipBlobCache[cacheKey] = blob;
+    return blob;
+}
+
+function backToZipBrowser() {
+    if (_currentZipItemId) openPreview(_currentZipItemId);
+}
+
 async function previewZipEntry(storagePath, entryPath, fileName) {
     const previewBody = document.getElementById('previewBody');
-    previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Opening ' + fileName + '...</span></div>';
+    const previewTitle = document.getElementById('previewTitle');
+    previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Opening...</span></div>';
+    previewTitle.textContent = fileName;
+
     try {
-        let zip = _zipCache[storagePath];
-        if (!zip) {
-            const publicUrl = StorageManager.getPublicUrl(storagePath);
-            const res = await fetch(publicUrl);
-            const buf = await res.arrayBuffer();
-            zip = await JSZip.loadAsync(buf);
-            _zipCache[storagePath] = zip;
-        }
-        const file = zip.file(entryPath);
-        if (!file) { previewBody.innerHTML = '<p>File not found in archive.</p>'; return; }
-        const blob = await file.async('blob');
+        const blob = await getZipBlob(storagePath, entryPath);
+        if (!blob) { previewBody.innerHTML = '<p>File not found in archive.</p>'; return; }
+        
         const ext = fileName.split('.').pop().toLowerCase();
         cleanupPreviewUrl();
+
+        const backBtn = '<div style="padding:8px 20px;border-bottom:1px solid var(--border);"><button onclick="backToZipBrowser()" style="background:var(--input-bg);border:1px solid var(--border);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;color:var(--dark);">← Back to folder</button></div>';
 
         if (['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) {
             const url = URL.createObjectURL(blob);
             currentPreviewObjectUrl = url;
-            previewBody.innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + fileName + '">';
+            previewBody.innerHTML = backBtn + '<div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;"><img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + fileName + '"></div>';
         } else if (ext === 'pdf') {
             const url = URL.createObjectURL(blob);
             currentPreviewObjectUrl = url;
-            previewBody.innerHTML = '<iframe src="' + url + '#view=FitH" style="width:100%;height:100%;border:none;"></iframe>';
+            previewBody.innerHTML = backBtn + '<iframe src="' + url + '#view=FitH" style="width:100%;height:100%;border:none;flex:1;"></iframe>';
         } else if (['txt','md','csv','json','xml','html','css','js'].includes(ext)) {
-            const text = await file.async('text');
-            previewBody.innerHTML = '<pre style="padding:20px;overflow:auto;width:100%;height:100%;white-space:pre-wrap;word-break:break-word;font-size:0.85rem;color:var(--dark);background:var(--input-bg);margin:0;">' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>';
+            const zip = await getZipCached(storagePath);
+            const text = await zip.file(entryPath).async('text');
+            previewBody.innerHTML = backBtn + '<pre style="padding:20px;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;font-size:0.85rem;color:var(--dark);background:var(--input-bg);margin:0;">' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>';
         } else {
-            previewBody.innerHTML = '<p style="padding:20px;text-align:center;">Preview not available for <strong>' + fileName + '</strong><br><br><button class="zip-item-btn download" onclick="downloadZipEntry(decodeURIComponent(\'' + encodeURIComponent(storagePath) + '\'), decodeURIComponent(\'' + encodeURIComponent(entryPath) + '\'), decodeURIComponent(\'' + encodeURIComponent(fileName) + '\'))" style="padding:10px 20px;font-size:0.9rem;">📥 Download</button></p>';
+            const safeS = encodeURIComponent(storagePath), safeE = encodeURIComponent(entryPath), safeN = encodeURIComponent(fileName);
+            previewBody.innerHTML = backBtn + '<div style="flex:1;display:flex;align-items:center;justify-content:center;"><p style="text-align:center;">Preview not available for <strong>' + fileName + '</strong><br><br><button class="zip-item-btn download" onclick="downloadZipEntry(decodeURIComponent(\'' + safeS + '\'), decodeURIComponent(\'' + safeE + '\'), decodeURIComponent(\'' + safeN + '\'))" style="padding:10px 20px;font-size:0.9rem;">📥 Download</button></p></div>';
         }
-        document.getElementById('previewTitle').textContent = fileName;
     } catch (err) {
         console.error('Preview ZIP entry error:', err);
         previewBody.innerHTML = '<p>Failed to preview file.</p>';
@@ -1370,17 +1393,8 @@ async function previewZipEntry(storagePath, entryPath, fileName) {
 
 async function downloadZipEntry(storagePath, entryPath, fileName) {
     try {
-        let zip = _zipCache[storagePath];
-        if (!zip) {
-            const publicUrl = StorageManager.getPublicUrl(storagePath);
-            const res = await fetch(publicUrl);
-            const buf = await res.arrayBuffer();
-            zip = await JSZip.loadAsync(buf);
-            _zipCache[storagePath] = zip;
-        }
-        const file = zip.file(entryPath);
-        if (!file) { alert('File not found in archive'); return; }
-        const blob = await file.async('blob');
+        const blob = await getZipBlob(storagePath, entryPath);
+        if (!blob) { alert('File not found in archive'); return; }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
