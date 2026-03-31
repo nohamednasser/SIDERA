@@ -997,6 +997,128 @@ function search() {
     });
 }
 
+// ---- Admin Dashboard ----
+let _onlineChannel = null;
+let _onlineCount = 0;
+
+function openDashboard() {
+    if (!isAdmin) return;
+    document.getElementById('dashModal').classList.add('show');
+    loadDashboardStats();
+    trackOnlinePresence();
+}
+
+function closeDashboard() {
+    document.getElementById('dashModal').classList.remove('show');
+}
+
+async function loadDashboardStats() {
+    const body = document.getElementById('dashBody');
+    body.innerHTML = '<p style="text-align:center;color:var(--text);">⏳ Loading...</p>';
+
+    try {
+        const items = await StorageManager.getAllData();
+        const totalFiles = items.length;
+        const totalSize = items.reduce((sum, i) => sum + (i.fileSize || 0), 0);
+        const localFiles = items.filter(i => i.type === 'Local File').length;
+        const webLinks = items.filter(i => i.type === 'Web Link').length;
+        const totalSubjects = subjectData.length;
+
+        // Files per grade
+        const gradeCount = { G10: 0, G11: 0, G12: 0 };
+        items.forEach(i => { if (gradeCount[i.grade] !== undefined) gradeCount[i.grade]++; });
+
+        // Files per subject (top 8)
+        const subCount = {};
+        items.forEach(i => { subCount[i.subject] = (subCount[i.subject] || 0) + 1; });
+        const topSubjects = Object.entries(subCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+        // Recent uploads (last 7 days)
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const recentCount = items.filter(i => new Date(i.createdAt).getTime() > weekAgo).length;
+
+        // File types breakdown
+        const typeCount = {};
+        items.forEach(i => {
+            const ext = (i.fileName || '').split('.').pop()?.toLowerCase() || 'other';
+            typeCount[ext] = (typeCount[ext] || 0) + 1;
+        });
+        const topTypes = Object.entries(typeCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        const maxGrade = Math.max(gradeCount.G10, gradeCount.G11, gradeCount.G12, 1);
+        const maxSub = topSubjects.length > 0 ? topSubjects[0][1] : 1;
+
+        body.innerHTML =
+            '<div class="dash-stat-grid">' +
+                '<div class="stat-card"><div class="stat-icon"><span class="online-dot"></span>🟢</div><div class="stat-value" id="onlineCountVal">' + _onlineCount + '</div><div class="stat-label">Online Now</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value">' + totalFiles + '</div><div class="stat-label">Total Files</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">💾</div><div class="stat-value">' + formatSize(totalSize) + '</div><div class="stat-label">Total Size</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📚</div><div class="stat-value">' + totalSubjects + '</div><div class="stat-label">Subjects</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">🆕</div><div class="stat-value">' + recentCount + '</div><div class="stat-label">This Week</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📂</div><div class="stat-value">' + localFiles + '</div><div class="stat-label">Local Files</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-value">' + webLinks + '</div><div class="stat-label">Web Links</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">' + (totalFiles > 0 ? formatSize(totalSize / totalFiles) : '0') + '</div><div class="stat-label">Avg File Size</div></div>' +
+            '</div>' +
+
+            '<div class="dash-section-title">📈 Files per Grade</div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 10</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G10/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G10 + '</span></div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 11</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G11/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G11 + '</span></div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 12</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G12/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G12 + '</span></div>' +
+
+            '<div class="dash-section-title">🏆 Top Subjects</div>' +
+            topSubjects.map(([name, count]) =>
+                '<div class="stat-bar-row"><span class="stat-bar-label">' + (subjectMap[name]?.icon || '📁') + ' ' + name + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/maxSub*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
+            ).join('') +
+
+            '<div class="dash-section-title">📄 Top File Types</div>' +
+            topTypes.map(([ext, count]) =>
+                '<div class="stat-bar-row"><span class="stat-bar-label">.' + ext + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/totalFiles*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
+            ).join('');
+
+    } catch (err) {
+        console.error('Dashboard error:', err);
+        body.innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
+    }
+}
+
+function trackOnlinePresence() {
+    try {
+        const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_ANON_KEY + '&vsn=1.0.0';
+        
+        // Use a simple fetch-based presence count via Supabase channel
+        // For simplicity, we'll estimate based on a heartbeat approach
+        // Each visitor stores a timestamp, we count recent ones
+        const visitorId = sessionStorage.getItem('_vid') || (sessionStorage.setItem('_vid', Math.random().toString(36).slice(2)), sessionStorage.getItem('_vid'));
+        const key = 'sidera_online_' + visitorId;
+        
+        // Store heartbeat in localStorage for cross-tab awareness
+        localStorage.setItem(key, Date.now().toString());
+        
+        // Count active visitors (heartbeat within last 60s)
+        let count = 0;
+        const now = Date.now();
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('sidera_online_')) {
+                const ts = parseInt(localStorage.getItem(k) || '0');
+                if (now - ts < 60000) count++;
+                else localStorage.removeItem(k);
+            }
+        }
+        _onlineCount = Math.max(count, 1);
+        const el = document.getElementById('onlineCountVal');
+        if (el) el.textContent = _onlineCount;
+    } catch (e) {
+        _onlineCount = 1;
+    }
+}
+
+// Heartbeat every 30s
+setInterval(() => {
+    const vid = sessionStorage.getItem('_vid');
+    if (vid) localStorage.setItem('sidera_online_' + vid, Date.now().toString());
+}, 30000);
+
 function toggleTeam() {
     const dd = document.getElementById('teamDropdown');
     dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
@@ -1014,6 +1136,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closePreview();
         hideLogin();
+        closeDashboard();
         const dd = document.getElementById('teamDropdown');
         if (dd) dd.style.display = 'none';
     }
