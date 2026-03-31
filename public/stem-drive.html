@@ -552,7 +552,7 @@ class StorageManager {
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
-            method: 'POST', headers: sbHeaders, body: JSON.stringify(dbEntry)
+            method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(dbEntry)
         });
 
         if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
