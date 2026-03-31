@@ -1067,28 +1067,49 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-function checkAuth() {
+async function checkAuth() {
     const user = document.getElementById('adminUser').value.trim().toLowerCase();
     const pass = document.getElementById('adminPass').value;
     const errEl = document.getElementById('loginError');
-
-    // Accept both "admin1" and "admin1@sidera.app"
-    const normalizedUser = user.replace(/@sidera\.app$/i, '');
-
-    const found = admins.find(a => a.u === normalizedUser && a.p === pass);
-    if (found) {
-        errEl.style.display = 'none';
-        localStorage.setItem('isSideraAdmin', 'true');
-        location.reload();
-    } else {
-        errEl.textContent = '❌ Invalid username or password. Please try again.';
+    const signInBtn = document.querySelector('#loginModal .btn-pub');
+    
+    // Build email
+    const email = user.includes('@') ? user : user + '@sidera.app';
+    
+    signInBtn.disabled = true;
+    signInBtn.textContent = 'Signing in...';
+    
+    try {
+        const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
+        
+        if (error) {
+            errEl.textContent = '❌ ' + (error.message === 'Invalid login credentials' ? 'Invalid username or password.' : error.message);
+            errEl.style.display = 'block';
+            document.getElementById('adminPass').value = '';
+        } else {
+            errEl.style.display = 'none';
+            authToken = data.session.access_token;
+            isAdmin = true;
+            hideLogin();
+            showToast('Welcome back, Admin! 🎉', 'success');
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('loginBtn').innerText = 'Logout';
+            document.getElementById('loginBtn').onclick = logout;
+            document.getElementById('dashBtn').style.display = 'flex';
+        }
+    } catch (e) {
+        errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
-        document.getElementById('adminPass').value = '';
     }
+    
+    signInBtn.disabled = false;
+    signInBtn.textContent = 'Sign In';
 }
 
-function logout() {
-    localStorage.removeItem('isSideraAdmin');
+async function logout() {
+    await sbClient.auth.signOut();
+    authToken = null;
+    isAdmin = false;
     location.reload();
 }
 
