@@ -1082,7 +1082,7 @@ async function deleteSubject(name) {
     if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
-            method: 'DELETE', headers: sbHeaders
+            method: 'DELETE', headers: getAuthHeaders()
         });
         await loadSubjectsFromDB();
         rebuildSubjectUI();
