@@ -437,6 +437,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const STORAGE_BUCKET = 'stem-drive-files';
 
 let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
+let _zipCache = {}; // Cache loaded ZIP objects by storagePath
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
 let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
