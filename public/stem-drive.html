@@ -1092,27 +1092,50 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-function checkAuth() {
+async function checkAuth() {
     const user = document.getElementById('adminUser').value.trim().toLowerCase();
     const pass = document.getElementById('adminPass').value;
     const errEl = document.getElementById('loginError');
 
-    // Accept both "admin1" and "admin1@sidera.app"
-    const normalizedUser = user.replace(/@sidera\.app$/i, '');
+    // Build email from username
+    const email = user.includes('@') ? user : user + '@sidera.app';
 
-    const found = admins.find(a => a.u === normalizedUser && a.p === pass);
-    if (found) {
-        errEl.style.display = 'none';
+    try {
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+        });
+
+        if (!res.ok) {
+            errEl.textContent = '❌ Invalid username or password. Please try again.';
+            errEl.style.display = 'block';
+            document.getElementById('adminPass').value = '';
+            return;
+        }
+
+        const data = await res.json();
+        authAccessToken = data.access_token;
+        localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
         localStorage.setItem('isSideraAdmin', 'true');
+        errEl.style.display = 'none';
         location.reload();
-    } else {
-        errEl.textContent = '❌ Invalid username or password. Please try again.';
+    } catch (err) {
+        errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
-        document.getElementById('adminPass').value = '';
     }
 }
 
-function logout() {
+async function logout() {
+    // Sign out from Supabase
+    try {
+        await fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authAccessToken || '') }
+        });
+    } catch (e) {}
+    authAccessToken = null;
+    localStorage.removeItem('sideraAuthSession');
     localStorage.removeItem('isSideraAdmin');
     location.reload();
 }
