@@ -307,6 +307,18 @@
     <div class="progress-size" id="progressSizeInfo"></div>
 </div>
 
+<div id="deleteModal" class="delete-modal" onclick="if(event.target===this)closeDeleteModal()">
+    <div class="delete-modal-content">
+        <div class="del-icon">🗑️</div>
+        <h3>Delete Resource</h3>
+        <p>Are you sure you want to delete<br><span class="del-title" id="deleteItemTitle"></span>?</p>
+        <div class="del-actions">
+            <button class="del-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="del-confirm" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
 <div id="dashModal" class="dash-modal">
     <div class="dash-content">
         <div class="dash-header">
