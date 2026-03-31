@@ -984,6 +984,22 @@ function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
     currentGrade = g;
+    currentSemester = 'All';
+    var semNav = document.getElementById('semesterNav');
+    if (g === 'All') {
+        semNav.style.display = 'none';
+    } else {
+        semNav.style.display = '';
+        semNav.querySelectorAll('span').forEach(s => s.classList.remove('active'));
+        semNav.querySelector('span').classList.add('active');
+    }
+    render();
+}
+
+function filterSemester(s, el) {
+    document.querySelectorAll('#semesterNav span').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    currentSemester = s;
     render();
 }
 
