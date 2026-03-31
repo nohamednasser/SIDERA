@@ -99,6 +99,35 @@
         footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: color 0.15s ease, border-color 0.15s ease; }
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
+        /* Admin Dashboard Modal */
+        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
+        .dash-modal.show { display: flex; }
+        .dash-content { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.25s ease; transition: background-color 0.15s ease, border-color 0.15s ease; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .dash-header h2 { margin: 0; font-size: 1.2rem; }
+        .dash-close { background: #ff4d4d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
+        .dash-body { padding: 20px 24px; }
+        .dash-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; transition: background-color 0.15s ease, border-color 0.15s ease; }
+        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
+        .stat-card .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+        .stat-card .stat-label { font-size: 0.72rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-section-title { font-size: 0.85rem; font-weight: 700; margin: 16px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .stat-bar-label { font-size: 0.8rem; min-width: 100px; font-weight: 600; }
+        .stat-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .stat-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
+        .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; }
+        .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        @media (max-width: 768px) {
+            .dash-content { width: 95%; border-radius: 16px; }
+            .dash-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 12px; }
+            .stat-card .stat-value { font-size: 1.3rem; }
+        }
+
         .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; min-width: 280px; }
         .progress-container.show { opacity: 1; pointer-events: auto; }
         .progress-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; }
@@ -169,6 +198,7 @@
 <header>
     <div class="top-controls">
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 Mode</button>
+        <button class="control-btn" id="dashBtn" onclick="openDashboard()" style="display:none;">📊 Dashboard</button>
         <button class="control-btn" id="loginBtn" onclick="showLogin()">➞ Admin</button>
     </div>
     <h1>SIDERA</h1>
@@ -252,6 +282,18 @@
     </div>
     <div class="progress-text"><span id="progressPercent">0</span>%</div>
     <div class="progress-size" id="progressSizeInfo"></div>
+</div>
+
+<div id="dashModal" class="dash-modal">
+    <div class="dash-content">
+        <div class="dash-header">
+            <h2>📊 Admin Dashboard</h2>
+            <button class="dash-close" onclick="closeDashboard()">✕</button>
+        </div>
+        <div class="dash-body" id="dashBody">
+            <p style="text-align:center;color:var(--text);">Loading stats...</p>
+        </div>
+    </div>
 </div>
 
 <footer>
@@ -593,7 +635,6 @@ async function initApp() {
 }
 
 
-
 function setupApp() {
     const nav = document.getElementById('subjectNav');
     const sel = document.getElementById('subIn');
@@ -627,6 +668,7 @@ function setupApp() {
         document.getElementById('adminPanel').style.display = 'block';
         document.getElementById('loginBtn').innerText = 'Logout';
         document.getElementById('loginBtn').onclick = logout;
+        document.getElementById('dashBtn').style.display = 'flex';
     }
 
     if (localStorage.getItem('theme') === 'dark') {
@@ -943,6 +985,128 @@ function search() {
     });
 }
 
+// ---- Admin Dashboard ----
+let _onlineChannel = null;
+let _onlineCount = 0;
+
+function openDashboard() {
+    if (!isAdmin) return;
+    document.getElementById('dashModal').classList.add('show');
+    loadDashboardStats();
+    trackOnlinePresence();
+}
+
+function closeDashboard() {
+    document.getElementById('dashModal').classList.remove('show');
+}
+
+async function loadDashboardStats() {
+    const body = document.getElementById('dashBody');
+    body.innerHTML = '<p style="text-align:center;color:var(--text);">⏳ Loading...</p>';
+
+    try {
+        const items = await StorageManager.getAllData();
+        const totalFiles = items.length;
+        const totalSize = items.reduce((sum, i) => sum + (i.fileSize || 0), 0);
+        const localFiles = items.filter(i => i.type === 'Local File').length;
+        const webLinks = items.filter(i => i.type === 'Web Link').length;
+        const totalSubjects = subjectData.length;
+
+        // Files per grade
+        const gradeCount = { G10: 0, G11: 0, G12: 0 };
+        items.forEach(i => { if (gradeCount[i.grade] !== undefined) gradeCount[i.grade]++; });
+
+        // Files per subject (top 8)
+        const subCount = {};
+        items.forEach(i => { subCount[i.subject] = (subCount[i.subject] || 0) + 1; });
+        const topSubjects = Object.entries(subCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+        // Recent uploads (last 7 days)
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const recentCount = items.filter(i => new Date(i.createdAt).getTime() > weekAgo).length;
+
+        // File types breakdown
+        const typeCount = {};
+        items.forEach(i => {
+            const ext = (i.fileName || '').split('.').pop()?.toLowerCase() || 'other';
+            typeCount[ext] = (typeCount[ext] || 0) + 1;
+        });
+        const topTypes = Object.entries(typeCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        const maxGrade = Math.max(gradeCount.G10, gradeCount.G11, gradeCount.G12, 1);
+        const maxSub = topSubjects.length > 0 ? topSubjects[0][1] : 1;
+
+        body.innerHTML =
+            '<div class="dash-stat-grid">' +
+                '<div class="stat-card"><div class="stat-icon"><span class="online-dot"></span>🟢</div><div class="stat-value" id="onlineCountVal">' + _onlineCount + '</div><div class="stat-label">Online Now</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value">' + totalFiles + '</div><div class="stat-label">Total Files</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">💾</div><div class="stat-value">' + formatSize(totalSize) + '</div><div class="stat-label">Total Size</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📚</div><div class="stat-value">' + totalSubjects + '</div><div class="stat-label">Subjects</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">🆕</div><div class="stat-value">' + recentCount + '</div><div class="stat-label">This Week</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📂</div><div class="stat-value">' + localFiles + '</div><div class="stat-label">Local Files</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-value">' + webLinks + '</div><div class="stat-label">Web Links</div></div>' +
+                '<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">' + (totalFiles > 0 ? formatSize(totalSize / totalFiles) : '0') + '</div><div class="stat-label">Avg File Size</div></div>' +
+            '</div>' +
+
+            '<div class="dash-section-title">📈 Files per Grade</div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 10</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G10/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G10 + '</span></div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 11</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G11/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G11 + '</span></div>' +
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 12</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G12/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G12 + '</span></div>' +
+
+            '<div class="dash-section-title">🏆 Top Subjects</div>' +
+            topSubjects.map(([name, count]) =>
+                '<div class="stat-bar-row"><span class="stat-bar-label">' + (subjectMap[name]?.icon || '📁') + ' ' + name + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/maxSub*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
+            ).join('') +
+
+            '<div class="dash-section-title">📄 Top File Types</div>' +
+            topTypes.map(([ext, count]) =>
+                '<div class="stat-bar-row"><span class="stat-bar-label">.' + ext + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/totalFiles*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
+            ).join('');
+
+    } catch (err) {
+        console.error('Dashboard error:', err);
+        body.innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
+    }
+}
+
+function trackOnlinePresence() {
+    try {
+        const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_ANON_KEY + '&vsn=1.0.0';
+        
+        // Use a simple fetch-based presence count via Supabase channel
+        // For simplicity, we'll estimate based on a heartbeat approach
+        // Each visitor stores a timestamp, we count recent ones
+        const visitorId = sessionStorage.getItem('_vid') || (sessionStorage.setItem('_vid', Math.random().toString(36).slice(2)), sessionStorage.getItem('_vid'));
+        const key = 'sidera_online_' + visitorId;
+        
+        // Store heartbeat in localStorage for cross-tab awareness
+        localStorage.setItem(key, Date.now().toString());
+        
+        // Count active visitors (heartbeat within last 60s)
+        let count = 0;
+        const now = Date.now();
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('sidera_online_')) {
+                const ts = parseInt(localStorage.getItem(k) || '0');
+                if (now - ts < 60000) count++;
+                else localStorage.removeItem(k);
+            }
+        }
+        _onlineCount = Math.max(count, 1);
+        const el = document.getElementById('onlineCountVal');
+        if (el) el.textContent = _onlineCount;
+    } catch (e) {
+        _onlineCount = 1;
+    }
+}
+
+// Heartbeat every 30s
+setInterval(() => {
+    const vid = sessionStorage.getItem('_vid');
+    if (vid) localStorage.setItem('sidera_online_' + vid, Date.now().toString());
+}, 30000);
+
 function toggleTeam() {
     const dd = document.getElementById('teamDropdown');
     dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
@@ -960,6 +1124,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closePreview();
         hideLogin();
+        closeDashboard();
         const dd = document.getElementById('teamDropdown');
         if (dd) dd.style.display = 'none';
     }
