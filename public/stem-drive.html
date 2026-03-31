@@ -430,7 +430,6 @@
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // Toast notification system
 const TOAST_ICONS = { error:'❌', success:'✅', warning:'⚠️', info:'ℹ️' };
@@ -496,36 +495,13 @@ const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
 const STORAGE_BUCKET = 'stem-drive-files';
 
-// Initialize Supabase client for auth (UMD exposes window.supabase)
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
-let _zipCache = {};
-let _zipBlobCache = {};
-let _currentZipItemId = null;
+let _zipCache = {}; // Cache loaded ZIP objects by storagePath
+let _zipBlobCache = {}; // Cache extracted blobs
+let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = false;
+let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
 let currentPreviewObjectUrl = null;
-let authToken = null; // Will be set on login
-
-// Get auth headers (use session token if logged in, else anon)
-function getAuthHeaders() {
-    const token = authToken || SUPABASE_ANON_KEY;
-    return {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-    };
-}
-
-// Read-only headers (always anon for public reads)
-const sbHeaders = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
-};
 
 function formatSize(bytes) {
     if (!bytes) return '0 B';
@@ -537,8 +513,17 @@ function formatSize(bytes) {
 
 let _cachedItems = null;
 let _cacheTime = 0;
-const CACHE_TTL = 30000;
+const CACHE_TTL = 30000; // 30s cache
 
+// Supabase REST helpers
+const sbHeaders = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+};
+
+function mapRow(r) {
     return {
         id: r.id, title: r.title, grade: r.grade, subject: r.subject,
         semester: r.semester || 'S1',
@@ -608,40 +593,27 @@ class StorageManager {
             const safeName = (entry.fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
             storagePath = entry.grade + '/' + entry.subject + '/' + timestamp + '_' + safeName;
 
-            const token = authToken || SUPABASE_ANON_KEY;
-            
-            // Use tus resumable upload for files > 6MB
-            if (fileBlob.size > 6 * 1024 * 1024) {
-                // Resumable upload via Supabase client
-                const { data: uploadData, error: uploadError } = await sbClient.storage
-                    .from(STORAGE_BUCKET)
-                    .upload(storagePath, fileBlob, {
-                        upsert: true,
-                        cacheControl: '3600',
-                    });
-                if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
-                onProgress?.(90);
-            } else {
-                // Small file - direct upload with XHR for progress
-                await new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
-                    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
-                    xhr.setRequestHeader('x-upsert', 'true');
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
+                xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+                xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
+                xhr.setRequestHeader('x-upsert', 'true');
 
-                    xhr.upload.onprogress = (e) => {
-                        if (e.lengthComputable && onProgress) onProgress((e.loaded / e.total) * 90);
-                    };
-                    xhr.onload = () => {
-                        if (xhr.status >= 200 && xhr.status < 300) resolve();
-                        else reject(new Error('Upload failed: ' + xhr.status + ' ' + xhr.responseText));
-                    };
-                    xhr.onerror = () => reject(new Error('Upload network error'));
-                    xhr.send(fileBlob);
-                });
-            }
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable && onProgress) {
+                        onProgress((e.loaded / e.total) * 90);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) resolve();
+                    else reject(new Error('Upload failed: ' + xhr.status));
+                };
+                xhr.onerror = () => reject(new Error('Upload network error'));
+                xhr.send(fileBlob);
+            });
         }
 
         onProgress?.(92);
@@ -654,7 +626,7 @@ class StorageManager {
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
-            method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(dbEntry)
+            method: 'POST', headers: sbHeaders, body: JSON.stringify(dbEntry)
         });
 
         if (!res.ok) throw new Error('DB insert failed: ' + (await res.text()));
@@ -670,15 +642,15 @@ class StorageManager {
         const item = await this.getFile(id);
         if (!item) return;
 
-        const authHdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON_KEY) };
         const promises = [];
         if (item.storagePath) {
             promises.push(fetch(SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(item.storagePath), {
-                method: 'DELETE', headers: authHdrs
+                method: 'DELETE',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
             }));
         }
         promises.push(fetch(SUPABASE_URL + '/rest/v1/stem_drive_files?id=eq.' + id, {
-            method: 'DELETE', headers: getAuthHeaders()
+            method: 'DELETE', headers: sbHeaders
         }));
 
         await Promise.all(promises);
@@ -773,10 +745,6 @@ async function openPreview(itemId) {
             previewBody.innerHTML = '<img src="' + publicUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="preview">';
         } else if (ft === 'application/pdf') {
             previewBody.innerHTML = '<iframe src="' + publicUrl + '#view=FitH" style="width:100%;height:100%;border:none;" loading="eager"></iframe>';
-        } else if (ft.startsWith('video/')) {
-            previewBody.innerHTML = '<video controls autoplay style="max-width:100%;max-height:100%;object-fit:contain;" preload="metadata"><source src="' + publicUrl + '" type="' + ft + '">Your browser does not support video playback.</video>';
-        } else if (ft.startsWith('audio/')) {
-            previewBody.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;"><span style="font-size:4rem;">🎵</span><h3 style="color:var(--dark);">' + (item.fileName || 'Audio') + '</h3><audio controls autoplay style="width:80%;max-width:500px;" preload="metadata"><source src="' + publicUrl + '" type="' + ft + '">Your browser does not support audio playback.</audio></div>';
         } else {
             previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + publicUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
         }
@@ -827,20 +795,6 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
-        // Restore Supabase session
-        const { data: { session } } = await sbClient.auth.getSession();
-        if (session) {
-            authToken = session.access_token;
-            // Check if user is in admins table
-            const { data: adminCheck } = await sbClient.rpc('is_admin', { _user_id: session.user.id });
-            isAdmin = !!adminCheck;
-        }
-        
-        // Listen for auth changes
-        sbClient.auth.onAuthStateChange((_event, session) => {
-            authToken = session?.access_token || null;
-        });
-        
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
@@ -1027,7 +981,7 @@ async function saveToHub() {
         console.error('Save error:', err);
         showUploadProgress(false);
         btn.disabled = false;
-        showToast('Error: ' + (err.message || 'Upload failed. Please try again.'), 'error', 6000);
+        showToast('Error saving file. Try using an external link for large files.', 'error');
     }
 }
 
@@ -1085,49 +1039,28 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-async function checkAuth() {
+function checkAuth() {
     const user = document.getElementById('adminUser').value.trim().toLowerCase();
     const pass = document.getElementById('adminPass').value;
     const errEl = document.getElementById('loginError');
-    const signInBtn = document.querySelector('#loginModal .btn-pub');
-    
-    // Build email
-    const email = user.includes('@') ? user : user + '@sidera.app';
-    
-    signInBtn.disabled = true;
-    signInBtn.textContent = 'Signing in...';
-    
-    try {
-        const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
-        
-        if (error) {
-            errEl.textContent = '❌ ' + (error.message === 'Invalid login credentials' ? 'Invalid username or password.' : error.message);
-            errEl.style.display = 'block';
-            document.getElementById('adminPass').value = '';
-        } else {
-            errEl.style.display = 'none';
-            authToken = data.session.access_token;
-            isAdmin = true;
-            hideLogin();
-            showToast('Welcome back, Admin! 🎉', 'success');
-            document.getElementById('adminPanel').style.display = 'block';
-            document.getElementById('loginBtn').innerText = 'Logout';
-            document.getElementById('loginBtn').onclick = logout;
-            document.getElementById('dashBtn').style.display = 'flex';
-        }
-    } catch (e) {
-        errEl.textContent = '❌ Connection error. Please try again.';
+
+    // Accept both "admin1" and "admin1@sidera.app"
+    const normalizedUser = user.replace(/@sidera\.app$/i, '');
+
+    const found = admins.find(a => a.u === normalizedUser && a.p === pass);
+    if (found) {
+        errEl.style.display = 'none';
+        localStorage.setItem('isSideraAdmin', 'true');
+        location.reload();
+    } else {
+        errEl.textContent = '❌ Invalid username or password. Please try again.';
         errEl.style.display = 'block';
+        document.getElementById('adminPass').value = '';
     }
-    
-    signInBtn.disabled = false;
-    signInBtn.textContent = 'Sign In';
 }
 
-async function logout() {
-    await sbClient.auth.signOut();
-    authToken = null;
-    isAdmin = false;
+function logout() {
+    localStorage.removeItem('isSideraAdmin');
     location.reload();
 }
 
