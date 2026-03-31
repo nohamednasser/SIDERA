@@ -845,7 +845,7 @@ async function render() {
                 card.className = 'card';
                 const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
 
-                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:block' : '') + '" data-id="' + item.id + '">×</button>' +
+                card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:flex;align-items:center;justify-content:center' : '') + '" data-id="' + item.id + '" title="Delete">🗑️</button>' +
                     '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
                     '<h3>' + item.title + '</h3>' +
                     '<p>' + (item.desc || 'No additional notes.') + '</p>' +
