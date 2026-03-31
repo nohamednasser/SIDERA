@@ -396,48 +396,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-const admins = [
-    {u: "admin1", p: "Sid3ra@2026"},
-    {u: "admin2", p: "Dr1ve#Secure"},
-    {u: "admin3", p: "St3m!Pass99"},
-    {u: "admin4", p: "Upp3r$Lev3l"},
-    {u: "admin5", p: "M@nage2026!"}
-];
-
-// Fallback subjects (used if DB fetch fails)
-const fallbackSubjects = [
-    { name: "SAT", icon: "📐" }, { name: "ACT", icon: "📊" },
-    { name: "computer science", icon: "💻" }, { name: "chemistry", icon: "🧪" },
-    { name: "capstone", icon: "🏗️" }, { name: "biology", icon: "🧬" },
-    { name: "arabic", icon: "🇪🇬" }, { name: "math", icon: "🧮" },
-    { name: "Important", icon: "⚠️" }, { name: "geology", icon: "🌍" },
-    { name: "FINAL", icon: "🏁" }, { name: "Exercise", icon: "🏋️" },
-    { name: "quiz", icon: "⏱️" }, { name: "physics", icon: "⚡" },
-    { name: "midterm", icon: "📝" }, { name: "MEO", icon: "🏢" },
-    { name: "mechanics", icon: "⚙️" }, { name: "social studies", icon: "🗺️" },
-    { name: "religion", icon: "🌙" }
-];
-
-let subjectData = [...fallbackSubjects];
-let subjectMap = {};
-subjectData.forEach(s => { subjectMap[s.name] = s; });
-
-async function loadSubjectsFromDB() {
-    try {
-        const res = await fetch(SUPABASE_URL + '/rest/v1/subjects?select=*&order=sort_order.asc', {
-            headers: sbHeaders
-        });
-        if (!res.ok) throw new Error('Failed');
-        const data = await res.json();
-        if (data.length > 0) {
-            subjectData = data.map(s => ({ name: s.name, icon: s.icon, id: s.id }));
-            subjectMap = {};
-            subjectData.forEach(s => { subjectMap[s.name] = s; });
-        }
-    } catch (err) {
-        console.error('loadSubjects error:', err);
-    }
-}
+// Supabase Auth - no hardcoded credentials
+let _authSession = null;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
@@ -451,8 +411,23 @@ let _zipCache = {}; // Cache loaded ZIP objects by storagePath
 let _zipBlobCache = {}; // Cache extracted blobs
 let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
+let isAdmin = false;
 let currentPreviewObjectUrl = null;
+
+// Dynamic auth headers - uses session token when logged in
+function getAuthHeaders() {
+    const token = _authSession?.access_token || SUPABASE_ANON_KEY;
+    return {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+}
+
+function getAuthToken() {
+    return _authSession?.access_token || SUPABASE_ANON_KEY;
+}
 
 function formatSize(bytes) {
     if (!bytes) return '0 B';
