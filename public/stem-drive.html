@@ -895,14 +895,36 @@ function logout() {
     location.reload();
 }
 
-async function deleteItem(id) {
-    if (!confirm('Delete this resource?')) return;
+let pendingDeleteId = null;
 
+function deleteItem(id) {
+    pendingDeleteId = id;
+    const items = StorageManager._cache || [];
+    const item = items.find(i => i.id === id);
+    document.getElementById('deleteItemTitle').textContent = item ? item.title : 'this resource';
+    document.getElementById('confirmDeleteBtn').disabled = false;
+    document.getElementById('confirmDeleteBtn').textContent = 'Delete';
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    pendingDeleteId = null;
+}
+
+async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
     try {
-        await StorageManager.deleteData(id);
+        await StorageManager.deleteData(pendingDeleteId);
+        closeDeleteModal();
         render();
     } catch (err) {
         console.error('Delete error:', err);
+        btn.disabled = false;
+        btn.textContent = 'Retry';
     }
 }
 
