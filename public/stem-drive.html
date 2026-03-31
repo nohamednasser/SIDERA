@@ -812,7 +812,7 @@ async function render() {
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub)) {
+            if ((currentGrade === 'All' || item.grade === currentGrade) && (currentSub === 'All' || item.subject === currentSub) && (currentSemester === 'All' || item.semester === currentSemester)) {
                 const sInfo = subjectMap[item.subject];
                 const card = document.createElement('div');
                 card.className = 'card';
