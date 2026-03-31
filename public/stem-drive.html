@@ -496,27 +496,30 @@ const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
 const STORAGE_BUCKET = 'stem-drive-files';
 
-let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
-let _zipCache = {}; // Cache loaded ZIP objects by storagePath
-let _zipBlobCache = {}; // Cache extracted blobs
-let _currentZipItemId = null; // Track which ZIP is currently open
-let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
-let currentPreviewObjectUrl = null;
+// Initialize Supabase client for auth
+const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function formatSize(bytes) {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
+let _zipCache = {};
+let _zipBlobCache = {};
+let _currentZipItemId = null;
+let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
+let isAdmin = false;
+let currentPreviewObjectUrl = null;
+let authToken = null; // Will be set on login
+
+// Get auth headers (use session token if logged in, else anon)
+function getAuthHeaders() {
+    const token = authToken || SUPABASE_ANON_KEY;
+    return {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
 }
 
-let _cachedItems = null;
-let _cacheTime = 0;
-const CACHE_TTL = 30000; // 30s cache
-
-// Supabase REST helpers
+// Read-only headers (always anon for public reads)
 const sbHeaders = {
     'apikey': SUPABASE_ANON_KEY,
     'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
