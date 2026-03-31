@@ -1062,7 +1062,7 @@ async function addSubject() {
     try {
         const maxOrder = subjectData.length > 0 ? subjectData.length + 1 : 1;
         const res = await fetch(SUPABASE_URL + '/rest/v1/subjects', {
-            method: 'POST', headers: sbHeaders,
+            method: 'POST', headers: getAuthHeaders(),
             body: JSON.stringify({ name, icon, sort_order: maxOrder })
         });
         if (!res.ok) throw new Error(await res.text());
