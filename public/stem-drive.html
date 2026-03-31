@@ -1324,10 +1324,14 @@ document.addEventListener('keydown', (e) => {
 
 async function downloadZipEntry(storagePath, entryPath, fileName) {
     try {
-        const publicUrl = StorageManager.getPublicUrl(storagePath);
-        const res = await fetch(publicUrl);
-        const buf = await res.arrayBuffer();
-        const zip = await JSZip.loadAsync(buf);
+        let zip = _zipCache[storagePath];
+        if (!zip) {
+            const publicUrl = StorageManager.getPublicUrl(storagePath);
+            const res = await fetch(publicUrl);
+            const buf = await res.arrayBuffer();
+            zip = await JSZip.loadAsync(buf);
+            _zipCache[storagePath] = zip;
+        }
         const file = zip.file(entryPath);
         if (!file) { alert('File not found in archive'); return; }
         const blob = await file.async('blob');
