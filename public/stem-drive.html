@@ -655,17 +655,9 @@ async function openPreview(itemId) {
 
         if (isZip && typeof JSZip !== 'undefined') {
             previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
+            _currentZipItemId = itemId;
             
-            const loadZip = _zipCache[item.storagePath] 
-                ? Promise.resolve(_zipCache[item.storagePath])
-                : fetch(publicUrl).then(r => r.arrayBuffer()).then(buf => {
-                    return JSZip.loadAsync(buf).then(zip => {
-                        _zipCache[item.storagePath] = zip;
-                        return zip;
-                    });
-                });
-
-            loadZip.then(zip => {
+            getZipCached(item.storagePath).then(zip => {
                 const entries = [];
                 zip.forEach((path, entry) => { if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0 }); });
                 let html = '<div class="zip-browser">';
