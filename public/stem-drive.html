@@ -680,6 +680,7 @@ function setupApp() {
         document.getElementById('adminPanel').style.display = 'block';
         document.getElementById('loginBtn').innerText = 'Logout';
         document.getElementById('loginBtn').onclick = logout;
+        document.getElementById('dashBtn').style.display = 'flex';
     }
 
     if (localStorage.getItem('theme') === 'dark') {
