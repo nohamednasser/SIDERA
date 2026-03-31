@@ -527,7 +527,18 @@ const sbHeaders = {
     'Prefer': 'return=representation'
 };
 
-function mapRow(r) {
+function formatSize(bytes) {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+let _cachedItems = null;
+let _cacheTime = 0;
+const CACHE_TTL = 30000;
+
     return {
         id: r.id, title: r.title, grade: r.grade, subject: r.subject,
         semester: r.semester || 'S1',
