@@ -496,8 +496,8 @@ const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
 const STORAGE_BUCKET = 'stem-drive-files';
 
-// Initialize Supabase client for auth
-const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client for auth (UMD exposes window.supabase)
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentGrade = 'All', currentSub = 'All', currentSemester = 'All';
 let _zipCache = {};
