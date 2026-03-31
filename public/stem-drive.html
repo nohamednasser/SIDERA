@@ -608,27 +608,40 @@ class StorageManager {
             const safeName = (entry.fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
             storagePath = entry.grade + '/' + entry.subject + '/' + timestamp + '_' + safeName;
 
-            await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
-                xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
-                xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
-                xhr.setRequestHeader('x-upsert', 'true');
+            const token = authToken || SUPABASE_ANON_KEY;
+            
+            // Use tus resumable upload for files > 6MB
+            if (fileBlob.size > 6 * 1024 * 1024) {
+                // Resumable upload via Supabase client
+                const { data: uploadData, error: uploadError } = await sbClient.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(storagePath, fileBlob, {
+                        upsert: true,
+                        cacheControl: '3600',
+                    });
+                if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
+                onProgress?.(90);
+            } else {
+                // Small file - direct upload with XHR for progress
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + encodeURIComponent(storagePath), true);
+                    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.setRequestHeader('Content-Type', fileBlob.type || 'application/octet-stream');
+                    xhr.setRequestHeader('x-upsert', 'true');
 
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable && onProgress) {
-                        onProgress((e.loaded / e.total) * 90);
-                    }
-                };
-
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) resolve();
-                    else reject(new Error('Upload failed: ' + xhr.status));
-                };
-                xhr.onerror = () => reject(new Error('Upload network error'));
-                xhr.send(fileBlob);
-            });
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable && onProgress) onProgress((e.loaded / e.total) * 90);
+                    };
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) resolve();
+                        else reject(new Error('Upload failed: ' + xhr.status + ' ' + xhr.responseText));
+                    };
+                    xhr.onerror = () => reject(new Error('Upload network error'));
+                    xhr.send(fileBlob);
+                });
+            }
         }
 
         onProgress?.(92);
