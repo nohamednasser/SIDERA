@@ -300,12 +300,23 @@
     <div style="position:relative;display:inline-block;">
         Developed by <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & 
         <span id="teamToggle" style="cursor:pointer;color:var(--accent);font-weight:bold;text-decoration:underline;" onclick="toggleTeam()">Team</span>
-        <div id="teamDropdown" style="display:none;position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,0.15);white-space:nowrap;z-index:100;text-align:left;">
-            <div style="margin-bottom:8px;font-weight:700;font-size:0.85rem;color:var(--accent);">👥 Team Members</div>
-            <div style="margin-bottom:6px;font-size:0.82rem;"><a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">Youssef Salama</a></div>
-            <div style="margin-bottom:6px;font-size:0.82rem;color:var(--dark);">Jina Hany</div>
-            <div style="margin-bottom:6px;font-size:0.82rem;color:var(--dark);">Mariam Moamen</div>
-            <div style="font-size:0.82rem;color:var(--dark);">Eyad Atef</div>
+        <div id="teamDropdown" style="display:none;position:absolute;bottom:35px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.2);white-space:nowrap;z-index:100;text-align:center;min-width:220px;">
+            <div style="font-weight:800;font-size:0.95rem;color:var(--accent);margin-bottom:14px;letter-spacing:0.5px;">👥 Our Team</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);text-decoration:none;color:var(--dark);font-size:0.85rem;font-weight:600;transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+                    <span style="font-size:1.2rem;">🧑‍💻</span> Youssef Salama
+                    <span style="margin-left:auto;font-size:0.65rem;color:var(--accent);">🔗</span>
+                </a>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
+                    <span style="font-size:1.2rem;">👩‍💻</span> Jina Hany
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
+                    <span style="font-size:1.2rem;">👩‍💻</span> Mariam Moamen
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
+                    <span style="font-size:1.2rem;">🧑‍💻</span> Eyad Atef
+                </div>
+            </div>
         </div>
     </div>
 </footer>
