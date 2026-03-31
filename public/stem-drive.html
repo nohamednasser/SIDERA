@@ -531,15 +531,8 @@ function getSbHeaders() {
     };
 }
 
-// Keep sbHeaders as getter for backward compat
-const sbHeaders = new Proxy({}, {
-    get(_, prop) { return getSbHeaders()[prop]; },
-    ownKeys() { return Object.keys(getSbHeaders()); },
-    getOwnPropertyDescriptor(_, prop) {
-        const h = getSbHeaders();
-        if (prop in h) return { value: h[prop], writable: true, enumerable: true, configurable: true };
-    }
-});
+// Legacy alias
+function sbHeaders_get() { return getSbHeaders(); }
 
 // Restore session on load
 async function restoreSession() {
