@@ -965,20 +965,61 @@ document.getElementById('container').addEventListener('click', (e) => {
     else if (btn.classList.contains('del-btn')) deleteItem(id);
 });
 
-function checkAuth() {
-    const user = document.getElementById('adminUser').value;
+async function checkAuth() {
+    const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPass').value;
+    const errorEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginSubmitBtn');
 
-    if (admins.find(a => a.u === user && a.p === pass)) {
-        localStorage.setItem('isSideraAdmin', 'true');
+    if (!email || !pass) { errorEl.textContent = 'Please fill all fields.'; errorEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    errorEl.style.display = 'none';
+
+    try {
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.access_token) {
+            throw new Error(data.error_description || data.msg || 'Invalid credentials');
+        }
+
+        // Check if user is in admins table
+        const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/admins?user_id=eq.' + data.user.id + '&select=user_id', {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + data.access_token, 'Content-Type': 'application/json' }
+        });
+        const adminData = await adminCheck.json();
+        if (!adminData || adminData.length === 0) {
+            throw new Error('This account does not have admin privileges.');
+        }
+
+        _authSession = data;
+        isAdmin = true;
+        hideLogin();
         location.reload();
-    } else {
-        alert('Invalid Credentials!');
+    } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
     }
 }
 
-function logout() {
-    localStorage.removeItem('isSideraAdmin');
+async function logout() {
+    if (_authSession?.access_token) {
+        await fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + _authSession.access_token }
+        }).catch(() => {});
+    }
+    _authSession = null;
+    isAdmin = false;
+    sessionStorage.removeItem('sideraSession');
     location.reload();
 }
 
