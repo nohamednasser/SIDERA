@@ -445,13 +445,7 @@ function showToast(message, type = 'error', duration = 4000) {
     }, duration);
 }
 
-const admins = [
-    {u: "admin1", p: "Sid3ra@2026"},
-    {u: "admin2", p: "Dr1ve#Secure"},
-    {u: "admin3", p: "St3m!Pass99"},
-    {u: "admin4", p: "Upp3r$Lev3l"},
-    {u: "admin5", p: "M@nage2026!"}
-];
+// Admin credentials are now managed via Supabase Auth - no hardcoded passwords
 
 // Fallback subjects (used if DB fetch fails)
 const fallbackSubjects = [
