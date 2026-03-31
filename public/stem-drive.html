@@ -773,6 +773,10 @@ async function openPreview(itemId) {
             previewBody.innerHTML = '<img src="' + publicUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="preview">';
         } else if (ft === 'application/pdf') {
             previewBody.innerHTML = '<iframe src="' + publicUrl + '#view=FitH" style="width:100%;height:100%;border:none;" loading="eager"></iframe>';
+        } else if (ft.startsWith('video/')) {
+            previewBody.innerHTML = '<video controls autoplay style="max-width:100%;max-height:100%;object-fit:contain;" preload="metadata"><source src="' + publicUrl + '" type="' + ft + '">Your browser does not support video playback.</video>';
+        } else if (ft.startsWith('audio/')) {
+            previewBody.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;"><span style="font-size:4rem;">🎵</span><h3 style="color:var(--dark);">' + (item.fileName || 'Audio') + '</h3><audio controls autoplay style="width:80%;max-width:500px;" preload="metadata"><source src="' + publicUrl + '" type="' + ft + '">Your browser does not support audio playback.</audio></div>';
         } else {
             previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + publicUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
         }
