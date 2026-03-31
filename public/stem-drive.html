@@ -283,7 +283,8 @@
             <select id="subIn"></select>
             <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <p id="fileNameDisplay">📂 Click or Drop File Here (up to 5GB)</p>
-                <input type="file" id="fileInput" hidden onchange="processFile(this)">
+                <div id="zipPreviewArea"></div>
+                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
             </div>
             <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
             <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
