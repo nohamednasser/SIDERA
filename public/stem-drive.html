@@ -1047,6 +1047,7 @@ async function checkAuth() {
 
         _authSession = data;
         isAdmin = true;
+        sessionStorage.setItem('sideraSession', JSON.stringify(data));
         hideLogin();
         location.reload();
     } catch (err) {
