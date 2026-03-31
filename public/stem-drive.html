@@ -644,6 +644,32 @@ async function openPreview(itemId) {
     if (item.storagePath) {
         const publicUrl = StorageManager.getPublicUrl(item.storagePath);
         const ft = (item.fileType || '').toLowerCase();
+        const fn = (item.fileName || '').toLowerCase();
+        const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
+
+        if (isZip && typeof JSZip !== 'undefined') {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
+            fetch(publicUrl).then(r => r.arrayBuffer()).then(buf => JSZip.loadAsync(buf)).then(zip => {
+                const entries = [];
+                zip.forEach((path, entry) => { if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0, entry }); });
+                let html = '<div class="zip-browser">';
+                html += '<div class="zip-browser-header"><span style="font-size:2rem;">📦</span><div><h3>' + (item.fileName || 'Archive') + '</h3><span class="zip-count">' + entries.length + ' files · ' + formatSize(item.fileSize) + '</span></div></div>';
+                html += '<div class="zip-browser-grid">';
+                entries.forEach((e, idx) => {
+                    const name = e.name.split('/').pop() || e.name;
+                    html += '<div class="zip-item-card" onclick="downloadZipEntry(\'' + item.storagePath + '\', \'' + e.name.replace(/'/g, "\\'") + '\', \'' + name.replace(/'/g, "\\'") + '\')">';
+                    html += '<span class="zip-item-icon">' + getFileIcon(name) + '</span>';
+                    html += '<div class="zip-item-info"><div class="zip-item-name" title="' + e.name + '">' + name + '</div><div class="zip-item-size">' + formatSize(e.size) + '</div></div>';
+                    html += '<button class="zip-item-dl">📥</button>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
+                previewBody.innerHTML = html;
+            }).catch(() => {
+                previewBody.innerHTML = '<p>Could not read ZIP. <a href="' + publicUrl + '" download style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
+            });
+            return;
+        }
 
         if (ft.startsWith('image/')) {
             previewBody.innerHTML = '<img src="' + publicUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="preview">';
