@@ -991,14 +991,22 @@ document.getElementById('container').addEventListener('click', (e) => {
 });
 
 function checkAuth() {
-    const user = document.getElementById('adminUser').value;
+    const user = document.getElementById('adminUser').value.trim().toLowerCase();
     const pass = document.getElementById('adminPass').value;
+    const errEl = document.getElementById('loginError');
 
-    if (admins.find(a => a.u === user && a.p === pass)) {
+    // Accept both "admin1" and "admin1@sidera.app"
+    const normalizedUser = user.replace(/@sidera\.app$/i, '');
+
+    const found = admins.find(a => a.u === normalizedUser && a.p === pass);
+    if (found) {
+        errEl.style.display = 'none';
         localStorage.setItem('isSideraAdmin', 'true');
         location.reload();
     } else {
-        alert('Invalid Credentials!');
+        errEl.textContent = '❌ Invalid username or password. Please try again.';
+        errEl.style.display = 'block';
+        document.getElementById('adminPass').value = '';
     }
 }
 
