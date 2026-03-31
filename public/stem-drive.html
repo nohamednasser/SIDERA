@@ -1306,6 +1306,29 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+async function downloadZipEntry(storagePath, entryPath, fileName) {
+    try {
+        const publicUrl = StorageManager.getPublicUrl(storagePath);
+        const res = await fetch(publicUrl);
+        const buf = await res.arrayBuffer();
+        const zip = await JSZip.loadAsync(buf);
+        const file = zip.file(entryPath);
+        if (!file) { alert('File not found in archive'); return; }
+        const blob = await file.async('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+        console.error('ZIP extract error:', err);
+        alert('Failed to extract file from ZIP.');
+    }
+}
+
 initApp();
 </script>
 </body>
