@@ -848,6 +848,7 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
+        await restoreSession();
         await StorageManager.init();
         await loadSubjectsFromDB();
         setupApp();
