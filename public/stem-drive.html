@@ -622,6 +622,18 @@ async function initApp() {
     }
 }
 
+<div id="dashModal" class="dash-modal">
+    <div class="dash-content">
+        <div class="dash-header">
+            <h2>📊 Admin Dashboard</h2>
+            <button class="dash-close" onclick="closeDashboard()">✕</button>
+        </div>
+        <div class="dash-body" id="dashBody">
+            <p style="text-align:center;color:var(--text);">Loading stats...</p>
+        </div>
+    </div>
+</div>
+
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
