@@ -494,7 +494,7 @@ let _zipCache = {}; // Cache loaded ZIP objects by storagePath
 let _zipBlobCache = {}; // Cache extracted blobs
 let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
+let isAdmin = false;
 let currentPreviewObjectUrl = null;
 let authAccessToken = null; // Supabase Auth JWT token
 
