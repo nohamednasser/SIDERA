@@ -1020,6 +1020,12 @@ function fitPdfWidth() {
 }
 
 function closePreview() {
+    // Cleanup PDF viewer
+    if (_pdfRenderTask) { _pdfRenderTask.cancel(); _pdfRenderTask = null; }
+    if (_pdfDoc) { _pdfDoc.destroy(); _pdfDoc = null; }
+    const body = document.getElementById('previewBody');
+    if (body && body._pdfKeyHandler) { document.removeEventListener('keydown', body._pdfKeyHandler); body._pdfKeyHandler = null; }
+
     document.getElementById('previewModal').classList.remove('show');
     document.getElementById('previewBody').innerHTML = '';
     cleanupPreviewUrl();
