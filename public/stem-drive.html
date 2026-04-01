@@ -139,6 +139,76 @@
         footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: color 0.15s ease, border-color 0.15s ease; }
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
+        /* Section Tabs */
+        .section-tabs { display: flex; justify-content: center; gap: 6px; margin: 30px auto 0; padding: 0 20px; max-width: 800px; flex-wrap: wrap; }
+        .section-tab { cursor: pointer; font-size: 0.82rem; padding: 10px 20px; border-radius: 12px; background: var(--card-bg); border: 1.5px solid var(--border); color: var(--text); font-weight: 700; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
+        .section-tab:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .section-tab.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 16px rgba(163,64,84,0.3); }
+        .section-content { display: none; width: 90%; max-width: 1400px; padding: 30px 0; }
+        .section-content.active { display: block; }
+
+        /* Capstone Gallery */
+        .capstone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        .capstone-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; position: relative; }
+        .capstone-card:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(0,0,0,0.15); }
+        .capstone-img { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, var(--accent), #1B1931); display: flex; align-items: center; justify-content: center; }
+        .capstone-img img { width: 100%; height: 100%; object-fit: cover; }
+        .capstone-img .placeholder-icon { font-size: 4rem; opacity: 0.5; }
+        .capstone-body { padding: 20px; }
+        .capstone-body h3 { font-size: 1.15rem; margin-bottom: 8px; line-height: 1.3; }
+        .capstone-body p { font-size: 0.82rem; color: var(--text); line-height: 1.5; margin-bottom: 12px; }
+        .capstone-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .capstone-meta .meta-tag { font-size: 0.68rem; padding: 4px 10px; border-radius: 8px; background: rgba(163,64,84,0.08); color: var(--accent); font-weight: 700; }
+        .capstone-team { font-size: 0.78rem; color: var(--text); }
+        .capstone-team strong { color: var(--dark); }
+        .capstone-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .capstone-actions button, .capstone-actions a { flex: 1; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.82rem; border: none; cursor: pointer; transition: filter 0.15s ease; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .cap-btn-video { background: #ff4d6d; color: white; }
+        .cap-btn-image { background: #007bff; color: white; }
+        .cap-del-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,77,77,0.85); color: white; border: none; width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; z-index: 2; display: none; backdrop-filter: blur(4px); transition: transform 0.15s; }
+        .cap-del-btn:hover { transform: scale(1.1); }
+
+        /* Learning Paths */
+        .paths-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+        .path-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .path-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+        .path-header { padding: 24px 24px 16px; display: flex; gap: 14px; align-items: flex-start; }
+        .path-icon { font-size: 2.2rem; flex-shrink: 0; width: 52px; height: 52px; background: rgba(163,64,84,0.08); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .path-info { flex: 1; }
+        .path-info h3 { font-size: 1.1rem; margin-bottom: 4px; line-height: 1.3; }
+        .path-info p { font-size: 0.8rem; color: var(--text); line-height: 1.4; }
+        .path-info .path-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .path-info .path-tags span { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+        .path-steps { padding: 0 24px 20px; }
+        .path-step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+        .path-step:last-child { border-bottom: none; }
+        .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .step-info { flex: 1; }
+        .step-info h4 { font-size: 0.88rem; margin-bottom: 3px; font-weight: 600; }
+        .step-info p { font-size: 0.75rem; color: var(--text); }
+        .step-link { font-size: 0.75rem; color: var(--accent); text-decoration: none; font-weight: 600; flex-shrink: 0; padding: 4px 10px; border-radius: 8px; background: rgba(163,64,84,0.08); transition: background 0.15s; }
+        .step-link:hover { background: rgba(163,64,84,0.15); }
+        .path-del-btn { background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.2); padding: 4px 10px; border-radius: 8px; cursor: pointer; font-size: 0.72rem; font-weight: 600; display: none; transition: all 0.15s; }
+        .path-del-btn:hover { background: #ff4d4d; color: white; }
+
+        /* Exam Archive */
+        .exam-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+        .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: all 0.15s ease; }
+        .exam-filter-btn:hover { border-color: var(--accent); }
+        .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Admin Section Forms */
+        .admin-section-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 24px; margin-bottom: 24px; }
+        .admin-section-form h3 { margin: 0 0 16px; font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .section-tabs { gap: 4px; margin-top: 20px; }
+            .section-tab { font-size: 0.7rem; padding: 8px 12px; gap: 4px; }
+            .capstone-grid { grid-template-columns: 1fr; gap: 16px; }
+            .paths-grid { grid-template-columns: 1fr; gap: 16px; }
+            .capstone-img { height: 160px; }
+        }
+
         /* Admin Dashboard Modal */
         .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
         .dash-modal.show { display: flex; }
@@ -283,62 +353,139 @@
 
 <input type="text" id="searchBar" placeholder="Search for files, subjects, or notes...">
 
-<div class="filter-container">
-    <nav id="gradeNav">
-        <span class="active" onclick="filterGrade('All', this)">All Grades</span>
-        <span onclick="filterGrade('G10', this)">Grade 10</span>
-        <span onclick="filterGrade('G11', this)">Grade 11</span>
-        <span onclick="filterGrade('G12', this)">Grade 12</span>
-    </nav>
-    <nav id="semesterNav" style="display:none;">
-        <span class="active" onclick="filterSemester('All', this)">All Semesters</span>
-        <span onclick="filterSemester('S1', this)">Semester 1</span>
-        <span onclick="filterSemester('S2', this)">Semester 2</span>
-    </nav>
-    <nav id="subjectNav"></nav>
+<!-- Section Tabs -->
+<div class="section-tabs">
+    <div class="section-tab active" onclick="switchSection('resources', this)">📁 Resources</div>
+    <div class="section-tab" onclick="switchSection('capstone', this)">🏗️ Capstone</div>
+    <div class="section-tab" onclick="switchSection('paths', this)">🛤️ Paths</div>
+    <div class="section-tab" onclick="switchSection('exams', this)">📝 Exams</div>
 </div>
 
-<div id="adminPanel">
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
-        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
-        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+<!-- Resources Section -->
+<div id="section-resources" class="section-content active" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="filter-container">
+        <nav id="gradeNav">
+            <span class="active" onclick="filterGrade('All', this)">All Grades</span>
+            <span onclick="filterGrade('G10', this)">Grade 10</span>
+            <span onclick="filterGrade('G11', this)">Grade 11</span>
+            <span onclick="filterGrade('G12', this)">Grade 12</span>
+        </nav>
+        <nav id="semesterNav" style="display:none;">
+            <span class="active" onclick="filterSemester('All', this)">All Semesters</span>
+            <span onclick="filterSemester('S1', this)">Semester 1</span>
+            <span onclick="filterSemester('S2', this)">Semester 2</span>
+        </nav>
+        <nav id="subjectNav"></nav>
     </div>
 
-    <div id="adminUploadTab">
+    <div id="adminPanel">
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+            <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+            <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+        </div>
+
+        <div id="adminUploadTab">
+            <div class="form-grid">
+                <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+                <select id="gradeIn">
+                    <option value="G10">Grade 10</option>
+                    <option value="G11">Grade 11</option>
+                    <option value="G12">Grade 12</option>
+                </select>
+                <select id="semesterIn">
+                    <option value="S1">Semester 1</option>
+                    <option value="S2">Semester 2</option>
+                </select>
+                <select id="subIn"></select>
+                <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
+                    <div id="zipPreviewArea"></div>
+                    <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+                </div>
+                <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+                <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+            </div>
+            <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+        </div>
+
+        <div id="adminSubjectsTab" style="display:none;">
+            <div class="form-grid">
+                <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
+                <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
+            </div>
+            <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
+            <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div class="content" id="container"></div>
+</div>
+
+<!-- Capstone Gallery Section -->
+<div id="section-capstone" class="section-content">
+    <div id="capstoneAdminForm" class="admin-section-form" style="display:none;">
+        <h3>🏗️ Add Capstone Project</h3>
         <div class="form-grid">
-            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-            <select id="gradeIn">
+            <input type="text" id="capTitle" class="full-w" placeholder="Project title">
+            <textarea id="capDesc" class="full-w" placeholder="Project description..." rows="2"></textarea>
+            <select id="capGrade">
+                <option value="G10">Grade 10</option>
+                <option value="G11">Grade 11</option>
+                <option value="G12" selected>Grade 12</option>
+            </select>
+            <input type="text" id="capYear" placeholder="Year (e.g., 2025)" value="2025">
+            <input type="text" id="capTeam" class="full-w" placeholder="Team members (comma separated)">
+            <input type="url" id="capImage" placeholder="Image URL (optional)">
+            <input type="url" id="capVideo" placeholder="Video URL (YouTube, etc.)">
+        </div>
+        <button class="btn-pub" onclick="addCapstoneProject()">🏗️ Add Project</button>
+    </div>
+    <div class="capstone-grid" id="capstoneGrid">
+        <p class="no-resources">🏗️ No capstone projects yet.</p>
+    </div>
+</div>
+
+<!-- Learning Paths Section -->
+<div id="section-paths" class="section-content">
+    <div id="pathsAdminForm" class="admin-section-form" style="display:none;">
+        <h3>🛤️ Create Learning Path</h3>
+        <div class="form-grid">
+            <input type="text" id="pathTitle" class="full-w" placeholder="Path title (e.g., Getting Started with Arduino)">
+            <textarea id="pathDesc" class="full-w" placeholder="Path description..." rows="2"></textarea>
+            <select id="pathSubject"></select>
+            <select id="pathGrade">
+                <option value="All">All Grades</option>
                 <option value="G10">Grade 10</option>
                 <option value="G11">Grade 11</option>
                 <option value="G12">Grade 12</option>
             </select>
-            <select id="semesterIn">
-                <option value="S1">Semester 1</option>
-                <option value="S2">Semester 2</option>
-            </select>
-            <select id="subIn"></select>
-            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
-                <div id="zipPreviewArea"></div>
-                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+            <input type="text" id="pathIcon" placeholder="Emoji icon (e.g., 🔧)" maxlength="4">
+        </div>
+        <div id="pathItemsBuilder" style="margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <strong style="font-size:0.85rem;">📋 Steps</strong>
+                <button onclick="addPathItemRow()" class="control-btn" style="font-size:0.75rem;padding:5px 12px;">+ Add Step</button>
             </div>
-            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+            <div id="pathItemsList"></div>
         </div>
-        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+        <button class="btn-pub" onclick="addLearningPath()">🛤️ Create Path</button>
     </div>
-
-    <div id="adminSubjectsTab" style="display:none;">
-        <div class="form-grid">
-            <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
-            <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
-        </div>
-        <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
-        <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="paths-grid" id="pathsGrid">
+        <p class="no-resources">🛤️ No learning paths yet.</p>
     </div>
 </div>
 
-<div class="content" id="container"></div>
+<!-- Exam Archive Section -->
+<div id="section-exams" class="section-content">
+    <div class="exam-filters" id="examFilters">
+        <button class="exam-filter-btn active" onclick="filterExams('All', this)">📚 All</button>
+        <button class="exam-filter-btn" onclick="filterExams('quiz', this)">⏱️ Quizzes</button>
+        <button class="exam-filter-btn" onclick="filterExams('midterm', this)">📝 Midterms</button>
+        <button class="exam-filter-btn" onclick="filterExams('FINAL', this)">🏁 Finals</button>
+        <button class="exam-filter-btn" onclick="filterExams('Exercise', this)">🏋️ Exercises</button>
+    </div>
+    <div class="content" id="examContainer" style="width:100%;max-width:1400px;"></div>
+</div>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
@@ -1744,7 +1891,297 @@ async function downloadZipEntry(storagePath, entryPath, fileName) {
     }
 }
 
+// ─── Section Switching ───
+let currentSection = 'resources';
+let currentExamFilter = 'All';
+
+function switchSection(section, el) {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.section-content').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+    const target = document.getElementById('section-' + section);
+    if (target) { target.classList.add('active'); target.style.display = section === 'resources' ? 'flex' : 'block'; }
+    currentSection = section;
+
+    // Show admin forms for the active section
+    if (isAdmin) {
+        const capForm = document.getElementById('capstoneAdminForm');
+        const pathForm = document.getElementById('pathsAdminForm');
+        if (capForm) capForm.style.display = section === 'capstone' ? 'block' : 'none';
+        if (pathForm) pathForm.style.display = section === 'paths' ? 'block' : 'none';
+    }
+
+    if (section === 'capstone') loadCapstoneProjects();
+    else if (section === 'paths') loadLearningPaths();
+    else if (section === 'exams') renderExamArchive();
+}
+
+// ─── Capstone Gallery ───
+let _capstoneCache = null;
+
+async function loadCapstoneProjects() {
+    const grid = document.getElementById('capstoneGrid');
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?select=*&order=created_at.desc', { headers: getSbHeaders() });
+        if (!res.ok) throw new Error('Failed');
+        _capstoneCache = await res.json();
+        renderCapstoneGrid();
+    } catch (err) {
+        console.error('Capstone load error:', err);
+        grid.innerHTML = '<p class="no-resources">Failed to load projects.</p>';
+    }
+}
+
+function renderCapstoneGrid() {
+    const grid = document.getElementById('capstoneGrid');
+    if (!_capstoneCache || _capstoneCache.length === 0) {
+        grid.innerHTML = '<p class="no-resources">🏗️ No capstone projects yet. Admins can add projects to inspire juniors!</p>';
+        return;
+    }
+    grid.innerHTML = _capstoneCache.map(p => {
+        const imgHtml = p.image_url
+            ? '<div class="capstone-img"><img src="' + p.image_url + '" alt="' + p.title + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<span class=placeholder-icon>🏗️</span>\'"></div>'
+            : '<div class="capstone-img"><span class="placeholder-icon">🏗️</span></div>';
+        const videoBtn = p.video_url ? '<a href="' + p.video_url + '" target="_blank" class="cap-btn-video">▶ Video</a>' : '';
+        const imageBtn = p.image_url ? '<button class="cap-btn-image" onclick="window.open(\'' + p.image_url + '\',\'_blank\')">🖼️ Image</button>' : '';
+        const delBtn = isAdmin ? '<button class="cap-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="deleteCapstone(\'' + p.id + '\')">🗑️</button>' : '';
+        return '<div class="capstone-card">' + delBtn + imgHtml +
+            '<div class="capstone-body"><div class="capstone-meta"><span class="meta-tag">' + p.grade + '</span><span class="meta-tag">📅 ' + (p.year || '') + '</span></div>' +
+            '<h3>' + p.title + '</h3><p>' + (p.description || '') + '</p>' +
+            (p.team_members ? '<div class="capstone-team"><strong>👥 Team:</strong> ' + p.team_members + '</div>' : '') +
+            '<div class="capstone-actions">' + videoBtn + imageBtn + '</div></div></div>';
+    }).join('');
+}
+
+async function addCapstoneProject() {
+    const title = document.getElementById('capTitle').value.trim();
+    if (!title) { showToast('Please enter a project title', 'warning'); return; }
+    const body = {
+        title,
+        description: document.getElementById('capDesc').value.trim(),
+        grade: document.getElementById('capGrade').value,
+        year: document.getElementById('capYear').value.trim(),
+        team_members: document.getElementById('capTeam').value.trim(),
+        image_url: document.getElementById('capImage').value.trim(),
+        video_url: document.getElementById('capVideo').value.trim()
+    };
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/capstone_projects', {
+            method: 'POST', headers: getSbHeaders(), body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        showToast('Project added!', 'success');
+        ['capTitle','capDesc','capTeam','capImage','capVideo'].forEach(id => document.getElementById(id).value = '');
+        loadCapstoneProjects();
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to add project', 'error');
+    }
+}
+
+async function deleteCapstone(id) {
+    if (!confirm('Delete this capstone project?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?id=eq.' + id, { method: 'DELETE', headers: getSbHeaders() });
+        loadCapstoneProjects();
+    } catch (err) { showToast('Failed to delete', 'error'); }
+}
+
+// ─── Learning Paths ───
+let _pathsCache = null;
+let _pathItemsBuilder = [];
+
+function addPathItemRow() {
+    const list = document.getElementById('pathItemsList');
+    const idx = _pathItemsBuilder.length;
+    _pathItemsBuilder.push({});
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;';
+    row.innerHTML = '<input type="text" placeholder="Step title" id="stepTitle' + idx + '" style="font-size:0.82rem;">' +
+        '<input type="url" placeholder="Link (URL)" id="stepUrl' + idx + '" style="font-size:0.82rem;">' +
+        '<button onclick="this.parentNode.remove()" style="background:#ff4d4d;color:white;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:0.75rem;">✕</button>';
+    list.appendChild(row);
+}
+
+async function loadLearningPaths() {
+    const grid = document.getElementById('pathsGrid');
+    try {
+        const [pathsRes, itemsRes] = await Promise.all([
+            fetch(SUPABASE_URL + '/rest/v1/learning_paths?select=*&order=sort_order.asc,created_at.desc', { headers: getSbHeaders() }),
+            fetch(SUPABASE_URL + '/rest/v1/learning_path_items?select=*&order=sort_order.asc', { headers: getSbHeaders() })
+        ]);
+        if (!pathsRes.ok || !itemsRes.ok) throw new Error('Failed');
+        const paths = await pathsRes.json();
+        const items = await itemsRes.json();
+        _pathsCache = paths.map(p => ({ ...p, items: items.filter(i => i.path_id === p.id) }));
+        renderPathsGrid();
+    } catch (err) {
+        console.error('Paths load error:', err);
+        grid.innerHTML = '<p class="no-resources">Failed to load learning paths.</p>';
+    }
+}
+
+function renderPathsGrid() {
+    const grid = document.getElementById('pathsGrid');
+    if (!_pathsCache || _pathsCache.length === 0) {
+        grid.innerHTML = '<p class="no-resources">🛤️ No learning paths yet. Admins can create structured learning journeys!</p>';
+        return;
+    }
+    grid.innerHTML = _pathsCache.map(p => {
+        const stepsHtml = (p.items || []).map((item, idx) =>
+            '<div class="path-step">' +
+                '<span class="step-num">' + (idx + 1) + '</span>' +
+                '<div class="step-info"><h4>' + item.title + '</h4>' +
+                (item.description ? '<p>' + item.description + '</p>' : '') + '</div>' +
+                (item.url ? '<a href="' + item.url + '" target="_blank" class="step-link">Open →</a>' : '') +
+            '</div>'
+        ).join('');
+
+        const delBtn = isAdmin ? '<button class="path-del-btn" style="display:inline-flex;" onclick="deletePath(\'' + p.id + '\')">🗑️ Delete</button>' : '';
+
+        return '<div class="path-card">' +
+            '<div class="path-header">' +
+                '<div class="path-icon">' + (p.icon || '🛤️') + '</div>' +
+                '<div class="path-info"><h3>' + p.title + '</h3><p>' + (p.description || '') + '</p>' +
+                '<div class="path-tags"><span>' + (p.grade || 'All') + '</span><span>' + (p.subject || 'General') + '</span>' +
+                '<span>' + (p.items?.length || 0) + ' steps</span>' + delBtn + '</div></div>' +
+            '</div>' +
+            '<div class="path-steps">' + stepsHtml + '</div>' +
+        '</div>';
+    }).join('');
+}
+
+async function addLearningPath() {
+    const title = document.getElementById('pathTitle').value.trim();
+    if (!title) { showToast('Please enter a path title', 'warning'); return; }
+    
+    const pathBody = {
+        title,
+        description: document.getElementById('pathDesc').value.trim(),
+        subject: document.getElementById('pathSubject').value,
+        grade: document.getElementById('pathGrade').value,
+        icon: document.getElementById('pathIcon').value.trim() || '🛤️',
+        sort_order: (_pathsCache?.length || 0) + 1
+    };
+
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/learning_paths', {
+            method: 'POST', headers: getSbHeaders(), body: JSON.stringify(pathBody)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const pathData = await res.json();
+        const pathId = pathData[0]?.id;
+
+        // Collect step items
+        const stepRows = document.getElementById('pathItemsList').children;
+        const items = [];
+        for (let i = 0; i < stepRows.length; i++) {
+            const tInput = stepRows[i].querySelector('input[id^="stepTitle"]');
+            const uInput = stepRows[i].querySelector('input[id^="stepUrl"]');
+            if (tInput && tInput.value.trim()) {
+                items.push({ path_id: pathId, title: tInput.value.trim(), url: uInput?.value?.trim() || '', sort_order: i + 1 });
+            }
+        }
+        if (items.length > 0) {
+            await fetch(SUPABASE_URL + '/rest/v1/learning_path_items', {
+                method: 'POST', headers: getSbHeaders(), body: JSON.stringify(items)
+            });
+        }
+
+        showToast('Learning path created!', 'success');
+        ['pathTitle','pathDesc','pathIcon'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('pathItemsList').innerHTML = '';
+        _pathItemsBuilder = [];
+        loadLearningPaths();
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to create path', 'error');
+    }
+}
+
+async function deletePath(id) {
+    if (!confirm('Delete this learning path and all its steps?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/learning_paths?id=eq.' + id, { method: 'DELETE', headers: getSbHeaders() });
+        loadLearningPaths();
+    } catch (err) { showToast('Failed to delete', 'error'); }
+}
+
+// ─── Exam Archive ───
+const EXAM_SUBJECTS = ['quiz', 'midterm', 'FINAL', 'Exercise'];
+
+function filterExams(filter, el) {
+    document.querySelectorAll('.exam-filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentExamFilter = filter;
+    renderExamArchive();
+}
+
+async function renderExamArchive() {
+    const cont = document.getElementById('examContainer');
+    try {
+        const items = await StorageManager.getAllData();
+        const examItems = items.filter(item => {
+            const subLower = (item.subject || '').toLowerCase();
+            const titleLower = (item.title || '').toLowerCase();
+            const isExam = EXAM_SUBJECTS.some(es => subLower === es.toLowerCase() || titleLower.includes(es.toLowerCase()));
+            if (!isExam) return false;
+            if (currentExamFilter === 'All') return true;
+            return subLower === currentExamFilter.toLowerCase() || titleLower.includes(currentExamFilter.toLowerCase());
+        });
+
+        if (examItems.length === 0) {
+            cont.innerHTML = '<p class="no-resources">📝 No exam papers found matching this filter.</p>';
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        examItems.forEach(item => {
+            const sInfo = subjectMap[item.subject];
+            const card = document.createElement('div');
+            card.className = 'card';
+            const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
+            card.innerHTML = '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '📝') + ' ' + item.subject + '</span><span class="type-tag">' + item.grade + sizeStr + '</span></div>' +
+                '<h3>' + item.title + '</h3><p>' + (item.desc || 'Past paper / exam resource') + '</p>' +
+                '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+            frag.appendChild(card);
+        });
+        cont.innerHTML = '';
+        cont.appendChild(frag);
+    } catch (err) {
+        console.error('Exam archive error:', err);
+        cont.innerHTML = '<p class="no-resources">Failed to load exam archive.</p>';
+    }
+}
+
+// Event delegation for exam container
+document.getElementById('examContainer').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-id]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.classList.contains('btn-preview')) openPreview(id);
+    else if (btn.classList.contains('btn-dl')) downloadFile(id);
+});
+
+// Populate pathSubject select
+function populatePathSubjectSelect() {
+    const sel = document.getElementById('pathSubject');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">General</option>' + subjectData.map(s => '<option value="' + s.name + '">' + s.icon + ' ' + s.name + '</option>').join('');
+}
+
 initApp();
+
+// After init, populate path subject select and show admin forms
+const _origSetupApp = setupApp;
+setupApp = function() {
+    _origSetupApp();
+    populatePathSubjectSelect();
+    if (isAdmin) {
+        document.getElementById('capstoneAdminForm').style.display = currentSection === 'capstone' ? 'block' : 'none';
+        document.getElementById('pathsAdminForm').style.display = currentSection === 'paths' ? 'block' : 'none';
+    }
+};
 </script>
 </body>
 </html>
