@@ -972,6 +972,12 @@ async function saveToHub() {
     const linkValue = document.getElementById('linkIn').value.trim();
     const hasLink = linkValue !== '';
 
+    if (!authAccessToken || !isAdmin) {
+        showToast('سجّل دخول الأدمن مرة تانية قبل الرفع.', 'warning');
+        showLogin();
+        return;
+    }
+
     if (!title || (!hasFile && !hasLink)) {
         showToast('Please provide a title and a file or link!', 'warning');
         return;
