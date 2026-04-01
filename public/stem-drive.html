@@ -1789,6 +1789,146 @@ async function downloadZipEntry(storagePath, entryPath, fileName) {
 }
 
 initApp();
+
+// ===== AI Chatbot =====
+const chatbotKB = [
+    { keys: ['portfolio','بورتفوليو','محفظة','ملف'], answer: '📁 <b>عشان تعمل Portfolio:</b><br>1. اجمع أفضل مشاريعك ومهامك<br>2. ارفعهم على SIDERA STEM Drive<br>3. اكتب وصف واضح لكل مشروع<br>4. ممكن تضيف فيديو شرح<br>5. نظّم حسب المادة والصف' },
+    { keys: ['deadline','ديدلاين','موعد','مواعيد','تسليم'], answer: '⏰ <b>مواعيد التسليم:</b><br>• راجع المدرس المسؤول عن المادة<br>• تابع إعلانات المدرسة<br>• نصيحة: سلّم قبل الموعد بيوم على الأقل!' },
+    { keys: ['capstone','كابستون','مشروع التخرج','مشروع نهائي'], answer: '🎓 <b>مشروع الـ Capstone:</b><br>1. اختار مشكلة حقيقية تحلها<br>2. اعمل Research كويس<br>3. صمم Prototype<br>4. اعمل عرض تقديمي قوي<br>5. ارفع المشروع هنا على SIDERA!' },
+    { keys: ['grade','درجة','درجات','تقييم','تقدير'], answer: '📊 <b>نظام التقييم:</b><br>• المشاريع: 40%<br>• الامتحانات: 30%<br>• المشاركة: 20%<br>• الحضور: 10%<br>⚡ ركز على جودة المشاريع!' },
+    { keys: ['upload','رفع','ارفع','اضيف','أرفع'], answer: '📤 <b>لرفع ملف:</b><br>1. سجّل دخول كأدمن<br>2. اختار المادة والصف<br>3. اختار الملف (حتى 10GB)<br>4. اضغط "Publish"<br>يدعم: PDF, صور, فيديو, ZIP وأكتر!' },
+    { keys: ['subject','مادة','مواد','ايه المواد'], answer: '📚 <b>المواد المتاحة:</b><br>• Mathematics 🔢<br>• Physics ⚛️<br>• Chemistry 🧪<br>• Biology 🧬<br>• Computer Science 💻<br>• Engineering 🔧<br>استخدم الفلاتر في الأعلى!' },
+    { keys: ['help','مساعدة','ساعدني','ازاي','كيف','إزاي'], answer: '👋 <b>إزاي أساعدك؟</b><br>ممكن تسألني عن:<br>• إزاي أعمل Portfolio<br>• مواعيد التسليم<br>• مشروع الـ Capstone<br>• نظام الدرجات<br>• رفع الملفات<br>• المواد المتاحة' },
+    { keys: ['sidera','سيدرا','عن الموقع','ايه ده'], answer: '🌟 <b>SIDERA STEM Drive</b><br>منصة تعليمية لطلاب STEM!<br>هنا تقدر:<br>• تلاقي ملفات ومذكرات<br>• ترفع مشاريعك<br>• تتابع كل المواد<br>• تحمّل أي ملف تحتاجه' },
+    { keys: ['stem','ستيم','ستم'], answer: '🔬 <b>STEM = Science, Technology, Engineering, Math</b><br>نظام تعليمي بيركّز على:<br>• التفكير النقدي<br>• حل المشكلات<br>• المشاريع العملية<br>• التكنولوجيا والابتكار' },
+    { keys: ['download','تحميل','حمل','نزل','أحمل'], answer: '📥 <b>لتحميل ملف:</b><br>1. دوّر على الملف اللي عايزه<br>2. اضغط زرار "Download"<br>3. الملف هينزل على جهازك<br>ممكن كمان تعمل Preview الأول!' },
+    { keys: ['search','بحث','دور','ابحث','أبحث'], answer: '🔍 <b>للبحث:</b><br>استخدم شريط البحث في الأعلى!<br>ممكن تدوّر بـ:<br>• اسم الملف<br>• المادة<br>• نوع الملف<br>• أو أي كلمة في الوصف' },
+    { keys: ['dark','دارك','ثيم','mode','وضع'], answer: '🌙 <b>تغيير الوضع:</b><br>اضغط على زرار "Mode" في الأعلى عشان تبدّل بين الوضع الفاتح والغامق!' },
+];
+
+const defaultSuggestions = [
+    'إزاي أعمل Portfolio؟',
+    'مواعيد الـ Deadlines؟',
+    'مشروع الـ Capstone',
+    'إزاي أرفع ملف؟',
+    'المواد المتاحة',
+];
+
+function findAnswer(question) {
+    const q = question.toLowerCase().trim();
+    for (const entry of chatbotKB) {
+        if (entry.keys.some(k => q.includes(k))) return entry.answer;
+    }
+    return '🤔 مش متأكد من السؤال ده، بس ممكن تسألني عن:<br>• Portfolio<br>• Deadlines<br>• Capstone<br>• رفع ملفات<br>• المواد<br>• أو اكتب <b>"مساعدة"</b>';
+}
+
+let chatOpen = false;
+function toggleChat() {
+    chatOpen = !chatOpen;
+    const panel = document.getElementById('chatPanel');
+    const fab = document.getElementById('chatFab');
+    panel.classList.toggle('open', chatOpen);
+    fab.innerHTML = chatOpen ? '✕' : '🤖';
+    fab.classList.remove('has-dot');
+    if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
+        addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا هنا أساعدك في أي سؤال عن STEM Drive.<br>اختار سؤال من تحت أو اكتب سؤالك! 🚀');
+        showSuggestions();
+    }
+}
+
+function addBotMsg(html) {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'chat-msg bot';
+    div.innerHTML = html;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMsg(text) {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'chat-msg user';
+    div.textContent = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showSuggestions() {
+    const cont = document.getElementById('chatSuggestions');
+    cont.innerHTML = '';
+    defaultSuggestions.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'chat-sug-btn';
+        btn.textContent = s;
+        btn.onclick = () => askBot(s);
+        cont.appendChild(btn);
+    });
+}
+
+function showTyping() {
+    const msgs = document.getElementById('chatMessages');
+    const dots = document.createElement('div');
+    dots.className = 'typing-dots';
+    dots.id = 'typingDots';
+    dots.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(dots);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+    const el = document.getElementById('typingDots');
+    if (el) el.remove();
+}
+
+function askBot(question) {
+    addUserMsg(question);
+    document.getElementById('chatSuggestions').innerHTML = '';
+    showTyping();
+    setTimeout(() => {
+        removeTyping();
+        addBotMsg(findAnswer(question));
+        setTimeout(showSuggestions, 300);
+    }, 600 + Math.random() * 400);
+}
+
+function sendChatMsg() {
+    const input = document.getElementById('chatInput');
+    const val = input.value.trim();
+    if (!val) return;
+    input.value = '';
+    askBot(val);
+}
+
+document.addEventListener('keydown', e => {
+    if (e.target.id === 'chatInput' && e.key === 'Enter') sendChatMsg();
+});
+
+// Show chat hint after 3s
+setTimeout(() => {
+    const fab = document.getElementById('chatFab');
+    if (fab && !chatOpen) fab.classList.add('has-dot');
+}, 3000);
 </script>
+
+<!-- Chatbot Widget -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()" aria-label="Open AI Assistant">🤖</button>
+<div class="chatbot-panel" id="chatPanel">
+    <div class="chat-head">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-head-info">
+            <h3>SIDERA AI</h3>
+            <p><span class="online-dot"></span>Online — أسألني أي حاجة</p>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-suggestions" id="chatSuggestions"></div>
+    <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="اكتب سؤالك هنا..." autocomplete="off">
+        <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+    </div>
+</div>
+
 </body>
 </html>
