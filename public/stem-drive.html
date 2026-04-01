@@ -807,7 +807,7 @@ async function openPreview(itemId) {
 }
 
 async function downloadFile(itemId) {
-    const item = await StorageManager.getFile(itemId);
+    const item = StorageManager.getFileFromCache(itemId) || await StorageManager.getFile(itemId);
     if (!item) return;
 
     const url = item.url || '';
