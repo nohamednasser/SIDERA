@@ -139,6 +139,76 @@
         footer { width: 100%; padding: 40px 0; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.85rem; color: var(--text); transition: color 0.15s ease, border-color 0.15s ease; }
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
+        /* Section Tabs */
+        .section-tabs { display: flex; justify-content: center; gap: 6px; margin: 30px auto 0; padding: 0 20px; max-width: 800px; flex-wrap: wrap; }
+        .section-tab { cursor: pointer; font-size: 0.82rem; padding: 10px 20px; border-radius: 12px; background: var(--card-bg); border: 1.5px solid var(--border); color: var(--text); font-weight: 700; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
+        .section-tab:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .section-tab.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 16px rgba(163,64,84,0.3); }
+        .section-content { display: none; width: 90%; max-width: 1400px; padding: 30px 0; }
+        .section-content.active { display: block; }
+
+        /* Capstone Gallery */
+        .capstone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        .capstone-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; position: relative; }
+        .capstone-card:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(0,0,0,0.15); }
+        .capstone-img { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, var(--accent), #1B1931); display: flex; align-items: center; justify-content: center; }
+        .capstone-img img { width: 100%; height: 100%; object-fit: cover; }
+        .capstone-img .placeholder-icon { font-size: 4rem; opacity: 0.5; }
+        .capstone-body { padding: 20px; }
+        .capstone-body h3 { font-size: 1.15rem; margin-bottom: 8px; line-height: 1.3; }
+        .capstone-body p { font-size: 0.82rem; color: var(--text); line-height: 1.5; margin-bottom: 12px; }
+        .capstone-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .capstone-meta .meta-tag { font-size: 0.68rem; padding: 4px 10px; border-radius: 8px; background: rgba(163,64,84,0.08); color: var(--accent); font-weight: 700; }
+        .capstone-team { font-size: 0.78rem; color: var(--text); }
+        .capstone-team strong { color: var(--dark); }
+        .capstone-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .capstone-actions button, .capstone-actions a { flex: 1; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.82rem; border: none; cursor: pointer; transition: filter 0.15s ease; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .cap-btn-video { background: #ff4d6d; color: white; }
+        .cap-btn-image { background: #007bff; color: white; }
+        .cap-del-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,77,77,0.85); color: white; border: none; width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; z-index: 2; display: none; backdrop-filter: blur(4px); transition: transform 0.15s; }
+        .cap-del-btn:hover { transform: scale(1.1); }
+
+        /* Learning Paths */
+        .paths-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+        .path-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .path-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+        .path-header { padding: 24px 24px 16px; display: flex; gap: 14px; align-items: flex-start; }
+        .path-icon { font-size: 2.2rem; flex-shrink: 0; width: 52px; height: 52px; background: rgba(163,64,84,0.08); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .path-info { flex: 1; }
+        .path-info h3 { font-size: 1.1rem; margin-bottom: 4px; line-height: 1.3; }
+        .path-info p { font-size: 0.8rem; color: var(--text); line-height: 1.4; }
+        .path-info .path-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .path-info .path-tags span { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+        .path-steps { padding: 0 24px 20px; }
+        .path-step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+        .path-step:last-child { border-bottom: none; }
+        .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .step-info { flex: 1; }
+        .step-info h4 { font-size: 0.88rem; margin-bottom: 3px; font-weight: 600; }
+        .step-info p { font-size: 0.75rem; color: var(--text); }
+        .step-link { font-size: 0.75rem; color: var(--accent); text-decoration: none; font-weight: 600; flex-shrink: 0; padding: 4px 10px; border-radius: 8px; background: rgba(163,64,84,0.08); transition: background 0.15s; }
+        .step-link:hover { background: rgba(163,64,84,0.15); }
+        .path-del-btn { background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.2); padding: 4px 10px; border-radius: 8px; cursor: pointer; font-size: 0.72rem; font-weight: 600; display: none; transition: all 0.15s; }
+        .path-del-btn:hover { background: #ff4d4d; color: white; }
+
+        /* Exam Archive */
+        .exam-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+        .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: all 0.15s ease; }
+        .exam-filter-btn:hover { border-color: var(--accent); }
+        .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Admin Section Forms */
+        .admin-section-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 24px; margin-bottom: 24px; }
+        .admin-section-form h3 { margin: 0 0 16px; font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .section-tabs { gap: 4px; margin-top: 20px; }
+            .section-tab { font-size: 0.7rem; padding: 8px 12px; gap: 4px; }
+            .capstone-grid { grid-template-columns: 1fr; gap: 16px; }
+            .paths-grid { grid-template-columns: 1fr; gap: 16px; }
+            .capstone-img { height: 160px; }
+        }
+
         /* Admin Dashboard Modal */
         .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
         .dash-modal.show { display: flex; }
