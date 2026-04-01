@@ -1471,12 +1471,19 @@ document.addEventListener('keydown', (e) => {
 
 async function getZipCached(storagePath) {
     if (_zipCache[storagePath]) return _zipCache[storagePath];
-    const publicUrl = StorageManager.getPublicUrl(storagePath);
-    const res = await fetch(publicUrl);
-    const buf = await res.arrayBuffer();
-    const zip = await JSZip.loadAsync(buf);
-    _zipCache[storagePath] = zip;
-    return zip;
+    // Use a promise to avoid duplicate parallel fetches
+    if (!_zipCache['_loading_' + storagePath]) {
+        _zipCache['_loading_' + storagePath] = (async () => {
+            const publicUrl = StorageManager.getPublicUrl(storagePath);
+            const res = await fetch(publicUrl);
+            const buf = await res.arrayBuffer();
+            const zip = await JSZip.loadAsync(buf);
+            _zipCache[storagePath] = zip;
+            delete _zipCache['_loading_' + storagePath];
+            return zip;
+        })();
+    }
+    return _zipCache['_loading_' + storagePath];
 }
 
 async function getZipBlob(storagePath, entryPath) {
