@@ -988,7 +988,7 @@ function fitPdfWidth() {
     });
 }
 
-
+async function downloadFile(itemId) {
     const item = StorageManager.getFileFromCache(itemId) || await StorageManager.getFile(itemId);
     if (!item) return;
 
