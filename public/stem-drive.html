@@ -494,7 +494,7 @@ let _zipCache = {}; // Cache loaded ZIP objects by storagePath
 let _zipBlobCache = {}; // Cache extracted blobs
 let _currentZipItemId = null; // Track which ZIP is currently open
 let uploadedFileBlob = null, uploadedFileName = "", uploadedFileType = "", uploadedFileSize = 0;
-let isAdmin = localStorage.getItem('isSideraAdmin') === 'true';
+let isAdmin = false;
 let currentPreviewObjectUrl = null;
 let authAccessToken = null; // Supabase Auth JWT token
 
@@ -530,36 +530,36 @@ function sbHeaders_get() { return getSbHeaders(); }
 
 // Restore session on load
 async function restoreSession() {
+    isAdmin = false;
+    authAccessToken = null;
+
     const storedSession = localStorage.getItem('sideraAuthSession');
-    if (storedSession) {
-        try {
-            const session = JSON.parse(storedSession);
-            // Try to refresh the token
-            const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refresh_token: session.refresh_token })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                authAccessToken = data.access_token;
-                localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
-                isAdmin = true;
-                localStorage.setItem('isSideraAdmin', 'true');
-            } else {
-                // Session expired
-                localStorage.removeItem('sideraAuthSession');
-                localStorage.removeItem('isSideraAdmin');
-                authAccessToken = null;
-                isAdmin = false;
-            }
-        } catch (e) {
-            console.error('Session restore error:', e);
-            localStorage.removeItem('sideraAuthSession');
-            localStorage.removeItem('isSideraAdmin');
-            authAccessToken = null;
-            isAdmin = false;
-        }
+    if (!storedSession) {
+        localStorage.removeItem('isSideraAdmin');
+        return;
+    }
+
+    try {
+        const session = JSON.parse(storedSession);
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: session.refresh_token })
+        });
+
+        if (!res.ok) throw new Error('Session expired');
+
+        const data = await res.json();
+        authAccessToken = data.access_token;
+        isAdmin = true;
+        localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
+        localStorage.setItem('isSideraAdmin', 'true');
+    } catch (e) {
+        console.error('Session restore error:', e);
+        localStorage.removeItem('sideraAuthSession');
+        localStorage.removeItem('isSideraAdmin');
+        authAccessToken = null;
+        isAdmin = false;
     }
 }
 
@@ -649,7 +649,10 @@ class StorageManager {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) resolve();
-                    else reject(new Error('Upload failed: ' + xhr.status));
+                    else {
+                        const details = xhr.responseText ? (' - ' + xhr.responseText.slice(0, 200)) : '';
+                        reject(new Error('Upload failed: ' + xhr.status + details));
+                    }
                 };
                 xhr.onerror = () => reject(new Error('Upload network error'));
                 xhr.send(fileBlob);
@@ -972,6 +975,12 @@ async function saveToHub() {
     const linkValue = document.getElementById('linkIn').value.trim();
     const hasLink = linkValue !== '';
 
+    if (!authAccessToken || !isAdmin) {
+        showToast('سجّل دخول الأدمن مرة تانية قبل الرفع.', 'warning');
+        showLogin();
+        return;
+    }
+
     if (!title || (!hasFile && !hasLink)) {
         showToast('Please provide a title and a file or link!', 'warning');
         return;
@@ -1104,9 +1113,11 @@ async function checkAuth() {
 
         const data = await res.json();
         authAccessToken = data.access_token;
+        isAdmin = true;
         localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
         localStorage.setItem('isSideraAdmin', 'true');
         errEl.style.display = 'none';
+        hideLogin();
         location.reload();
     } catch (err) {
         errEl.textContent = '❌ Connection error. Please try again.';
