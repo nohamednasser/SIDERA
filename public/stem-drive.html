@@ -1110,9 +1110,11 @@ async function checkAuth() {
 
         const data = await res.json();
         authAccessToken = data.access_token;
+        isAdmin = true;
         localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
         localStorage.setItem('isSideraAdmin', 'true');
         errEl.style.display = 'none';
+        hideLogin();
         location.reload();
     } catch (err) {
         errEl.textContent = '❌ Connection error. Please try again.';
