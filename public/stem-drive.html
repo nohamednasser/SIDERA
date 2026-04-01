@@ -649,7 +649,10 @@ class StorageManager {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) resolve();
-                    else reject(new Error('Upload failed: ' + xhr.status));
+                    else {
+                        const details = xhr.responseText ? (' - ' + xhr.responseText.slice(0, 200)) : '';
+                        reject(new Error('Upload failed: ' + xhr.status + details));
+                    }
                 };
                 xhr.onerror = () => reject(new Error('Upload network error'));
                 xhr.send(fileBlob);
