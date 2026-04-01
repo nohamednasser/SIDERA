@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://vlzdipbirrhvftwpcccx.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://vlzdipbirrhvftwpcccx.supabase.co">
     <title>SIDERA | STEM DRIVE ULTIMATE</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -721,7 +723,7 @@ function cleanupPreviewUrl() {
 }
 
 async function openPreview(itemId) {
-    const item = await StorageManager.getFile(itemId);
+    const item = StorageManager.getFileFromCache(itemId) || await StorageManager.getFile(itemId);
     if (!item) return;
 
     const modal = document.getElementById('previewModal');
@@ -745,7 +747,7 @@ async function openPreview(itemId) {
         return;
     }
 
-    // Cloud storage file - instant URL, no extra fetch
+    // Cloud storage file
     if (item.storagePath) {
         const publicUrl = StorageManager.getPublicUrl(item.storagePath);
         const ft = (item.fileType || '').toLowerCase();
@@ -785,7 +787,14 @@ async function openPreview(itemId) {
         }
 
         if (ft.startsWith('image/')) {
-            previewBody.innerHTML = '<img src="' + publicUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="preview">';
+            // Show spinner then swap to image instantly
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading image...</span></div>';
+            const img = new Image();
+            img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
+            img.onerror = () => { previewBody.innerHTML = '<p>Failed to load image. <a href="' + publicUrl + '" download style="color:var(--accent);">Download</a></p>'; };
+            img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+            img.alt = 'preview';
+            img.src = publicUrl;
         } else if (ft === 'application/pdf') {
             previewBody.innerHTML = '<iframe src="' + publicUrl + '#view=FitH" style="width:100%;height:100%;border:none;" loading="eager"></iframe>';
         } else {
@@ -798,7 +807,7 @@ async function openPreview(itemId) {
 }
 
 async function downloadFile(itemId) {
-    const item = await StorageManager.getFile(itemId);
+    const item = StorageManager.getFileFromCache(itemId) || await StorageManager.getFile(itemId);
     if (!item) return;
 
     const url = item.url || '';
@@ -1462,12 +1471,19 @@ document.addEventListener('keydown', (e) => {
 
 async function getZipCached(storagePath) {
     if (_zipCache[storagePath]) return _zipCache[storagePath];
-    const publicUrl = StorageManager.getPublicUrl(storagePath);
-    const res = await fetch(publicUrl);
-    const buf = await res.arrayBuffer();
-    const zip = await JSZip.loadAsync(buf);
-    _zipCache[storagePath] = zip;
-    return zip;
+    // Use a promise to avoid duplicate parallel fetches
+    if (!_zipCache['_loading_' + storagePath]) {
+        _zipCache['_loading_' + storagePath] = (async () => {
+            const publicUrl = StorageManager.getPublicUrl(storagePath);
+            const res = await fetch(publicUrl);
+            const buf = await res.arrayBuffer();
+            const zip = await JSZip.loadAsync(buf);
+            _zipCache[storagePath] = zip;
+            delete _zipCache['_loading_' + storagePath];
+            return zip;
+        })();
+    }
+    return _zipCache['_loading_' + storagePath];
 }
 
 async function getZipBlob(storagePath, entryPath) {
