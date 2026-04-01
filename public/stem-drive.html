@@ -353,62 +353,139 @@
 
 <input type="text" id="searchBar" placeholder="Search for files, subjects, or notes...">
 
-<div class="filter-container">
-    <nav id="gradeNav">
-        <span class="active" onclick="filterGrade('All', this)">All Grades</span>
-        <span onclick="filterGrade('G10', this)">Grade 10</span>
-        <span onclick="filterGrade('G11', this)">Grade 11</span>
-        <span onclick="filterGrade('G12', this)">Grade 12</span>
-    </nav>
-    <nav id="semesterNav" style="display:none;">
-        <span class="active" onclick="filterSemester('All', this)">All Semesters</span>
-        <span onclick="filterSemester('S1', this)">Semester 1</span>
-        <span onclick="filterSemester('S2', this)">Semester 2</span>
-    </nav>
-    <nav id="subjectNav"></nav>
+<!-- Section Tabs -->
+<div class="section-tabs">
+    <div class="section-tab active" onclick="switchSection('resources', this)">📁 Resources</div>
+    <div class="section-tab" onclick="switchSection('capstone', this)">🏗️ Capstone</div>
+    <div class="section-tab" onclick="switchSection('paths', this)">🛤️ Paths</div>
+    <div class="section-tab" onclick="switchSection('exams', this)">📝 Exams</div>
 </div>
 
-<div id="adminPanel">
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
-        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
-        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+<!-- Resources Section -->
+<div id="section-resources" class="section-content active" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="filter-container">
+        <nav id="gradeNav">
+            <span class="active" onclick="filterGrade('All', this)">All Grades</span>
+            <span onclick="filterGrade('G10', this)">Grade 10</span>
+            <span onclick="filterGrade('G11', this)">Grade 11</span>
+            <span onclick="filterGrade('G12', this)">Grade 12</span>
+        </nav>
+        <nav id="semesterNav" style="display:none;">
+            <span class="active" onclick="filterSemester('All', this)">All Semesters</span>
+            <span onclick="filterSemester('S1', this)">Semester 1</span>
+            <span onclick="filterSemester('S2', this)">Semester 2</span>
+        </nav>
+        <nav id="subjectNav"></nav>
     </div>
 
-    <div id="adminUploadTab">
+    <div id="adminPanel">
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+            <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+            <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+        </div>
+
+        <div id="adminUploadTab">
+            <div class="form-grid">
+                <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+                <select id="gradeIn">
+                    <option value="G10">Grade 10</option>
+                    <option value="G11">Grade 11</option>
+                    <option value="G12">Grade 12</option>
+                </select>
+                <select id="semesterIn">
+                    <option value="S1">Semester 1</option>
+                    <option value="S2">Semester 2</option>
+                </select>
+                <select id="subIn"></select>
+                <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
+                    <div id="zipPreviewArea"></div>
+                    <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+                </div>
+                <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+                <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+            </div>
+            <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+        </div>
+
+        <div id="adminSubjectsTab" style="display:none;">
+            <div class="form-grid">
+                <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
+                <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
+            </div>
+            <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
+            <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div class="content" id="container"></div>
+</div>
+
+<!-- Capstone Gallery Section -->
+<div id="section-capstone" class="section-content">
+    <div id="capstoneAdminForm" class="admin-section-form" style="display:none;">
+        <h3>🏗️ Add Capstone Project</h3>
         <div class="form-grid">
-            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-            <select id="gradeIn">
+            <input type="text" id="capTitle" class="full-w" placeholder="Project title">
+            <textarea id="capDesc" class="full-w" placeholder="Project description..." rows="2"></textarea>
+            <select id="capGrade">
+                <option value="G10">Grade 10</option>
+                <option value="G11">Grade 11</option>
+                <option value="G12" selected>Grade 12</option>
+            </select>
+            <input type="text" id="capYear" placeholder="Year (e.g., 2025)" value="2025">
+            <input type="text" id="capTeam" class="full-w" placeholder="Team members (comma separated)">
+            <input type="url" id="capImage" placeholder="Image URL (optional)">
+            <input type="url" id="capVideo" placeholder="Video URL (YouTube, etc.)">
+        </div>
+        <button class="btn-pub" onclick="addCapstoneProject()">🏗️ Add Project</button>
+    </div>
+    <div class="capstone-grid" id="capstoneGrid">
+        <p class="no-resources">🏗️ No capstone projects yet.</p>
+    </div>
+</div>
+
+<!-- Learning Paths Section -->
+<div id="section-paths" class="section-content">
+    <div id="pathsAdminForm" class="admin-section-form" style="display:none;">
+        <h3>🛤️ Create Learning Path</h3>
+        <div class="form-grid">
+            <input type="text" id="pathTitle" class="full-w" placeholder="Path title (e.g., Getting Started with Arduino)">
+            <textarea id="pathDesc" class="full-w" placeholder="Path description..." rows="2"></textarea>
+            <select id="pathSubject"></select>
+            <select id="pathGrade">
+                <option value="All">All Grades</option>
                 <option value="G10">Grade 10</option>
                 <option value="G11">Grade 11</option>
                 <option value="G12">Grade 12</option>
             </select>
-            <select id="semesterIn">
-                <option value="S1">Semester 1</option>
-                <option value="S2">Semester 2</option>
-            </select>
-            <select id="subIn"></select>
-            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
-                <div id="zipPreviewArea"></div>
-                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+            <input type="text" id="pathIcon" placeholder="Emoji icon (e.g., 🔧)" maxlength="4">
+        </div>
+        <div id="pathItemsBuilder" style="margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <strong style="font-size:0.85rem;">📋 Steps</strong>
+                <button onclick="addPathItemRow()" class="control-btn" style="font-size:0.75rem;padding:5px 12px;">+ Add Step</button>
             </div>
-            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+            <div id="pathItemsList"></div>
         </div>
-        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+        <button class="btn-pub" onclick="addLearningPath()">🛤️ Create Path</button>
     </div>
-
-    <div id="adminSubjectsTab" style="display:none;">
-        <div class="form-grid">
-            <input type="text" id="newSubjectName" placeholder="Subject name (e.g., English)">
-            <input type="text" id="newSubjectIcon" placeholder="Emoji icon (e.g., 📖)" maxlength="4">
-        </div>
-        <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
-        <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="paths-grid" id="pathsGrid">
+        <p class="no-resources">🛤️ No learning paths yet.</p>
     </div>
 </div>
 
-<div class="content" id="container"></div>
+<!-- Exam Archive Section -->
+<div id="section-exams" class="section-content">
+    <div class="exam-filters" id="examFilters">
+        <button class="exam-filter-btn active" onclick="filterExams('All', this)">📚 All</button>
+        <button class="exam-filter-btn" onclick="filterExams('quiz', this)">⏱️ Quizzes</button>
+        <button class="exam-filter-btn" onclick="filterExams('midterm', this)">📝 Midterms</button>
+        <button class="exam-filter-btn" onclick="filterExams('FINAL', this)">🏁 Finals</button>
+        <button class="exam-filter-btn" onclick="filterExams('Exercise', this)">🏋️ Exercises</button>
+    </div>
+    <div class="content" id="examContainer" style="width:100%;max-width:1400px;"></div>
+</div>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
