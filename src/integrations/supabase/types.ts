@@ -26,6 +26,119 @@ export type Database = {
         }
         Relationships: []
       }
+      capstone_projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: string
+          id: string
+          image_url: string | null
+          storage_path: string | null
+          team_members: string | null
+          title: string
+          video_url: string | null
+          year: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade?: string
+          id?: string
+          image_url?: string | null
+          storage_path?: string | null
+          team_members?: string | null
+          title: string
+          video_url?: string | null
+          year?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: string
+          id?: string
+          image_url?: string | null
+          storage_path?: string | null
+          team_members?: string | null
+          title?: string
+          video_url?: string | null
+          year?: string | null
+        }
+        Relationships: []
+      }
+      learning_path_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_id: string | null
+          id: string
+          path_id: string
+          sort_order: number | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_id?: string | null
+          id?: string
+          path_id: string
+          sort_order?: number | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_id?: string | null
+          id?: string
+          path_id?: string
+          sort_order?: number | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_path_items_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_paths: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: string | null
+          icon: string | null
+          id: string
+          sort_order: number | null
+          subject: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade?: string | null
+          icon?: string | null
+          id?: string
+          sort_order?: number | null
+          subject?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: string | null
+          icon?: string | null
+          id?: string
+          sort_order?: number | null
+          subject?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       stem_drive_files: {
         Row: {
           created_at: string
