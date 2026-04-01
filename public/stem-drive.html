@@ -530,36 +530,36 @@ function sbHeaders_get() { return getSbHeaders(); }
 
 // Restore session on load
 async function restoreSession() {
+    isAdmin = false;
+    authAccessToken = null;
+
     const storedSession = localStorage.getItem('sideraAuthSession');
-    if (storedSession) {
-        try {
-            const session = JSON.parse(storedSession);
-            // Try to refresh the token
-            const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refresh_token: session.refresh_token })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                authAccessToken = data.access_token;
-                localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
-                isAdmin = true;
-                localStorage.setItem('isSideraAdmin', 'true');
-            } else {
-                // Session expired
-                localStorage.removeItem('sideraAuthSession');
-                localStorage.removeItem('isSideraAdmin');
-                authAccessToken = null;
-                isAdmin = false;
-            }
-        } catch (e) {
-            console.error('Session restore error:', e);
-            localStorage.removeItem('sideraAuthSession');
-            localStorage.removeItem('isSideraAdmin');
-            authAccessToken = null;
-            isAdmin = false;
-        }
+    if (!storedSession) {
+        localStorage.removeItem('isSideraAdmin');
+        return;
+    }
+
+    try {
+        const session = JSON.parse(storedSession);
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: session.refresh_token })
+        });
+
+        if (!res.ok) throw new Error('Session expired');
+
+        const data = await res.json();
+        authAccessToken = data.access_token;
+        isAdmin = true;
+        localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
+        localStorage.setItem('isSideraAdmin', 'true');
+    } catch (e) {
+        console.error('Session restore error:', e);
+        localStorage.removeItem('sideraAuthSession');
+        localStorage.removeItem('isSideraAdmin');
+        authAccessToken = null;
+        isAdmin = false;
     }
 }
 
