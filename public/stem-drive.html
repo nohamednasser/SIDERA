@@ -318,6 +318,7 @@
 
 <header>
     <div class="top-controls">
+        <a class="control-btn" href="https://stemcalculator.lovable.app" target="_blank" style="text-decoration:none;">🧮 Calculator</a>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 Mode</button>
         <button class="control-btn" id="dashBtn" onclick="openDashboard()" style="display:none;">📊 Dashboard</button>
         <button class="control-btn" id="loginBtn" onclick="showLogin()">➞ Admin</button>
@@ -464,9 +465,12 @@
         </div>
     </div>
     </div>
-    <div style="margin-top:12px;">
+    <div style="margin-top:12px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
         <a href="https://siderdev.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-weight:600;font-size:0.85rem;padding:6px 16px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
-            🌐 Visit Sider Platform
+            🌐 Sider Platform
+        </a>
+        <a href="https://stemcalculator.lovable.app" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-weight:600;font-size:0.85rem;padding:6px 16px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+            🧮 STEM Calculator
         </a>
     </div>
 </footer>
@@ -1790,37 +1794,20 @@ async function downloadZipEntry(storagePath, entryPath, fileName) {
 
 initApp();
 
-// ===== AI Chatbot =====
-const chatbotKB = [
-    { keys: ['portfolio','بورتفوليو','محفظة','ملف'], answer: '📁 <b>عشان تعمل Portfolio:</b><br>1. اجمع أفضل مشاريعك ومهامك<br>2. ارفعهم على SIDERA STEM Drive<br>3. اكتب وصف واضح لكل مشروع<br>4. ممكن تضيف فيديو شرح<br>5. نظّم حسب المادة والصف' },
-    { keys: ['deadline','ديدلاين','موعد','مواعيد','تسليم'], answer: '⏰ <b>مواعيد التسليم:</b><br>• راجع المدرس المسؤول عن المادة<br>• تابع إعلانات المدرسة<br>• نصيحة: سلّم قبل الموعد بيوم على الأقل!' },
-    { keys: ['capstone','كابستون','مشروع التخرج','مشروع نهائي'], answer: '🎓 <b>مشروع الـ Capstone:</b><br>1. اختار مشكلة حقيقية تحلها<br>2. اعمل Research كويس<br>3. صمم Prototype<br>4. اعمل عرض تقديمي قوي<br>5. ارفع المشروع هنا على SIDERA!' },
-    { keys: ['grade','درجة','درجات','تقييم','تقدير'], answer: '📊 <b>نظام التقييم:</b><br>• المشاريع: 40%<br>• الامتحانات: 30%<br>• المشاركة: 20%<br>• الحضور: 10%<br>⚡ ركز على جودة المشاريع!' },
-    { keys: ['upload','رفع','ارفع','اضيف','أرفع'], answer: '📤 <b>لرفع ملف:</b><br>1. سجّل دخول كأدمن<br>2. اختار المادة والصف<br>3. اختار الملف (حتى 10GB)<br>4. اضغط "Publish"<br>يدعم: PDF, صور, فيديو, ZIP وأكتر!' },
-    { keys: ['subject','مادة','مواد','ايه المواد'], answer: '📚 <b>المواد المتاحة:</b><br>• Mathematics 🔢<br>• Physics ⚛️<br>• Chemistry 🧪<br>• Biology 🧬<br>• Computer Science 💻<br>• Engineering 🔧<br>استخدم الفلاتر في الأعلى!' },
-    { keys: ['help','مساعدة','ساعدني','ازاي','كيف','إزاي'], answer: '👋 <b>إزاي أساعدك؟</b><br>ممكن تسألني عن:<br>• إزاي أعمل Portfolio<br>• مواعيد التسليم<br>• مشروع الـ Capstone<br>• نظام الدرجات<br>• رفع الملفات<br>• المواد المتاحة' },
-    { keys: ['sidera','سيدرا','عن الموقع','ايه ده'], answer: '🌟 <b>SIDERA STEM Drive</b><br>منصة تعليمية لطلاب STEM!<br>هنا تقدر:<br>• تلاقي ملفات ومذكرات<br>• ترفع مشاريعك<br>• تتابع كل المواد<br>• تحمّل أي ملف تحتاجه' },
-    { keys: ['stem','ستيم','ستم'], answer: '🔬 <b>STEM = Science, Technology, Engineering, Math</b><br>نظام تعليمي بيركّز على:<br>• التفكير النقدي<br>• حل المشكلات<br>• المشاريع العملية<br>• التكنولوجيا والابتكار' },
-    { keys: ['download','تحميل','حمل','نزل','أحمل'], answer: '📥 <b>لتحميل ملف:</b><br>1. دوّر على الملف اللي عايزه<br>2. اضغط زرار "Download"<br>3. الملف هينزل على جهازك<br>ممكن كمان تعمل Preview الأول!' },
-    { keys: ['search','بحث','دور','ابحث','أبحث'], answer: '🔍 <b>للبحث:</b><br>استخدم شريط البحث في الأعلى!<br>ممكن تدوّر بـ:<br>• اسم الملف<br>• المادة<br>• نوع الملف<br>• أو أي كلمة في الوصف' },
-    { keys: ['dark','دارك','ثيم','mode','وضع'], answer: '🌙 <b>تغيير الوضع:</b><br>اضغط على زرار "Mode" في الأعلى عشان تبدّل بين الوضع الفاتح والغامق!' },
-];
+// ===== AI Chatbot (Real AI) =====
+const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
+
+let chatHistory = [];
 
 const defaultSuggestions = [
     'إزاي أعمل Portfolio؟',
     'مواعيد الـ Deadlines؟',
     'مشروع الـ Capstone',
     'إزاي أرفع ملف؟',
-    'المواد المتاحة',
+    'اشرحلي نظام الدرجات',
+    'إيه هي STEM؟',
 ];
-
-function findAnswer(question) {
-    const q = question.toLowerCase().trim();
-    for (const entry of chatbotKB) {
-        if (entry.keys.some(k => q.includes(k))) return entry.answer;
-    }
-    return '🤔 مش متأكد من السؤال ده، بس ممكن تسألني عن:<br>• Portfolio<br>• Deadlines<br>• Capstone<br>• رفع ملفات<br>• المواد<br>• أو اكتب <b>"مساعدة"</b>';
-}
 
 let chatOpen = false;
 function toggleChat() {
@@ -1831,7 +1818,7 @@ function toggleChat() {
     fab.innerHTML = chatOpen ? '✕' : '🤖';
     fab.classList.remove('has-dot');
     if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
-        addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا هنا أساعدك في أي سؤال عن STEM Drive.<br>اختار سؤال من تحت أو اكتب سؤالك! 🚀');
+        addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا مساعدك الذكي — اسألني أي حاجة عن STEM أو الدراسة أو المنصة وهرد عليك فوراً! 🚀');
         showSuggestions();
     }
 }
@@ -1881,15 +1868,51 @@ function removeTyping() {
     if (el) el.remove();
 }
 
-function askBot(question) {
+// Simple markdown-like formatting for AI responses
+function formatAIResponse(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+        .replace(/\n- /g, '<br>• ')
+        .replace(/\n\d+\.\s/g, (m) => '<br>' + m.trim() + ' ')
+        .replace(/\n/g, '<br>');
+}
+
+async function askBot(question) {
     addUserMsg(question);
     document.getElementById('chatSuggestions').innerHTML = '';
+    const sendBtn = document.querySelector('.chat-send-btn');
+    const input = document.getElementById('chatInput');
+    sendBtn.disabled = true;
+    input.disabled = true;
     showTyping();
-    setTimeout(() => {
+
+    chatHistory.push({ role: 'user', content: question });
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+            },
+            body: JSON.stringify({ message: question, history: chatHistory.slice(-10) }),
+        });
+        const data = await res.json();
+        const reply = data.reply || 'عذراً، مش قادر أرد دلوقتي 😅';
         removeTyping();
-        addBotMsg(findAnswer(question));
-        setTimeout(showSuggestions, 300);
-    }, 600 + Math.random() * 400);
+        addBotMsg(formatAIResponse(reply));
+        chatHistory.push({ role: 'assistant', content: reply });
+    } catch (err) {
+        console.error('AI error:', err);
+        removeTyping();
+        addBotMsg('⚠️ حصل مشكلة في الاتصال. جرب تاني كمان شوية! 🔄');
+    }
+
+    sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
+    setTimeout(showSuggestions, 300);
 }
 
 function sendChatMsg() {
@@ -1904,7 +1927,6 @@ document.addEventListener('keydown', e => {
     if (e.target.id === 'chatInput' && e.key === 'Enter') sendChatMsg();
 });
 
-// Show chat hint after 3s
 setTimeout(() => {
     const fab = document.getElementById('chatFab');
     if (fab && !chatOpen) fab.classList.add('has-dot');
