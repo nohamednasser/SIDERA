@@ -217,13 +217,13 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            header { padding: 20px 0 45px; }
+            header { padding: 60px 0 45px; }
             header h1 { font-size: 1.6rem; letter-spacing: 2px; }
             
-            .top-controls { top: 10px; right: 10px; gap: 6px; }
-            .control-btn { padding: 6px 12px; font-size: 0.75rem; gap: 5px; }
+            .top-controls { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+            .control-btn { padding: 7px 12px; font-size: 0.72rem; gap: 4px; border-radius: 14px; }
             
-            #searchBar { max-width: 90%; padding: 12px 18px; font-size: 0.85rem; margin-top: -25px; }
+            #searchBar { max-width: 92%; padding: 12px 18px; font-size: 0.85rem; margin-top: -25px; }
             
             .filter-container { margin-top: 30px; gap: 10px; }
             nav { gap: 6px; padding: 0 12px; }
@@ -263,9 +263,10 @@
         }
 
         @media (max-width: 400px) {
+            header { padding: 70px 0 40px; }
             header h1 { font-size: 1.3rem; }
-            .top-controls { flex-direction: column; gap: 4px; align-items: flex-end; }
-            .control-btn { padding: 5px 10px; font-size: 0.7rem; }
+            .top-controls { gap: 4px; }
+            .control-btn { padding: 5px 10px; font-size: 0.68rem; }
             nav span { font-size: 0.6rem; padding: 5px 10px; }
         }
 
