@@ -1809,7 +1809,20 @@ const defaultSuggestions = [
     'إزاي أرفع ملف؟',
     'اشرحلي نظام الدرجات',
     'إيه هي STEM؟',
+    'اشرحلي الـ Derivatives',
+    'ما هو قانون نيوتن؟',
+    'إزاي أكتب Research Paper؟',
+    'اشرحلي الـ pH Scale',
+    'ما هو الـ Machine Learning؟',
+    'اشرحلي الدوال المثلثية',
+    'إيه هو الـ DNA؟',
+    'إزاي أعمل Presentation قوي؟',
 ];
+
+function getRandomSuggestions(count = 4) {
+    const shuffled = [...defaultSuggestions].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
 
 let chatOpen = false;
 function toggleChat() {
