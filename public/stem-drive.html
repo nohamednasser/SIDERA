@@ -1859,7 +1859,7 @@ function addUserMsg(text) {
 function showSuggestions() {
     const cont = document.getElementById('chatSuggestions');
     cont.innerHTML = '';
-    defaultSuggestions.forEach(s => {
+    getRandomSuggestions(4).forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'chat-sug-btn';
         btn.textContent = s;
