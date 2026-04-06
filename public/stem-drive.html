@@ -1962,7 +1962,12 @@ function filterGrade(g, el) {
         semNav.querySelectorAll('span').forEach(s => s.classList.remove('active'));
         semNav.querySelector('span').classList.add('active');
     }
-    showFilesHideExams();
+    // Sync exam filter with grade
+    if (g === 'All') {
+        filterExams('all', document.querySelector('.exam-filter-btn[data-filter="all"]'));
+    } else {
+        filterExams(g, document.querySelector('.exam-filter-btn[data-filter="' + g + '"]'));
+    }
     render();
 }
 
