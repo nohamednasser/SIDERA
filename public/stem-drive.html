@@ -2684,19 +2684,23 @@ function renderExams(exams) {
         const hasQuestions = qCount > 0;
         return '<div class="exam-card" data-grade="' + exam.grade + '">' +
             (isAdmin ? '<div class="exam-admin-btns"><button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button><button class="exam-export-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📥</button></div>' : '') +
-            '<div class="exam-meta">' +
-                '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
-                (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
-                (hasQuestions ? '<span class="exam-badge questions">📋 ' + qCount + ' Q</span>' : '') +
-                '<span class="exam-badge time">' + timeStr + '</span>' +
+            '<div class="exam-card-body">' +
+                '<div class="exam-meta">' +
+                    '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
+                    (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
+                    (hasQuestions ? '<span class="exam-badge questions">📋 ' + qCount + ' Q</span>' : '') +
+                    '<span class="exam-badge time">' + timeStr + '</span>' +
+                '</div>' +
+                '<h3>' + exam.title + '</h3>' +
+                '<p>' + (exam.description || 'No description') + '</p>' +
+                '<div class="exam-mini-lb" id="miniLb_' + exam.id + '"><div class="mini-lb-loading"><div class="skeleton" style="height:18px;width:70%;border-radius:6px;margin:4px 0;"></div><div class="skeleton" style="height:18px;width:55%;border-radius:6px;margin:4px 0;"></div></div></div>' +
             '</div>' +
-            '<h3>' + exam.title + '</h3>' +
-            '<p>' + (exam.description || 'No description') + '</p>' +
-            '<div class="exam-mini-lb" id="miniLb_' + exam.id + '"><div class="mini-lb-loading"><div class="skeleton" style="height:18px;width:70%;border-radius:6px;margin:4px 0;"></div><div class="skeleton" style="height:18px;width:55%;border-radius:6px;margin:4px 0;"></div></div></div>' +
-            '<div class="exam-actions">' +
-                (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
-                (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
-                (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
+            '<div class="exam-card-footer">' +
+                '<div class="exam-actions">' +
+                    (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
+                    (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
+                    (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
+                '</div>' +
             '</div>' +
         '</div>';
     }).join('');
