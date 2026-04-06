@@ -2580,7 +2580,8 @@ function renderExams(exams) {
         const hasQuestions = qCount > 0;
         return '<div class="exam-card" data-grade="' + exam.grade + '">' +
             (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' +
-            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;right:40px;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📊</button>' : '') +
+            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;right:40px;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📊</button>' +
+            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:#3b82f6;color:#fff;right:76px;" onclick="event.stopPropagation();editExam(\'' + exam.id + '\')">✏️</button>' : '') +
             '<div class="exam-meta">' +
                 '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
@@ -3072,6 +3073,106 @@ function closeExamResult() { document.getElementById('examResultModal').classLis
 
 // Admin: exam question builder
 let _qBuilderCount = 0;
+let _editingExamId = null;
+
+async function editExam(examId) {
+    showToast('⏳ Loading exam...', 'info');
+    try {
+        const [examRes, qRes] = await Promise.all([
+            fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId + '&select=*', { headers: getSbHeaders() }),
+            fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=*&order=sort_order.asc', { headers: getSbHeaders() })
+        ]);
+        const exams = await examRes.json();
+        const questions = await qRes.json();
+        if (!exams.length) { showToast('Exam not found.', 'error'); return; }
+        const exam = exams[0];
+
+        // Switch to exams tab
+        showAdminTab('exams');
+
+        // Fill exam details
+        document.getElementById('examTitle').value = exam.title || '';
+        document.getElementById('examGrade').value = exam.grade || 'G10';
+        document.getElementById('examSubject').value = exam.subject || '';
+        document.getElementById('examTimeLimit').value = exam.time_limit_minutes || 0;
+        document.getElementById('examDesc').value = exam.description || '';
+        document.getElementById('examExternalUrl').value = exam.external_url || '';
+
+        // Clear builder
+        _qBuilderCount = 0;
+        const container = document.getElementById('questionsBuilder');
+        container.innerHTML = '';
+
+        // Load questions into builder
+        questions.forEach(q => {
+            _qBuilderCount++;
+            const div = document.createElement('div');
+            div.className = 'q-builder-card';
+            div.id = 'qBuilder_' + _qBuilderCount;
+            div.dataset.type = q.question_type;
+            div.dataset.originalId = q.id;
+
+            let opts = q.options;
+            if (typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e) { opts = []; }
+            if (!Array.isArray(opts)) opts = [];
+
+            if (q.question_type === 'mcq') {
+                const correctIdx = opts.indexOf(q.correct_answer);
+                let optionsHtml = '';
+                opts.forEach((opt, i) => {
+                    optionsHtml += '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="' + i + '"' + (i === (correctIdx >= 0 ? correctIdx : 0) ? ' checked' : '') + '><input type="text" placeholder="Option ' + String.fromCharCode(65 + i) + '" value="' + (opt || '').replace(/"/g, '&quot;') + '"></div>';
+                });
+                div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge mcq">MCQ</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+                    '<input type="text" class="q-text-input" placeholder="Question text..." value="' + (q.question_text || '').replace(/"/g, '&quot;') + '" style="margin-bottom:8px;">' +
+                    '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"' + (q.image_url ? ' src="' + q.image_url + '" style="display:block;"' : '') + '></div>' +
+                    '<input type="number" class="q-points-input" placeholder="Points" value="' + (q.points || 1) + '" min="1" style="width:80px;margin-bottom:10px;">' +
+                    '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Select the correct answer:</div>' +
+                    '<div class="mcq-options-container">' + optionsHtml + '</div>' +
+                    '<button class="add-option-btn" onclick="addOptionRow(this)">+ Add Option</button>';
+            } else if (q.question_type === 'tf') {
+                const isTrue = q.correct_answer === 'True';
+                div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge tf">TRUE/FALSE</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+                    '<input type="text" class="q-text-input" placeholder="Statement..." value="' + (q.question_text || '').replace(/"/g, '&quot;') + '" style="margin-bottom:8px;">' +
+                    '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"' + (q.image_url ? ' src="' + q.image_url + '" style="display:block;"' : '') + '></div>' +
+                    '<input type="number" class="q-points-input" placeholder="Points" value="' + (q.points || 1) + '" min="1" style="width:80px;margin-bottom:10px;">' +
+                    '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer:</div>' +
+                    '<div style="display:flex;gap:8px;">' +
+                        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="True"' + (isTrue ? ' checked' : '') + ' style="accent-color:var(--accent);"> True</label>' +
+                        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="False"' + (!isTrue ? ' checked' : '') + ' style="accent-color:var(--accent);"> False</label>' +
+                    '</div>';
+            } else if (q.question_type === 'fill') {
+                div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge fill">FILL BLANK</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+                    '<input type="text" class="q-text-input" placeholder="Question..." value="' + (q.question_text || '').replace(/"/g, '&quot;') + '" style="margin-bottom:8px;">' +
+                    '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"' + (q.image_url ? ' src="' + q.image_url + '" style="display:block;"' : '') + '></div>' +
+                    '<input type="number" class="q-points-input" placeholder="Points" value="' + (q.points || 1) + '" min="1" style="width:80px;margin-bottom:10px;">' +
+                    '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer (case-insensitive):</div>' +
+                    '<input type="text" class="fill-correct-input" placeholder="e.g., Cairo" value="' + (q.correct_answer || '').replace(/"/g, '&quot;') + '" style="margin-bottom:4px;">';
+            } else {
+                div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+                    '<input type="text" class="q-text-input" placeholder="Question text..." value="' + (q.question_text || '').replace(/"/g, '&quot;') + '" style="margin-bottom:8px;">' +
+                    '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"' + (q.image_url ? ' src="' + q.image_url + '" style="display:block;"' : '') + '></div>' +
+                    '<input type="number" class="q-points-input" placeholder="Points" value="' + (q.points || 2) + '" min="1" style="width:80px;">';
+            }
+            container.appendChild(div);
+        });
+
+        if (container.children.length === 0) {
+            container.innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
+        }
+
+        _editingExamId = examId;
+        // Update button text
+        document.querySelector('#adminExamsTab .btn-pub').textContent = '💾 Update Exam';
+        
+        // Scroll to top
+        document.getElementById('adminExamsTab').scrollIntoView({ behavior: 'smooth' });
+        showToast('✅ Exam loaded for editing.', 'success');
+    } catch (err) {
+        console.error('editExam error:', err);
+        showToast('Failed to load exam.', 'error');
+    }
+}
+
 function addQuestionBuilder(type) {
     _qBuilderCount++;
     const container = document.getElementById('questionsBuilder');
@@ -3210,30 +3311,55 @@ async function publishExam() {
     if (cards.length > 0 && !valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
 
     try {
-        const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
-            method: 'POST',
-            headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
-            body: JSON.stringify({
-                title,
-                grade: document.getElementById('examGrade').value,
-                subject: document.getElementById('examSubject').value,
-                description: document.getElementById('examDesc').value.trim(),
-                time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
-                external_url: externalUrl,
-                is_published: true
-            })
-        });
-        if (!examRes.ok) throw new Error(await examRes.text());
-        const examData = await examRes.json();
-        const examId = examData[0].id;
+        let examId;
+        const examPayload = {
+            title,
+            grade: document.getElementById('examGrade').value,
+            subject: document.getElementById('examSubject').value,
+            description: document.getElementById('examDesc').value.trim(),
+            time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
+            external_url: externalUrl,
+            is_published: true
+        };
+
+        if (_editingExamId) {
+            // UPDATE existing exam
+            const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + _editingExamId, {
+                method: 'PATCH',
+                headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
+                body: JSON.stringify(examPayload)
+            });
+            if (!examRes.ok) throw new Error(await examRes.text());
+            examId = _editingExamId;
+
+            // Delete old questions
+            await fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId, {
+                method: 'DELETE', headers: getSbHeaders()
+            });
+        } else {
+            // CREATE new exam
+            const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
+                method: 'POST',
+                headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
+                body: JSON.stringify(examPayload)
+            });
+            if (!examRes.ok) throw new Error(await examRes.text());
+            const examData = await examRes.json();
+            examId = examData[0].id;
+        }
 
         // Upload images and insert questions
         if (questions.length > 0) {
             for (let i = 0; i < questions.length; i++) {
+                // Keep existing image_url from loaded questions
+                const card = cards[i];
+                const existingImg = card.querySelector('.q-image-preview');
                 if (imageFiles[i]) {
                     try {
                         questions[i].image_url = await uploadQuestionImage(imageFiles[i]);
                     } catch(e) { console.warn('Image upload failed for Q' + (i+1), e); }
+                } else if (existingImg && existingImg.src && existingImg.style.display !== 'none') {
+                    questions[i].image_url = existingImg.src;
                 }
             }
             const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
@@ -3243,17 +3369,19 @@ async function publishExam() {
             if (!qRes.ok) throw new Error('Questions insert failed');
         }
 
-        showToast('✅ Exam published successfully!', 'success');
+        showToast(_editingExamId ? '✅ Exam updated successfully!' : '✅ Exam published successfully!', 'success');
+        _editingExamId = null;
         document.getElementById('examTitle').value = '';
         document.getElementById('examDesc').value = '';
         document.getElementById('examTimeLimit').value = '0';
         document.getElementById('examExternalUrl').value = '';
         document.getElementById('questionsBuilder').innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
+        document.querySelector('#adminExamsTab .btn-pub').textContent = '📝 Publish Exam';
         _qBuilderCount = 0;
         loadExams();
     } catch (err) {
         console.error('publishExam error:', err);
-        showToast('Failed to publish exam: ' + err.message, 'error');
+        showToast('Failed to ' + (_editingExamId ? 'update' : 'publish') + ' exam: ' + err.message, 'error');
     }
 }
 
