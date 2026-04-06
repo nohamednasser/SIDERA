@@ -3080,14 +3080,13 @@ async function submitExam() {
 function showExamResults(score, totalPoints, answers) {
     const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
     
-    // Grade calculation
-    let gradeLetter, gradeClass, gradeEmoji;
-    if (pct >= 90) { gradeLetter = 'A+'; gradeClass = 'grade-a'; gradeEmoji = '🏆'; }
-    else if (pct >= 80) { gradeLetter = 'A'; gradeClass = 'grade-a'; gradeEmoji = '🎉'; }
-    else if (pct >= 70) { gradeLetter = 'B'; gradeClass = 'grade-b'; gradeEmoji = '👏'; }
-    else if (pct >= 60) { gradeLetter = 'C'; gradeClass = 'grade-c'; gradeEmoji = '👍'; }
-    else if (pct >= 50) { gradeLetter = 'D'; gradeClass = 'grade-d'; gradeEmoji = '😐'; }
-    else { gradeLetter = 'F'; gradeClass = 'grade-f'; gradeEmoji = '😅'; }
+    let gradeLetter, gradeClass, gradeEmoji, gradeColor;
+    if (pct >= 90) { gradeLetter = 'A+'; gradeClass = 'grade-a'; gradeEmoji = '🏆'; gradeColor = '#22c55e'; }
+    else if (pct >= 80) { gradeLetter = 'A'; gradeClass = 'grade-a'; gradeEmoji = '🎉'; gradeColor = '#22c55e'; }
+    else if (pct >= 70) { gradeLetter = 'B'; gradeClass = 'grade-b'; gradeEmoji = '👏'; gradeColor = '#3b82f6'; }
+    else if (pct >= 60) { gradeLetter = 'C'; gradeClass = 'grade-c'; gradeEmoji = '👍'; gradeColor = '#eab308'; }
+    else if (pct >= 50) { gradeLetter = 'D'; gradeClass = 'grade-d'; gradeEmoji = '😐'; gradeColor = '#f97316'; }
+    else { gradeLetter = 'F'; gradeClass = 'grade-f'; gradeEmoji = '😅'; gradeColor = '#ef4444'; }
 
     const gradedAnswers = answers.filter(a => {
         const q = _currentExamQuestions.find(q => q.id === a.question_id);
@@ -3096,20 +3095,26 @@ function showExamResults(score, totalPoints, answers) {
     const correctCount = gradedAnswers.filter(a => a.is_correct).length;
     const wrongCount = gradedAnswers.length - correctCount;
 
-    // Grade scale info
-    const gradeScale = '<div style="margin-top:16px;padding:12px;background:var(--input-bg);border-radius:10px;font-size:0.75rem;text-align:left;">' +
-        '<div style="font-weight:700;margin-bottom:6px;text-align:center;">📊 Grade Scale</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">' +
-        '<span><span class="grade-label grade-a" style="padding:2px 8px;font-size:0.7rem;">A+</span> 90-100%</span>' +
-        '<span><span class="grade-label grade-a" style="padding:2px 8px;font-size:0.7rem;">A</span> 80-89%</span>' +
-        '<span><span class="grade-label grade-b" style="padding:2px 8px;font-size:0.7rem;">B</span> 70-79%</span>' +
-        '<span><span class="grade-label grade-c" style="padding:2px 8px;font-size:0.7rem;">C</span> 60-69%</span>' +
-        '<span><span class="grade-label grade-d" style="padding:2px 8px;font-size:0.7rem;">D</span> 50-59%</span>' +
-        '<span><span class="grade-label grade-f" style="padding:2px 8px;font-size:0.7rem;">F</span> Below 50%</span>' +
-        '</div></div>';
+    // SVG Score Ring
+    const radius = 58, circumference = 2 * Math.PI * radius;
+    const offset = circumference - (pct / 100) * circumference;
+    const scoreRing = '<div class="result-score-ring">' +
+        '<svg width="140" height="140" viewBox="0 0 140 140">' +
+            '<circle cx="70" cy="70" r="' + radius + '" fill="none" stroke="var(--border)" stroke-width="10"/>' +
+            '<circle cx="70" cy="70" r="' + radius + '" fill="none" stroke="' + gradeColor + '" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);"/>' +
+        '</svg>' +
+        '<div class="ring-text"><div class="ring-pct" style="color:' + gradeColor + ';">' + pct + '%</div><div class="ring-label">SCORE</div></div>' +
+    '</div>';
+
+    // Stats grid
+    const statsGrid = '<div class="result-stats-grid">' +
+        '<div class="result-stat-box"><div class="stat-val" style="color:#22c55e;">✅ ' + correctCount + '</div><div class="stat-label">Correct</div></div>' +
+        '<div class="result-stat-box"><div class="stat-val" style="color:#ef4444;">❌ ' + wrongCount + '</div><div class="stat-label">Wrong</div></div>' +
+        '<div class="result-stat-box"><div class="stat-val" style="color:var(--accent);">' + score + '/' + totalPoints + '</div><div class="stat-label">Points</div></div>' +
+    '</div>';
 
     // Question review
-    let reviewHtml = '<div style="margin-top:20px;text-align:left;"><div style="font-weight:700;font-size:0.9rem;margin-bottom:10px;">📋 Question Review</div>';
+    let reviewHtml = '<div style="margin-top:20px;text-align:left;"><div style="font-weight:800;font-size:0.9rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📋 Question Review <span style="font-size:0.7rem;font-weight:600;opacity:0.5;margin-left:auto;">' + correctCount + '/' + gradedAnswers.length + ' correct</span></div>';
     _currentExamQuestions.forEach((q, idx) => {
         const ans = answers.find(a => a.question_id === q.id);
         const isCorrect = ans?.is_correct;
@@ -3124,17 +3129,11 @@ function showExamResults(score, totalPoints, answers) {
             options.forEach((opt) => {
                 const isStudentAnswer = (ans?.answer_text === opt);
                 const isCorrectOption = (opt === q.correct_answer);
-                let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:flex;align-items:center;gap:8px;';
+                let optStyle = 'padding:10px 14px;border-radius:10px;margin:4px 0;font-size:0.82rem;display:flex;align-items:center;gap:8px;transition:transform 0.1s;';
                 let optIcon = '';
-                if (isCorrectOption) {
-                    optStyle += 'background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;';
-                    optIcon = '✅';
-                } else if (isStudentAnswer && !isCorrect) {
-                    optStyle += 'background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#ef4444;text-decoration:line-through;';
-                    optIcon = '❌';
-                } else {
-                    optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.6;';
-                }
+                if (isCorrectOption) { optStyle += 'background:rgba(34,197,94,0.12);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;'; optIcon = '✅'; }
+                else if (isStudentAnswer && !isCorrect) { optStyle += 'background:rgba(239,68,68,0.12);border:1.5px solid #ef4444;color:#ef4444;text-decoration:line-through;'; optIcon = '❌'; }
+                else { optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.5;'; }
                 reviewHtml += '<div style="' + optStyle + '">' + optIcon + ' ' + opt + '</div>';
             });
             reviewHtml += '</div>';
@@ -3143,11 +3142,11 @@ function showExamResults(score, totalPoints, answers) {
             ['True', 'False'].forEach(val => {
                 const isStudentAnswer = (ans?.answer_text === val);
                 const isCorrectOption = (val === q.correct_answer);
-                let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:inline-flex;align-items:center;gap:8px;margin-right:8px;';
+                let optStyle = 'padding:10px 14px;border-radius:10px;margin:4px 0;font-size:0.82rem;display:inline-flex;align-items:center;gap:8px;margin-right:8px;';
                 let optIcon = '';
-                if (isCorrectOption) { optStyle += 'background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;'; optIcon = '✅'; }
-                else if (isStudentAnswer && !isCorrect) { optStyle += 'background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#ef4444;'; optIcon = '❌'; }
-                else { optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.6;'; }
+                if (isCorrectOption) { optStyle += 'background:rgba(34,197,94,0.12);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;'; optIcon = '✅'; }
+                else if (isStudentAnswer && !isCorrect) { optStyle += 'background:rgba(239,68,68,0.12);border:1.5px solid #ef4444;color:#ef4444;'; optIcon = '❌'; }
+                else { optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.5;'; }
                 reviewHtml += '<span style="' + optStyle + '">' + optIcon + ' ' + val + '</span>';
             });
             reviewHtml += '</div>';
@@ -3159,23 +3158,77 @@ function showExamResults(score, totalPoints, answers) {
         } else {
             reviewHtml += '<br><span style="color:var(--text);">Your answer: </span>' + (ans?.answer_text || '<em>No answer</em>');
         }
-        reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
+        reviewHtml += '<div style="font-size:0.72rem;color:var(--text);margin-top:6px;opacity:0.5;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
         reviewHtml += '</div>';
     });
     reviewHtml += '</div>';
 
     document.getElementById('examResultBody').innerHTML = 
         '<div class="result-card">' +
-            '<div style="font-size:2.5rem;margin-bottom:4px;">' + gradeEmoji + '</div>' +
-            '<div class="grade-label ' + gradeClass + '">' + gradeLetter + '</div>' +
-            '<div class="result-score">' + pct + '%</div>' +
-            '<div class="result-details">' + score + ' / ' + totalPoints + ' points</div>' +
-            '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%;background:' + (pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444') + '"></div></div>' +
-            (gradedAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
-            gradeScale +
+            '<div style="font-size:3rem;margin-bottom:8px;animation:bounceIn 0.5s cubic-bezier(.68,-.55,.27,1.55);">' + gradeEmoji + '</div>' +
+            '<div class="grade-label ' + gradeClass + '" style="animation:bounceIn 0.6s cubic-bezier(.68,-.55,.27,1.55) 0.1s both;">' + gradeLetter + '</div>' +
+            scoreRing +
+            statsGrid +
             reviewHtml +
-        '</div>';
+        '</div>' +
+        '<style>@keyframes bounceIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}</style>';
     document.getElementById('examResultModal').classList.add('show');
+
+    // Confetti for high scores!
+    if (pct >= 70) launchConfetti();
+}
+
+function launchConfetti() {
+    let canvas = document.getElementById('confettiCanvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'confettiCanvas';
+        document.body.appendChild(canvas);
+    }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#a34054','#a855f7','#22c55e','#3b82f6','#f59e0b','#ef4444','#ec4899'];
+    const particles = [];
+    for (let i = 0; i < 120; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            w: Math.random() * 8 + 4,
+            h: Math.random() * 6 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vx: (Math.random() - 0.5) * 4,
+            vy: Math.random() * 4 + 2,
+            rot: Math.random() * 360,
+            rotV: (Math.random() - 0.5) * 10,
+            opacity: 1
+        });
+    }
+    let frame = 0;
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        particles.forEach(p => {
+            if (p.opacity <= 0) return;
+            alive = true;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.rotV;
+            p.vy += 0.05;
+            if (frame > 60) p.opacity -= 0.01;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+            ctx.restore();
+        });
+        frame++;
+        if (alive && frame < 200) requestAnimationFrame(draw);
+        else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.remove(); }
+    }
+    requestAnimationFrame(draw);
 }
 
 function closeExamResult() { document.getElementById('examResultModal').classList.remove('show'); }
