@@ -690,11 +690,18 @@
                 <button class="dash-close" onclick="confirmExitExam()">✕</button>
             </div>
         </div>
+        <div class="exam-progress-bar" id="examProgressBar">
+            <div class="exam-progress-track"><div class="exam-progress-fill" id="examProgressFill" style="width:0%"></div></div>
+            <span class="exam-progress-text" id="examProgressText">0/0</span>
+        </div>
+        <div class="exam-q-dots" id="examQDots"></div>
         <div class="exam-modal-body" id="examTakingBody">
             <!-- Questions rendered here -->
         </div>
-        <div style="padding:0 24px 24px;">
-            <button class="btn-pub" id="submitExamBtn" onclick="submitExam()">✅ Submit Exam</button>
+        <div class="exam-nav-btns" id="examNavBtns">
+            <button class="exam-nav-btn" id="examPrevBtn" onclick="examNav(-1)">◀ Previous</button>
+            <button class="exam-nav-btn primary" id="examNextBtn" onclick="examNav(1)">Next ▶</button>
+            <button class="exam-nav-btn submit" id="examSubmitBtn" onclick="submitExam()" style="display:none;">✅ Submit Exam</button>
         </div>
     </div>
 </div>
