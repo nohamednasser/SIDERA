@@ -2529,34 +2529,65 @@ async function submitExam() {
 
 function showExamResults(score, totalPoints, answers) {
     const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
-    const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '👍' : '😅';
+    
+    // Grade calculation
+    let gradeLetter, gradeClass, gradeEmoji;
+    if (pct >= 90) { gradeLetter = 'A+'; gradeClass = 'grade-a'; gradeEmoji = '🏆'; }
+    else if (pct >= 80) { gradeLetter = 'A'; gradeClass = 'grade-a'; gradeEmoji = '🎉'; }
+    else if (pct >= 70) { gradeLetter = 'B'; gradeClass = 'grade-b'; gradeEmoji = '👏'; }
+    else if (pct >= 60) { gradeLetter = 'C'; gradeClass = 'grade-c'; gradeEmoji = '👍'; }
+    else if (pct >= 50) { gradeLetter = 'D'; gradeClass = 'grade-d'; gradeEmoji = '😐'; }
+    else { gradeLetter = 'F'; gradeClass = 'grade-f'; gradeEmoji = '😅'; }
+
     const mcqAnswers = answers.filter(a => {
         const q = _currentExamQuestions.find(q => q.id === a.question_id);
         return q && q.question_type === 'mcq';
     });
     const correctCount = mcqAnswers.filter(a => a.is_correct).length;
+    const wrongCount = mcqAnswers.length - correctCount;
 
-    let reviewHtml = '<div style="margin-top:20px;text-align:left;">';
+    // Grade scale info
+    const gradeScale = '<div style="margin-top:16px;padding:12px;background:var(--input-bg);border-radius:10px;font-size:0.75rem;text-align:left;">' +
+        '<div style="font-weight:700;margin-bottom:6px;text-align:center;">📊 Grade Scale</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">' +
+        '<span><span class="grade-label grade-a" style="padding:2px 8px;font-size:0.7rem;">A+</span> 90-100%</span>' +
+        '<span><span class="grade-label grade-a" style="padding:2px 8px;font-size:0.7rem;">A</span> 80-89%</span>' +
+        '<span><span class="grade-label grade-b" style="padding:2px 8px;font-size:0.7rem;">B</span> 70-79%</span>' +
+        '<span><span class="grade-label grade-c" style="padding:2px 8px;font-size:0.7rem;">C</span> 60-69%</span>' +
+        '<span><span class="grade-label grade-d" style="padding:2px 8px;font-size:0.7rem;">D</span> 50-59%</span>' +
+        '<span><span class="grade-label grade-f" style="padding:2px 8px;font-size:0.7rem;">F</span> Below 50%</span>' +
+        '</div></div>';
+
+    // Question review
+    let reviewHtml = '<div style="margin-top:20px;text-align:left;"><div style="font-weight:700;font-size:0.9rem;margin-bottom:10px;">📋 Question Review</div>';
     _currentExamQuestions.forEach((q, idx) => {
         const ans = answers.find(a => a.question_id === q.id);
+        const isCorrect = ans?.is_correct;
+        const icon = isCorrect ? '✅' : '❌';
+        reviewHtml += '<div class="q-review-card ' + (isCorrect ? 'correct' : 'wrong') + '">';
+        reviewHtml += '<strong>' + icon + ' Q' + (idx+1) + ':</strong> ' + q.question_text;
+        if (q.image_url) reviewHtml += '<br><img class="q-img" src="' + q.image_url + '" alt="Q image">';
         if (q.question_type === 'mcq') {
-            const icon = ans?.is_correct ? '✅' : '❌';
-            reviewHtml += '<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:0.85rem;">' +
-                '<strong>' + icon + ' Q' + (idx+1) + ':</strong> ' + q.question_text + '<br>' +
-                '<span style="color:var(--text);">Your answer: </span><span class="' + (ans?.is_correct ? 'result-correct' : 'result-wrong') + '">' + (ans?.answer_text || 'No answer') + '</span>' +
-                (!ans?.is_correct ? '<br><span style="color:var(--text);">Correct: </span><span class="result-correct">' + q.correct_answer + '</span>' : '') +
-            '</div>';
+            reviewHtml += '<br><span style="color:var(--text);">Your answer: </span><span class="' + (isCorrect ? 'result-correct' : 'result-wrong') + '">' + (ans?.answer_text || 'No answer') + '</span>';
+            if (!isCorrect) reviewHtml += '<br><span style="color:var(--text);">Correct: </span><span class="result-correct">' + q.correct_answer + '</span>';
+            reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
+        } else {
+            reviewHtml += '<br><span style="color:var(--text);">Your answer: </span>' + (ans?.answer_text || '<em>No answer</em>');
+            reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
         }
+        reviewHtml += '</div>';
     });
     reviewHtml += '</div>';
 
     document.getElementById('examResultBody').innerHTML = 
         '<div class="result-card">' +
-            '<div style="font-size:2rem;margin-bottom:8px;">' + emoji + '</div>' +
+            '<div style="font-size:2.5rem;margin-bottom:4px;">' + gradeEmoji + '</div>' +
+            '<div class="grade-label ' + gradeClass + '">' + gradeLetter + '</div>' +
             '<div class="result-score">' + pct + '%</div>' +
             '<div class="result-details">' + score + ' / ' + totalPoints + ' points</div>' +
-            '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%"></div></div>' +
-            (mcqAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">' + correctCount + ' correct</span> · <span class="result-wrong">' + (mcqAnswers.length - correctCount) + ' wrong</span></div>' : '') +
+            '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%;background:' + (pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444') + '"></div></div>' +
+            (mcqAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
+            gradeScale +
             reviewHtml +
         '</div>';
     document.getElementById('examResultModal').classList.add('show');
