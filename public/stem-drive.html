@@ -1708,13 +1708,14 @@ function showAuthForGuest() {
 
 function hideAuthOverlay() {
     const overlay = document.getElementById('authOverlay');
+    if (!overlay) return;
     overlay.classList.add('hidden');
     setTimeout(() => overlay.style.display = 'none', 300);
     const token = localStorage.getItem('sideraStudentToken');
-    if (token) {
-        document.getElementById('studentLogoutBtn').style.display = 'flex';
-        document.getElementById('guestSignInBtn').style.display = 'none';
-    }
+    const logoutBtn = document.getElementById('studentLogoutBtn');
+    const guestBtn = document.getElementById('guestSignInBtn');
+    if (token && logoutBtn) logoutBtn.style.display = 'flex';
+    if (guestBtn) guestBtn.style.display = 'none';
 }
 
 function checkStudentAuth() {
