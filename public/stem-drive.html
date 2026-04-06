@@ -1808,6 +1808,13 @@ function toggleTheme() {
 
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
 function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
+function openAdminLoginFromAuth() {
+    document.getElementById('authOverlay').classList.add('hidden');
+    setTimeout(() => {
+        document.getElementById('authOverlay').style.display = 'none';
+        showLogin();
+    }, 150);
+}
 
 function showAdminTab(tab) {
     document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
