@@ -281,10 +281,10 @@
         .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
         .exam-filter-btn:hover { border-color: var(--accent); }
         .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163,64,84,0.25); }
-        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
-        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s, border-color 0.15s; cursor: pointer; position: relative; overflow: hidden; }
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; contain: layout style; }
+        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer; position: relative; overflow: hidden; contain: layout style paint; content-visibility: auto; contain-intrinsic-size: auto 280px; }
         .exam-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), #c0526a, #e67e92); }
-        .exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.1); }
+        .exam-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .exam-card .exam-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; font-weight: 800; padding: 5px 12px; border-radius: 8px; text-transform: uppercase; }
         .exam-card .exam-badge.grade { background: rgba(163,64,84,0.1); color: var(--accent); }
         .exam-card .exam-badge.subject { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
