@@ -382,7 +382,7 @@
         .chat-fab:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(163,64,84,0.5); }
         .chat-fab.has-dot::after { content: ''; position: absolute; top: 6px; right: 6px; width: 12px; height: 12px; background: #22c55e; border-radius: 50%; border: 2px solid var(--bg); }
 
-        .chatbot-panel { position: fixed; bottom: 96px; right: 24px; width: 380px; max-height: 520px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1100; display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.25s ease; transition: background-color 0.15s, border-color 0.15s; }
+        .chatbot-panel { position: fixed; bottom: 96px; right: 24px; width: 380px; max-height: 520px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1100; display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.2s ease; transition: background-color 0.15s, border-color 0.15s; will-change: transform, opacity; }
         .chatbot-panel.open { display: flex; }
 
         .chat-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(163,64,84,0.08), rgba(163,64,84,0.02)); }
