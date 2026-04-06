@@ -3096,6 +3096,23 @@ function addQuestionBuilder(type) {
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="3"><input type="text" placeholder="Option D"></div>' +
             '</div>' +
             '<button class="add-option-btn" onclick="addOptionRow(this)">+ Add Option</button>';
+    } else if (type === 'tf') {
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge tf">TRUE/FALSE</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+            '<input type="text" class="q-text-input" placeholder="Statement (e.g., Water boils at 100°C)..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
+            '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer:</div>' +
+            '<div style="display:flex;gap:8px;">' +
+                '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="True" checked style="accent-color:var(--accent);"> True</label>' +
+                '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="False" style="accent-color:var(--accent);"> False</label>' +
+            '</div>';
+    } else if (type === 'fill') {
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge fill">FILL BLANK</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+            '<input type="text" class="q-text-input" placeholder="Question (e.g., The capital of Egypt is _____)..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
+            '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer (case-insensitive):</div>' +
+            '<input type="text" class="fill-correct-input" placeholder="e.g., Cairo" style="margin-bottom:4px;">';
     } else {
         div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
