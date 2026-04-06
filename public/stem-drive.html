@@ -1717,7 +1717,12 @@ function rebuildSubjectUI() {
     subjectData.forEach(s => {
         const span = document.createElement('span');
         span.textContent = s.icon + ' ' + s.name;
-        span.onclick = function() { filterSub(s.name, this); };
+        const nameLower = s.name.toLowerCase();
+        if (nameLower === 'quiz' || nameLower === 'quizzes' || nameLower === 'exam' || nameLower === 'exams') {
+            span.onclick = function() { scrollToExams(); };
+        } else {
+            span.onclick = function() { filterSub(s.name, this); };
+        }
         navFrag.appendChild(span);
         const opt = document.createElement('option');
         opt.value = s.name;
