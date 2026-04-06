@@ -902,13 +902,21 @@ async function restoreSession() {
         return;
     }
 
+    // Optimistic: set admin immediately from cache while refreshing token in background
+    const cachedAdmin = localStorage.getItem('isSideraAdmin');
+    if (cachedAdmin) { isAdmin = true; }
+
     try {
         const session = JSON.parse(storedSession);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
         const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
             method: 'POST',
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh_token: session.refresh_token })
+            body: JSON.stringify({ refresh_token: session.refresh_token }),
+            signal: controller.signal
         });
+        clearTimeout(timeout);
 
         if (!res.ok) throw new Error('Session expired');
 
