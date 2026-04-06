@@ -3101,7 +3101,31 @@ function showExamResults(score, totalPoints, answers) {
 
 function closeExamResult() { document.getElementById('examResultModal').classList.remove('show'); }
 
-// === LEADERBOARD ===
+// === MINI LEADERBOARD (in-card) ===
+async function loadMiniLeaderboard(examId, examTitle) {
+    const el = document.getElementById('miniLb_' + examId);
+    if (!el) return;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&select=student_name,score,total_points&order=score.desc,submitted_at.asc&limit=3', { headers: getSbHeaders() });
+        const subs = await res.json();
+        if (!subs || subs.length === 0) {
+            el.innerHTML = '<div class="mini-lb-empty">🏆 No submissions yet</div>';
+            return;
+        }
+        const medals = ['🥇','🥈','🥉'];
+        let html = '<div class="mini-lb-header"><span>🏆 Top Students</span><button onclick="event.stopPropagation();showLeaderboard(\'' + examId + '\',\'' + (examTitle||'').replace(/'/g,"\\'") + '\')">View All →</button></div>';
+        subs.forEach((s, i) => {
+            const pct = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
+            const color = pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444';
+            html += '<div class="mini-lb-item"><span class="mlb-medal">' + medals[i] + '</span><span class="mlb-name">' + s.student_name + '</span><span class="mlb-pct" style="color:' + color + ';">' + pct + '%</span></div>';
+        });
+        el.innerHTML = html;
+    } catch (err) {
+        el.innerHTML = '<div class="mini-lb-empty">Could not load</div>';
+    }
+}
+
+// === FULL LEADERBOARD MODAL ===
 async function showLeaderboard(examId, examTitle) {
     const modal = document.getElementById('leaderboardModal');
     const body = document.getElementById('leaderboardBody');
