@@ -639,6 +639,39 @@
         </div>
         <button class="btn-pub" onclick="publishExam()" style="margin-top:16px;">📝 Publish Exam</button>
     </div>
+
+    <!-- Stats Tab -->
+    <div id="adminStatsTab" style="display:none;">
+        <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                <span style="font-weight:700;font-size:0.95rem;">📊 Exam Statistics</span>
+                <select id="statsExamSelect" onchange="loadExamStats()" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:0.85rem;min-width:200px;">
+                    <option value="">Select an exam...</option>
+                </select>
+            </div>
+            <div id="statsContent" style="display:none;">
+                <div id="statsSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;">
+                        <div style="font-weight:700;font-size:0.82rem;margin-bottom:10px;text-align:center;">📈 Score Distribution</div>
+                        <canvas id="scoreChart" width="300" height="200"></canvas>
+                    </div>
+                    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;">
+                        <div style="font-weight:700;font-size:0.82rem;margin-bottom:10px;text-align:center;">🏅 Grade Distribution</div>
+                        <canvas id="gradeChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+                <div style="margin-top:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;">
+                    <div style="font-weight:700;font-size:0.82rem;margin-bottom:10px;">🏆 Top Students</div>
+                    <div id="topStudentsList"></div>
+                </div>
+            </div>
+            <div id="statsEmpty" style="text-align:center;padding:30px;color:var(--text);font-size:0.88rem;">
+                <span style="font-size:2rem;display:block;margin-bottom:8px;">📊</span>
+                Select an exam to view statistics
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Exams Divider & Title -->
