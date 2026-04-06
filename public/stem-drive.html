@@ -1445,7 +1445,8 @@ function hideAuthOverlay() {
 function checkStudentAuth() {
     const token = localStorage.getItem('sideraStudentToken');
     const isGuest = localStorage.getItem('sideraGuest');
-    if (token || isGuest) {
+    const isAdminSession = localStorage.getItem('sideraAuthSession');
+    if (token || isGuest || isAdminSession) {
         hideAuthOverlay();
     }
     if (token) {
