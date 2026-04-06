@@ -2696,8 +2696,15 @@ async function publishExam() {
         const examData = await examRes.json();
         const examId = examData[0].id;
 
-        // Insert questions if any
+        // Upload images and insert questions
         if (questions.length > 0) {
+            for (let i = 0; i < questions.length; i++) {
+                if (imageFiles[i]) {
+                    try {
+                        questions[i].image_url = await uploadQuestionImage(imageFiles[i]);
+                    } catch(e) { console.warn('Image upload failed for Q' + (i+1), e); }
+                }
+            }
             const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
             const qRes = await fetch(SUPABASE_URL + '/rest/v1/exam_questions', {
                 method: 'POST', headers: getSbHeaders(), body: JSON.stringify(qData)
