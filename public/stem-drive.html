@@ -23,9 +23,9 @@
         /* FIX: Only transition color properties, not "all" which triggers expensive layout recalcs */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: background-color 0.15s ease, color 0.15s ease; }
         
-        header { width: 100%; padding: 30px 0 60px; text-align: center; background: var(--header-bg); border-bottom: 1px solid var(--border); position: relative; transition: background-color 0.15s ease, border-color 0.15s ease; }
+        header { width: 100%; padding: 20px 0 60px; text-align: center; background: var(--header-bg); border-bottom: 1px solid var(--border); position: relative; transition: background-color 0.15s ease, border-color 0.15s ease; }
         
-        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
+        .top-controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; padding: 0 20px; margin-bottom: 16px; }
         /* FIX: Specific transitions instead of "all" */
         .control-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; cursor: pointer; color: var(--dark); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
         .control-btn:hover { border-color: var(--accent); transform: scale(1.05); }
@@ -217,11 +217,11 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            header { padding: 70px 0 45px; }
-            header h1 { font-size: 1.6rem; letter-spacing: 2px; margin-top: 10px; }
+            header { padding: 16px 0 45px; }
+            header h1 { font-size: 1.6rem; letter-spacing: 2px; }
             
-            .top-controls { top: 8px; right: 8px; left: 8px; gap: 5px; justify-content: flex-end; flex-wrap: wrap; max-width: calc(100% - 16px); }
-            .control-btn { padding: 6px 10px; font-size: 0.68rem; gap: 3px; border-radius: 14px; }
+            .top-controls { gap: 6px; padding: 0 12px; margin-bottom: 12px; }
+            .control-btn { padding: 6px 10px; font-size: 0.7rem; gap: 3px; border-radius: 14px; }
             
             #searchBar { max-width: 92%; padding: 12px 18px; font-size: 0.85rem; margin-top: -25px; }
             
@@ -263,10 +263,10 @@
         }
 
         @media (max-width: 400px) {
-            header { padding: 70px 0 40px; }
+            header { padding: 12px 0 35px; }
             header h1 { font-size: 1.3rem; }
-            .top-controls { gap: 4px; }
-            .control-btn { padding: 5px 10px; font-size: 0.68rem; }
+            .top-controls { gap: 4px; padding: 0 8px; }
+            .control-btn { padding: 5px 8px; font-size: 0.65rem; }
             nav span { font-size: 0.6rem; padding: 5px 10px; }
         }
 
