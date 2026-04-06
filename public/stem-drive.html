@@ -1975,6 +1975,8 @@ async function checkAuth() {
 }
 
 function logout() {
+    // Capture token before clearing
+    const token = authAccessToken;
     // Clear state immediately for instant UI response
     authAccessToken = null;
     isAdmin = false;
@@ -1985,10 +1987,12 @@ function logout() {
     loadExams();
     showToast('👋 Logged out', 'success');
     // Fire-and-forget sign out from backend
-    fetch(SUPABASE_URL + '/auth/v1/logout', {
-        method: 'POST',
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authAccessToken || '') }
-    }).catch(() => {});
+    if (token) {
+        fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token }
+        }).catch(() => {});
+    }
 }
 
 let pendingDeleteId = null;
