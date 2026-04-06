@@ -2592,6 +2592,7 @@ function renderExams(exams) {
                 (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
                 (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
                 (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
+                '<button class="exam-leaderboard-btn" onclick="event.stopPropagation();showLeaderboard(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">🏆</button>' +
             '</div>' +
         '</div>';
     }).join('');
