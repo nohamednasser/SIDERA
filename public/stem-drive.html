@@ -178,6 +178,22 @@
 
         .no-resources { grid-column: 1/-1; text-align: center; color: var(--text); padding: 60px 20px; font-size: 0.95rem; }
 
+        /* Skeleton Loading */
+        @keyframes skeletonPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+        .skeleton-card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); min-height: 220px; display: flex; flex-direction: column; }
+        .skeleton-line { background: var(--border); border-radius: 6px; animation: skeletonPulse 1.2s ease-in-out infinite; }
+        .skeleton-header { display: flex; gap: 8px; margin-bottom: 14px; }
+        .skeleton-tag { width: 70px; height: 22px; }
+        .skeleton-tag-sm { width: 55px; height: 22px; }
+        .skeleton-title { height: 20px; width: 80%; margin-bottom: 10px; }
+        .skeleton-text { height: 14px; width: 60%; margin-bottom: 18px; flex-grow: 1; }
+        .skeleton-btns { display: flex; gap: 8px; }
+        .skeleton-btn { height: 38px; flex: 1; border-radius: 10px; }
+
         /* ZIP Preview Styles */
         .zip-contents { margin-top: 12px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); }
         .zip-file-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--dark); }
@@ -1834,15 +1850,37 @@ async function saveToHub() {
     }
 }
 
+function showSkeletonCards(count = 6) {
+    const cont = document.getElementById('container');
+    let html = '';
+    for (let i = 0; i < count; i++) {
+        html += '<div class="skeleton-card">' +
+            '<div class="skeleton-header"><div class="skeleton-line skeleton-tag"></div><div class="skeleton-line skeleton-tag-sm"></div></div>' +
+            '<div class="skeleton-line skeleton-title"></div>' +
+            '<div class="skeleton-line skeleton-text"></div>' +
+            '<div class="skeleton-btns"><div class="skeleton-line skeleton-btn"></div><div class="skeleton-line skeleton-btn"></div></div>' +
+        '</div>';
+    }
+    cont.innerHTML = html;
+}
+
 let _renderPending = false;
+let _firstRender = true;
 async function render() {
     if (_renderPending) return;
     _renderPending = true;
     
     const cont = document.getElementById('container');
 
+    // Show skeleton on first load
+    if (_firstRender) {
+        showSkeletonCards(6);
+    }
+
     try {
         const items = await StorageManager.getAllData();
+        _firstRender = false;
+
         if (items.length === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>';
             _renderPending = false;
