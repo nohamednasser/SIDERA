@@ -2603,14 +2603,16 @@ function renderExams(exams) {
             '</div>' +
             '<h3>' + exam.title + '</h3>' +
             '<p>' + (exam.description || 'No description') + '</p>' +
+            '<div class="exam-mini-lb" id="miniLb_' + exam.id + '"><div class="mini-lb-loading"><div class="skeleton" style="height:18px;width:70%;border-radius:6px;margin:4px 0;"></div><div class="skeleton" style="height:18px;width:55%;border-radius:6px;margin:4px 0;"></div></div></div>' +
             '<div class="exam-actions">' +
                 (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
                 (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
                 (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
-                '<button class="exam-leaderboard-btn" onclick="event.stopPropagation();showLeaderboard(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">🏆</button>' +
             '</div>' +
         '</div>';
     }).join('');
+    // Load mini leaderboards
+    exams.forEach(exam => loadMiniLeaderboard(exam.id, exam.title));
 }
 
 // Student Registration
