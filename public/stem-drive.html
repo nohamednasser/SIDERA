@@ -401,9 +401,56 @@
             .chatbot-panel { right: 10px; left: 10px; bottom: 88px; width: auto; max-height: 65vh; }
             .chat-fab { bottom: 16px; right: 16px; width: 54px; height: 54px; font-size: 1.4rem; }
         }
+
+        /* Student Auth Overlay */
+        .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.3s; }
+        .auth-overlay.hidden { opacity: 0; pointer-events: none; }
+        .auth-container { background: var(--card-bg); padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); transition: background-color 0.15s, border-color 0.15s; }
+        .auth-container h2 { margin: 0 0 10px; color: var(--dark); font-weight: 700; font-size: 1.5rem; letter-spacing: 2px; }
+        .auth-container .auth-sub { color: var(--text); font-size: 0.9rem; margin-bottom: 25px; }
+        .auth-container .auth-input-group { margin-bottom: 15px; text-align: left; }
+        .auth-container .auth-input-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
+        .auth-container .auth-input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.2s, background 0.2s; color: var(--dark); }
+        .auth-container .auth-input:focus { border-color: var(--accent); background: var(--card-bg); }
+        .auth-container .auth-input.input-error { border-color: #dc3545; background: #fff8f8; }
+        .auth-error { color: #dc3545; font-size: 0.8rem; margin-bottom: 15px; display: none; text-align: left; padding: 10px; background: #ffeef0; border-radius: 8px; border-left: 4px solid #dc3545; animation: shake 0.4s ease-in-out; }
+        .auth-success { color: #22c55e; font-size: 0.85rem; display: none; margin-bottom: 15px; padding: 10px; background: rgba(34,197,94,0.08); border-radius: 8px; border-left: 4px solid #22c55e; }
+        .auth-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+        .auth-btn:hover { background: var(--accent); transform: translateY(-2px); }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .auth-switch { margin-top: 25px; font-size: 0.85rem; color: var(--text); }
+        .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 700; }
+        .auth-switch span:hover { text-decoration: underline; }
+        .auth-guest { margin-top: 15px; font-size: 0.8rem; color: var(--text); cursor: pointer; }
+        .auth-guest:hover { color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .auth-container { margin: 16px; padding: 28px 24px; }
+        }
     </style>
 </head>
 <body>
+
+<!-- Student Auth Overlay -->
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-container">
+        <h2>SIDERA</h2>
+        <p class="auth-sub" id="authSub">Login to access your files.</p>
+        <div class="auth-error" id="authError"></div>
+        <div class="auth-success" id="authSuccess">✅ Account created! You can login now.</div>
+        <div class="auth-input-group">
+            <label>Email</label>
+            <input type="email" class="auth-input" id="authEmail" placeholder="Enter your email" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()">
+        </div>
+        <div class="auth-input-group">
+            <label>Password</label>
+            <input type="password" class="auth-input" id="authPass" placeholder="••••••••" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()">
+        </div>
+        <button class="auth-btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="auth-switch" id="authToggle">Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span></p>
+        <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
+    </div>
+</div>
 
 <header>
     <div class="top-controls">
@@ -1287,6 +1334,102 @@ async function initApp() {
     }
 }
 
+// ===== Student Auth System =====
+let _authIsLogin = true;
+let _studentUser = null;
+
+function toggleAuthMode() {
+    _authIsLogin = !_authIsLogin;
+    clearAuthError();
+    if (!_authIsLogin) {
+        document.getElementById('authSub').textContent = 'Create a new account.';
+        document.getElementById('authBtn').textContent = 'Create Account';
+        document.getElementById('authToggle').innerHTML = 'Already a member? <span onclick="toggleAuthMode()">Login</span>';
+    } else {
+        document.getElementById('authSub').textContent = 'Login to access your files.';
+        document.getElementById('authBtn').textContent = 'Login';
+        document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="toggleAuthMode()">Sign Up</span>';
+    }
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = '⚠️ ' + msg;
+    el.style.display = 'block';
+    document.querySelectorAll('.auth-input').forEach(i => i.classList.add('input-error'));
+}
+
+function clearAuthError() {
+    document.getElementById('authError').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'none';
+    document.querySelectorAll('.auth-input').forEach(i => i.classList.remove('input-error'));
+}
+
+async function handleAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value.trim();
+    if (!email || !pass) return showAuthError('Please fill in all fields.');
+    if (!email.includes('@')) return showAuthError('Please enter a valid email.');
+    if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
+
+    const btn = document.getElementById('authBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Please wait...';
+
+    try {
+        if (_authIsLogin) {
+            // Login
+            const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+            _studentUser = data.user;
+            localStorage.setItem('sideraStudentToken', data.access_token);
+            localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+            hideAuthOverlay();
+        } else {
+            // Sign Up
+            const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
+            document.getElementById('authSuccess').style.display = 'block';
+            toggleAuthMode();
+        }
+    } catch (err) {
+        showAuthError(err.message);
+    }
+    btn.disabled = false;
+    btn.textContent = _authIsLogin ? 'Login' : 'Create Account';
+}
+
+function enterAsGuest() {
+    localStorage.setItem('sideraGuest', 'true');
+    hideAuthOverlay();
+}
+
+function hideAuthOverlay() {
+    const overlay = document.getElementById('authOverlay');
+    overlay.classList.add('hidden');
+    setTimeout(() => overlay.style.display = 'none', 300);
+}
+
+function checkStudentAuth() {
+    const token = localStorage.getItem('sideraStudentToken');
+    const isGuest = localStorage.getItem('sideraGuest');
+    if (token || isGuest) {
+        hideAuthOverlay();
+    }
+}
+
+// Check auth on load
+checkStudentAuth();
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
