@@ -317,6 +317,20 @@
         .exam-card .exam-link-btn:hover { filter: brightness(1.12); }
         .exam-leaderboard-btn { padding: 10px 14px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 12px; font-size: 1.1rem; cursor: pointer; transition: filter 0.15s, transform 0.1s; line-height: 1; }
         .exam-leaderboard-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        /* Mini Leaderboard inside exam card */
+        .exam-mini-lb { margin: 0 0 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); overflow: hidden; }
+        .mini-lb-loading { padding: 12px 16px; }
+        .mini-lb-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.03)); border-bottom: 1px solid var(--border); }
+        .mini-lb-header span { font-weight: 800; font-size: 0.78rem; color: #f59e0b; display: flex; align-items: center; gap: 6px; }
+        .mini-lb-header button { font-size: 0.7rem; font-weight: 700; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
+        .mini-lb-header button:hover { background: rgba(163,64,84,0.1); }
+        .mini-lb-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+        .mini-lb-item:last-child { border-bottom: none; }
+        .mini-lb-item .mlb-medal { font-size: 1rem; min-width: 24px; text-align: center; }
+        .mini-lb-item .mlb-name { flex: 1; font-weight: 600; font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mini-lb-item .mlb-pct { font-weight: 800; font-size: 0.82rem; min-width: 38px; text-align: right; }
+        .mini-lb-empty { padding: 14px; text-align: center; font-size: 0.78rem; color: var(--text); opacity: 0.5; }
+        /* Full Leaderboard Modal */
         .lb-list { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; }
         .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); transition: transform 0.15s; }
         .lb-row.lb-top { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02)); border-color: rgba(245,158,11,0.3); }
@@ -2603,14 +2617,16 @@ function renderExams(exams) {
             '</div>' +
             '<h3>' + exam.title + '</h3>' +
             '<p>' + (exam.description || 'No description') + '</p>' +
+            '<div class="exam-mini-lb" id="miniLb_' + exam.id + '"><div class="mini-lb-loading"><div class="skeleton" style="height:18px;width:70%;border-radius:6px;margin:4px 0;"></div><div class="skeleton" style="height:18px;width:55%;border-radius:6px;margin:4px 0;"></div></div></div>' +
             '<div class="exam-actions">' +
                 (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
                 (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
                 (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
-                '<button class="exam-leaderboard-btn" onclick="event.stopPropagation();showLeaderboard(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">🏆</button>' +
             '</div>' +
         '</div>';
     }).join('');
+    // Load mini leaderboards
+    exams.forEach(exam => loadMiniLeaderboard(exam.id, exam.title));
 }
 
 // Student Registration
@@ -3085,7 +3101,31 @@ function showExamResults(score, totalPoints, answers) {
 
 function closeExamResult() { document.getElementById('examResultModal').classList.remove('show'); }
 
-// === LEADERBOARD ===
+// === MINI LEADERBOARD (in-card) ===
+async function loadMiniLeaderboard(examId, examTitle) {
+    const el = document.getElementById('miniLb_' + examId);
+    if (!el) return;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&select=student_name,score,total_points&order=score.desc,submitted_at.asc&limit=3', { headers: getSbHeaders() });
+        const subs = await res.json();
+        if (!subs || subs.length === 0) {
+            el.innerHTML = '<div class="mini-lb-empty">🏆 No submissions yet</div>';
+            return;
+        }
+        const medals = ['🥇','🥈','🥉'];
+        let html = '<div class="mini-lb-header"><span>🏆 Top Students</span><button onclick="event.stopPropagation();showLeaderboard(\'' + examId + '\',\'' + (examTitle||'').replace(/'/g,"\\'") + '\')">View All →</button></div>';
+        subs.forEach((s, i) => {
+            const pct = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
+            const color = pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444';
+            html += '<div class="mini-lb-item"><span class="mlb-medal">' + medals[i] + '</span><span class="mlb-name">' + s.student_name + '</span><span class="mlb-pct" style="color:' + color + ';">' + pct + '%</span></div>';
+        });
+        el.innerHTML = html;
+    } catch (err) {
+        el.innerHTML = '<div class="mini-lb-empty">Could not load</div>';
+    }
+}
+
+// === FULL LEADERBOARD MODAL ===
 async function showLeaderboard(examId, examTitle) {
     const modal = document.getElementById('leaderboardModal');
     const body = document.getElementById('leaderboardBody');
