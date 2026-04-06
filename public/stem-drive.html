@@ -1820,9 +1820,13 @@ async function logout() {
         });
     } catch (e) {}
     authAccessToken = null;
+    isAdmin = false;
     localStorage.removeItem('sideraAuthSession');
     localStorage.removeItem('isSideraAdmin');
-    location.reload();
+    setupApp();
+    render();
+    loadExams();
+    showToast('👋 Logged out', 'success');
 }
 
 let pendingDeleteId = null;
