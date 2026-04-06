@@ -401,6 +401,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          id: string
+          selected_grade: string | null
+          selected_semester: string | null
+          selected_subject: string | null
+          theme: string | null
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          id?: string
+          selected_grade?: string | null
+          selected_semester?: string | null
+          selected_subject?: string | null
+          theme?: string | null
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          id?: string
+          selected_grade?: string | null
+          selected_semester?: string | null
+          selected_subject?: string | null
+          theme?: string | null
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
