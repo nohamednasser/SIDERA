@@ -1767,10 +1767,16 @@ function filterSemester(s, el) {
     render();
 }
 
+function showFilesHideExams() {
+    document.getElementById('examsSection').style.display = 'none';
+    document.getElementById('container').style.display = '';
+}
+
 function filterSub(s, el) {
     document.querySelectorAll('#subjectNav span').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
     currentSub = s;
+    showFilesHideExams();
     render();
 }
 
