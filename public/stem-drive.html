@@ -1334,6 +1334,102 @@ async function initApp() {
     }
 }
 
+// ===== Student Auth System =====
+let _authIsLogin = true;
+let _studentUser = null;
+
+function toggleAuthMode() {
+    _authIsLogin = !_authIsLogin;
+    clearAuthError();
+    if (!_authIsLogin) {
+        document.getElementById('authSub').textContent = 'Create a new account.';
+        document.getElementById('authBtn').textContent = 'Create Account';
+        document.getElementById('authToggle').innerHTML = 'Already a member? <span onclick="toggleAuthMode()">Login</span>';
+    } else {
+        document.getElementById('authSub').textContent = 'Login to access your files.';
+        document.getElementById('authBtn').textContent = 'Login';
+        document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="toggleAuthMode()">Sign Up</span>';
+    }
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = '⚠️ ' + msg;
+    el.style.display = 'block';
+    document.querySelectorAll('.auth-input').forEach(i => i.classList.add('input-error'));
+}
+
+function clearAuthError() {
+    document.getElementById('authError').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'none';
+    document.querySelectorAll('.auth-input').forEach(i => i.classList.remove('input-error'));
+}
+
+async function handleAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value.trim();
+    if (!email || !pass) return showAuthError('Please fill in all fields.');
+    if (!email.includes('@')) return showAuthError('Please enter a valid email.');
+    if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
+
+    const btn = document.getElementById('authBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Please wait...';
+
+    try {
+        if (_authIsLogin) {
+            // Login
+            const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+            _studentUser = data.user;
+            localStorage.setItem('sideraStudentToken', data.access_token);
+            localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+            hideAuthOverlay();
+        } else {
+            // Sign Up
+            const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
+            document.getElementById('authSuccess').style.display = 'block';
+            toggleAuthMode();
+        }
+    } catch (err) {
+        showAuthError(err.message);
+    }
+    btn.disabled = false;
+    btn.textContent = _authIsLogin ? 'Login' : 'Create Account';
+}
+
+function enterAsGuest() {
+    localStorage.setItem('sideraGuest', 'true');
+    hideAuthOverlay();
+}
+
+function hideAuthOverlay() {
+    const overlay = document.getElementById('authOverlay');
+    overlay.classList.add('hidden');
+    setTimeout(() => overlay.style.display = 'none', 300);
+}
+
+function checkStudentAuth() {
+    const token = localStorage.getItem('sideraStudentToken');
+    const isGuest = localStorage.getItem('sideraGuest');
+    if (token || isGuest) {
+        hideAuthOverlay();
+    }
+}
+
+// Check auth on load
+checkStudentAuth();
 
 function setupApp() {
     const nav = document.getElementById('subjectNav');
