@@ -1834,13 +1834,18 @@ async function saveToHub() {
     }
 }
 
+let _renderPending = false;
 async function render() {
+    if (_renderPending) return;
+    _renderPending = true;
+    
     const cont = document.getElementById('container');
 
     try {
         const items = await StorageManager.getAllData();
         if (items.length === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>';
+            _renderPending = false;
             return;
         }
 
@@ -1868,14 +1873,18 @@ async function render() {
 
         if (count === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources match current filters.</p>';
+            _renderPending = false;
             return;
         }
 
-        cont.innerHTML = '';
-        cont.appendChild(frag);
+        requestAnimationFrame(() => {
+            cont.innerHTML = '';
+            cont.appendChild(frag);
+        });
     } catch (err) {
         console.error('Render error:', err);
     }
+    _renderPending = false;
 }
 
 document.getElementById('container').addEventListener('click', (e) => {
