@@ -1,0 +1,1 @@
+ALTER TABLE public.exams ADD COLUMN external_url TEXT DEFAULT '';

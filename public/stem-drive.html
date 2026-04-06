@@ -274,19 +274,28 @@
         .exam-section { width: 90%; max-width: 1400px; padding: 0 0 30px; }
         .exam-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .exam-section-header h2 { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
-        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 22px; transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s, border-color 0.15s; cursor: pointer; position: relative; }
+        .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
+        .exam-filter-btn:hover { border-color: var(--accent); }
+        .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163,64,84,0.25); }
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s, border-color 0.15s; cursor: pointer; position: relative; overflow: hidden; }
+        .exam-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), #c0526a, #e67e92); }
         .exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.1); }
-        .exam-card .exam-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+        .exam-card .exam-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; font-weight: 800; padding: 5px 12px; border-radius: 8px; text-transform: uppercase; }
         .exam-card .exam-badge.grade { background: rgba(163,64,84,0.1); color: var(--accent); }
         .exam-card .exam-badge.subject { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
         .exam-card .exam-badge.questions { background: rgba(34,197,94,0.1); color: #22c55e; }
-        .exam-card h3 { margin: 12px 0 8px; font-size: 1.1rem; }
-        .exam-card p { font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.4; }
+        .exam-card .exam-badge.time { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .exam-card h3 { margin: 14px 0 8px; font-size: 1.15rem; font-weight: 700; }
+        .exam-card p { font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; }
         .exam-card .exam-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-        .exam-card .exam-start-btn { width: 100%; padding: 11px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: filter 0.15s; }
-        .exam-card .exam-start-btn:hover { filter: brightness(1.12); }
-        .exam-card .exam-del-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; display: none; transition: all 0.15s; }
+        .exam-card .exam-actions { display: flex; gap: 8px; }
+        .exam-card .exam-start-btn { flex: 1; padding: 12px; background: linear-gradient(135deg, var(--accent), #c0526a); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: filter 0.15s, transform 0.1s; }
+        .exam-card .exam-start-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+        .exam-card .exam-start-btn:active { transform: translateY(0); }
+        .exam-card .exam-link-btn { padding: 12px 16px; background: #3b82f6; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: filter 0.15s; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+        .exam-card .exam-link-btn:hover { filter: brightness(1.12); }
+        .exam-card .exam-del-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; display: none; transition: all 0.15s; z-index: 2; }
         .exam-card .exam-del-btn:hover { background: #ff4d4d; color: white; }
 
         /* Exam Modal (taking exam) */
@@ -322,22 +331,31 @@
         .result-correct { color: #22c55e; font-weight: 600; }
         .result-wrong { color: #ef4444; font-weight: 600; }
 
-        /* Admin exam builder */
-        .exam-builder { max-height: 60vh; overflow-y: auto; }
-        .q-builder-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-        .q-builder-card .q-builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .q-builder-card .remove-q-btn { background: #ff4d4d; color: white; border: none; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+        /* Admin exam builder - Professional */
+        .exam-builder { max-height: 60vh; overflow-y: auto; padding: 4px; }
+        .q-builder-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; position: relative; transition: border-color 0.15s; }
+        .q-builder-card:hover { border-color: var(--accent); }
+        .q-builder-card .q-builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .q-builder-card .q-builder-header span { display: flex; align-items: center; gap: 6px; }
+        .q-builder-card .q-type-badge { font-size: 0.6rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+        .q-type-badge.mcq { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .q-type-badge.essay { background: rgba(168,85,247,0.1); color: #a855f7; }
+        .q-builder-card .remove-q-btn { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.2); border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: all 0.15s; }
+        .q-builder-card .remove-q-btn:hover { background: #ff4d4d; color: white; }
         .option-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
         .option-row input[type="text"] { flex: 1; }
         .option-row input[type="radio"] { accent-color: var(--accent); }
         .add-option-btn { background: none; border: 1px dashed var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; width: 100%; margin-top: 4px; }
         .add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .exam-builder-empty { text-align: center; padding: 30px 20px; color: var(--text); font-size: 0.88rem; }
+        .exam-builder-empty span { font-size: 2rem; display: block; margin-bottom: 8px; }
 
         @media (max-width: 768px) {
             .exam-grid { grid-template-columns: 1fr; gap: 12px; }
             .exam-modal-content { border-radius: 14px; }
             .exam-modal-body { padding: 16px; }
             .exam-section-header h2 { font-size: 1.1rem; }
+            .exam-filter-btn { font-size: 0.65rem; padding: 6px 12px; }
         }
 
         /* AI Chatbot */
@@ -455,28 +473,34 @@
     </div>
 
     <div id="adminExamsTab" style="display:none;">
-        <div class="form-grid">
-            <input type="text" id="examTitle" class="full-w" placeholder="Exam title (e.g., Physics Midterm)">
-            <select id="examGrade">
-                <option value="G10">Grade 10</option>
-                <option value="G11">Grade 11</option>
-                <option value="G12">Grade 12</option>
-            </select>
-            <select id="examSubject"></select>
-            <input type="number" id="examTimeLimit" placeholder="Time limit (minutes, 0 = no limit)" min="0" value="0" class="full-w">
-            <textarea id="examDesc" class="full-w" placeholder="Exam description..." rows="2"></textarea>
+        <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+            <div style="font-weight:700;font-size:0.9rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📋 Exam Details</div>
+            <div class="form-grid">
+                <input type="text" id="examTitle" class="full-w" placeholder="Exam title (e.g., Physics Midterm)">
+                <select id="examGrade">
+                    <option value="G10">Grade 10</option>
+                    <option value="G11">Grade 11</option>
+                    <option value="G12">Grade 12</option>
+                </select>
+                <select id="examSubject"></select>
+                <input type="number" id="examTimeLimit" placeholder="Time limit (minutes, 0 = no limit)" min="0" value="0" class="full-w">
+                <textarea id="examDesc" class="full-w" placeholder="Exam description..." rows="2"></textarea>
+                <input type="url" id="examExternalUrl" class="full-w" placeholder="🔗 External link (Google Sheet, Google Form, etc.) — optional">
+            </div>
         </div>
-        <div style="margin-top:16px;">
+        <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <span style="font-weight:700;font-size:0.9rem;">📋 Questions</span>
+                <span style="font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;">📝 Questions</span>
                 <div style="display:flex;gap:6px;">
-                    <button class="control-btn" onclick="addQuestionBuilder('mcq')" style="font-size:0.75rem;padding:6px 12px;">+ MCQ</button>
-                    <button class="control-btn" onclick="addQuestionBuilder('essay')" style="font-size:0.75rem;padding:6px 12px;">+ Essay</button>
+                    <button class="control-btn" onclick="addQuestionBuilder('mcq')" style="font-size:0.75rem;padding:6px 14px;background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2);color:#3b82f6;">+ MCQ</button>
+                    <button class="control-btn" onclick="addQuestionBuilder('essay')" style="font-size:0.75rem;padding:6px 14px;background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.2);color:#a855f7;">+ Essay</button>
                 </div>
             </div>
-            <div id="questionsBuilder" class="exam-builder"></div>
+            <div id="questionsBuilder" class="exam-builder">
+                <div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>
+            </div>
         </div>
-        <button class="btn-pub" onclick="publishExam()">📝 Publish Exam</button>
+        <button class="btn-pub" onclick="publishExam()" style="margin-top:16px;">📝 Publish Exam</button>
     </div>
 </div>
 
@@ -484,6 +508,12 @@
 <div class="exam-section" id="examsSection">
     <div class="exam-section-header">
         <h2>📝 Exams</h2>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="examFilters">
+        <span class="exam-filter-btn active" data-filter="all" onclick="filterExams('all',this)">All</span>
+        <span class="exam-filter-btn" data-filter="G10" onclick="filterExams('G10',this)">Grade 10</span>
+        <span class="exam-filter-btn" data-filter="G11" onclick="filterExams('G11',this)">Grade 11</span>
+        <span class="exam-filter-btn" data-filter="G12" onclick="filterExams('G12',this)">Grade 12</span>
     </div>
     <div class="exam-grid" id="examsGrid">
         <p class="no-resources" style="grid-column:1/-1;">Loading exams...</p>
@@ -1983,6 +2013,9 @@ let _studentInfo = { name: '', email: '' };
 let _examTimer = null;
 let _examTimeLeft = 0;
 
+let _allExams = [];
+let _examFilter = 'all';
+
 // Load and render exams
 async function loadExams() {
     try {
@@ -1990,12 +2023,27 @@ async function loadExams() {
             headers: getSbHeaders()
         });
         if (!res.ok) throw new Error('Failed');
-        const exams = await res.json();
-        renderExams(exams);
+        _allExams = await res.json();
+        applyExamFilter();
     } catch (err) {
         console.error('loadExams error:', err);
         document.getElementById('examsGrid').innerHTML = '<p class="no-resources">Failed to load exams.</p>';
     }
+}
+
+function filterExams(filter, el) {
+    _examFilter = filter;
+    document.querySelectorAll('.exam-filter-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    applyExamFilter();
+}
+
+function applyExamFilter() {
+    let filtered = _allExams;
+    if (_examFilter !== 'all') {
+        filtered = _allExams.filter(e => e.grade === _examFilter);
+    }
+    renderExams(filtered);
 }
 
 async function loadAllExamsAdmin() {
@@ -2021,19 +2069,23 @@ function renderExams(exams) {
         const qCount = exam.exam_questions ? exam.exam_questions.length : 0;
         const sInfo = subjectMap[exam.subject];
         const timeStr = exam.time_limit_minutes > 0 ? '⏱ ' + exam.time_limit_minutes + ' min' : '⏱ No limit';
-        return '<div class="exam-card">' +
+        const hasLink = exam.external_url && exam.external_url.trim();
+        const hasQuestions = qCount > 0;
+        return '<div class="exam-card" data-grade="' + exam.grade + '">' +
             (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' : '') +
             '<div class="exam-meta">' +
-                '<span class="exam-badge grade">' + exam.grade + '</span>' +
+                '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
-                '<span class="exam-badge questions">📋 ' + qCount + ' questions</span>' +
+                (hasQuestions ? '<span class="exam-badge questions">📋 ' + qCount + ' Q</span>' : '') +
+                '<span class="exam-badge time">' + timeStr + '</span>' +
             '</div>' +
             '<h3>' + exam.title + '</h3>' +
             '<p>' + (exam.description || 'No description') + '</p>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:0.78rem;color:var(--text);">' +
-                '<span>' + timeStr + '</span>' +
+            '<div class="exam-actions">' +
+                (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
+                (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
+                (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
             '</div>' +
-            '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' +
         '</div>';
     }).join('');
 }
@@ -2272,15 +2324,20 @@ let _qBuilderCount = 0;
 function addQuestionBuilder(type) {
     _qBuilderCount++;
     const container = document.getElementById('questionsBuilder');
+    // Remove empty state
+    const emptyEl = container.querySelector('.exam-builder-empty');
+    if (emptyEl) emptyEl.remove();
+    
     const div = document.createElement('div');
     div.className = 'q-builder-card';
     div.id = 'qBuilder_' + _qBuilderCount;
     div.dataset.type = type;
 
     if (type === 'mcq') {
-        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;">📝 MCQ Question</span><button class="remove-q-btn" onclick="this.closest(\'.q-builder-card\').remove()">Remove</button></div>' +
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge mcq">MCQ</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
             '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Select the correct answer:</div>' +
             '<div class="mcq-options-container">' +
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="0" checked><input type="text" placeholder="Option A"></div>' +
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="1"><input type="text" placeholder="Option B"></div>' +
@@ -2289,11 +2346,20 @@ function addQuestionBuilder(type) {
             '</div>' +
             '<button class="add-option-btn" onclick="addOptionRow(this)">+ Add Option</button>';
     } else {
-        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;">📄 Essay Question</span><button class="remove-q-btn" onclick="this.closest(\'.q-builder-card\').remove()">Remove</button></div>' +
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
             '<input type="number" class="q-points-input" placeholder="Points" value="2" min="1" style="width:80px;">';
     }
     container.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeQuestion(btn) {
+    btn.closest('.q-builder-card').remove();
+    const container = document.getElementById('questionsBuilder');
+    if (container.children.length === 0) {
+        container.innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
+    }
 }
 
 function addOptionRow(btn) {
@@ -2308,10 +2374,13 @@ function addOptionRow(btn) {
 
 async function publishExam() {
     const title = document.getElementById('examTitle').value.trim();
+    const externalUrl = document.getElementById('examExternalUrl').value.trim();
     if (!title) { showToast('Please enter exam title.', 'warning'); return; }
 
     const cards = document.querySelectorAll('#questionsBuilder .q-builder-card');
-    if (cards.length === 0) { showToast('Add at least one question.', 'warning'); return; }
+    
+    // Allow publishing with just an external link (no questions needed)
+    if (cards.length === 0 && !externalUrl) { showToast('Add at least one question or an external link.', 'warning'); return; }
 
     const questions = [];
     let valid = true;
@@ -2333,7 +2402,7 @@ async function publishExam() {
         }
     });
 
-    if (!valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
+    if (cards.length > 0 && !valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
 
     try {
         const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
@@ -2345,6 +2414,7 @@ async function publishExam() {
                 subject: document.getElementById('examSubject').value,
                 description: document.getElementById('examDesc').value.trim(),
                 time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
+                external_url: externalUrl,
                 is_published: true
             })
         });
@@ -2352,18 +2422,21 @@ async function publishExam() {
         const examData = await examRes.json();
         const examId = examData[0].id;
 
-        // Insert questions
-        const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
-        const qRes = await fetch(SUPABASE_URL + '/rest/v1/exam_questions', {
-            method: 'POST', headers: getSbHeaders(), body: JSON.stringify(qData)
-        });
-        if (!qRes.ok) throw new Error('Questions insert failed');
+        // Insert questions if any
+        if (questions.length > 0) {
+            const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
+            const qRes = await fetch(SUPABASE_URL + '/rest/v1/exam_questions', {
+                method: 'POST', headers: getSbHeaders(), body: JSON.stringify(qData)
+            });
+            if (!qRes.ok) throw new Error('Questions insert failed');
+        }
 
         showToast('✅ Exam published successfully!', 'success');
         document.getElementById('examTitle').value = '';
         document.getElementById('examDesc').value = '';
         document.getElementById('examTimeLimit').value = '0';
-        document.getElementById('questionsBuilder').innerHTML = '';
+        document.getElementById('examExternalUrl').value = '';
+        document.getElementById('questionsBuilder').innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
         _qBuilderCount = 0;
         loadExams();
     } catch (err) {

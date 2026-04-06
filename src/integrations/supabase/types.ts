@@ -196,6 +196,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          external_url: string | null
           grade: string
           id: string
           is_published: boolean | null
@@ -206,6 +207,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          external_url?: string | null
           grade?: string
           id?: string
           is_published?: boolean | null
@@ -216,6 +218,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          external_url?: string | null
           grade?: string
           id?: string
           is_published?: boolean | null
