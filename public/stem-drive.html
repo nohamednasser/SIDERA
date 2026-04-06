@@ -1143,7 +1143,9 @@ async function openPreview(itemId) {
         const fn = (item.fileName || '').toLowerCase();
         const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
 
-        if (isZip && typeof JSZip !== 'undefined') {
+        if (isZip) {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP viewer...</span></div>';
+            await ensureJSZip();
             previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
             _currentZipItemId = itemId;
             
