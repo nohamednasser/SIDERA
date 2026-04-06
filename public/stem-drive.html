@@ -1367,12 +1367,15 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
-        await restoreSession();
-        await StorageManager.init();
-        await loadSubjectsFromDB();
+        // Parallelize session restore and data loading
+        const [_, __, subjects] = await Promise.all([
+            restoreSession(),
+            StorageManager.init(),
+            loadSubjectsFromDB()
+        ]);
         setupApp();
-        render();
-        loadExams();
+        // Load files and exams in parallel
+        await Promise.all([render(), loadExams()]);
     } catch (err) {
         console.error('Init failed:', err);
         setupApp();
