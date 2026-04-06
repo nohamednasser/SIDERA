@@ -1490,6 +1490,8 @@ function setupApp() {
 
     if (localStorage.getItem('theme') === 'dark') {
         document.getElementById('themeBtn').innerText = '☀️ Mode';
+        const ab = document.getElementById('authThemeBtn');
+        if (ab) ab.innerText = '☀️';
     }
 
     let searchTimer;
