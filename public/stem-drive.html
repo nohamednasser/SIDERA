@@ -2591,7 +2591,7 @@ function renderExams(exams) {
         const hasLink = exam.external_url && exam.external_url.trim();
         const hasQuestions = qCount > 0;
         return '<div class="exam-card" data-grade="' + exam.grade + '">' +
-            (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' : '') +
+            (isAdmin ? '<div class="exam-admin-btns"><button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button><button class="exam-export-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📥</button></div>' : '') +
             '<div class="exam-meta">' +
                 '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
