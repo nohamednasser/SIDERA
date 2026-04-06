@@ -2962,7 +2962,7 @@ function getRandomSuggestions(count = 4) {
 }
 
 let chatOpen = false;
-function toggleChat() {
+async function toggleChat() {
     chatOpen = !chatOpen;
     const panel = document.getElementById('chatPanel');
     const fab = document.getElementById('chatFab');
@@ -2970,7 +2970,11 @@ function toggleChat() {
     fab.innerHTML = chatOpen ? '✕' : '🤖';
     fab.classList.remove('has-dot');
     if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
-        addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا مساعدك الذكي — اسألني أي حاجة عن STEM أو الدراسة أو المنصة وهرد عليك فوراً! 🚀');
+        // Try loading saved history first
+        await loadChatHistory();
+        if (document.getElementById('chatMessages').children.length === 0) {
+            addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا مساعدك الذكي — اسألني أي حاجة عن STEM أو الدراسة أو المنصة وهرد عليك فوراً! 🚀');
+        }
         showSuggestions();
     }
 }
