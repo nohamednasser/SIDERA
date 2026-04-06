@@ -2895,6 +2895,48 @@ async function deleteExam(examId) {
 }
 
 let chatHistory = [];
+let _chatLoaded = false;
+
+function getChatUserEmail() {
+    const saved = localStorage.getItem('sideraStudent');
+    if (saved) { try { return JSON.parse(saved).email; } catch(e) {} }
+    const username = localStorage.getItem('sideraUsername');
+    if (username) return username + '@sidera.local';
+    return null;
+}
+
+async function saveChatMsg(role, content) {
+    const email = getChatUserEmail();
+    if (!email) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages', {
+            method: 'POST',
+            headers: getSbHeaders(),
+            body: JSON.stringify({ user_email: email, role, content })
+        });
+    } catch(e) { console.error('Save chat msg error:', e); }
+}
+
+async function loadChatHistory() {
+    if (_chatLoaded) return;
+    const email = getChatUserEmail();
+    if (!email) return;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email) + '&select=role,content&order=created_at.asc&limit=100', { headers: getSbHeaders() });
+        if (!res.ok) return;
+        const msgs = await res.json();
+        if (msgs.length === 0) return;
+        _chatLoaded = true;
+        chatHistory = msgs.map(m => ({ role: m.role, content: m.content }));
+        // Render saved messages
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        msgs.forEach(m => {
+            if (m.role === 'user') addUserMsg(m.content);
+            else addBotMsg(formatAIResponse(m.content));
+        });
+    } catch(e) { console.error('Load chat history error:', e); }
+}
 
 const defaultSuggestions = [
     'لخصلي درس الـ Derivatives',
@@ -2920,7 +2962,7 @@ function getRandomSuggestions(count = 4) {
 }
 
 let chatOpen = false;
-function toggleChat() {
+async function toggleChat() {
     chatOpen = !chatOpen;
     const panel = document.getElementById('chatPanel');
     const fab = document.getElementById('chatFab');
@@ -2928,7 +2970,11 @@ function toggleChat() {
     fab.innerHTML = chatOpen ? '✕' : '🤖';
     fab.classList.remove('has-dot');
     if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
-        addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا مساعدك الذكي — اسألني أي حاجة عن STEM أو الدراسة أو المنصة وهرد عليك فوراً! 🚀');
+        // Try loading saved history first
+        await loadChatHistory();
+        if (document.getElementById('chatMessages').children.length === 0) {
+            addBotMsg('👋 أهلاً بيك في <b>SIDERA AI</b>!<br>أنا مساعدك الذكي — اسألني أي حاجة عن STEM أو الدراسة أو المنصة وهرد عليك فوراً! 🚀');
+        }
         showSuggestions();
     }
 }
@@ -2998,6 +3044,7 @@ async function askBot(question) {
     showTyping();
 
     chatHistory.push({ role: 'user', content: question });
+    saveChatMsg('user', question);
 
     try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
@@ -3068,6 +3115,7 @@ async function askBot(question) {
         botDiv.innerHTML = formatAIResponse(fullText);
         msgs.scrollTop = msgs.scrollHeight;
         chatHistory.push({ role: 'assistant', content: fullText });
+        saveChatMsg('assistant', fullText);
     } catch (err) {
         console.error('AI error:', err);
         removeTyping();
