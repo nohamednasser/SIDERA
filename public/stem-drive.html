@@ -3060,7 +3060,7 @@ function showExamResults(score, totalPoints, answers) {
             '<div class="result-score">' + pct + '%</div>' +
             '<div class="result-details">' + score + ' / ' + totalPoints + ' points</div>' +
             '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%;background:' + (pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444') + '"></div></div>' +
-            (mcqAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
+            (gradedAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
             gradeScale +
             reviewHtml +
         '</div>';
