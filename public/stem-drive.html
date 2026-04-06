@@ -559,7 +559,7 @@
 </div>
 
 <!-- Exams Section -->
-<div class="exam-section" id="examsSection" style="display:none;">
+<div class="exam-section" id="examsSection">
     <div class="exam-section-header">
         <h2>📝 Exams</h2>
     </div>
@@ -1946,11 +1946,7 @@ function rebuildSubjectUI() {
 }
 
 function scrollToExams() {
-    document.getElementById('examsSection').style.display = '';
-    document.getElementById('container').style.display = 'none';
-    setTimeout(() => {
-        document.getElementById('examsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    document.getElementById('examsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function filterGrade(g, el) {
@@ -1966,7 +1962,12 @@ function filterGrade(g, el) {
         semNav.querySelectorAll('span').forEach(s => s.classList.remove('active'));
         semNav.querySelector('span').classList.add('active');
     }
-    showFilesHideExams();
+    // Sync exam filter with grade
+    if (g === 'All') {
+        filterExams('all', document.querySelector('.exam-filter-btn[data-filter="all"]'));
+    } else {
+        filterExams(g, document.querySelector('.exam-filter-btn[data-filter="' + g + '"]'));
+    }
     render();
 }
 
@@ -1978,7 +1979,6 @@ function filterSemester(s, el) {
 }
 
 function showFilesHideExams() {
-    document.getElementById('examsSection').style.display = 'none';
     document.getElementById('container').style.display = '';
 }
 
