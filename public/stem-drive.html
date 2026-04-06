@@ -1377,10 +1377,14 @@ async function handleAuth() {
     const pass = document.getElementById('authPass').value.trim();
     if (!username || !pass) return showAuthError('Please fill in all fields.');
     if (username.length < 3) return showAuthError('Username must be at least 3 characters.');
-    if (/[^a-z0-9_.]/.test(username)) return showAuthError('Username can only contain letters, numbers, _ and .');
     if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
 
-    const email = username + '@sidera.local';
+    // Check if this is an admin username (admin1-admin5)
+    const isAdminUser = /^admin[1-5]$/.test(username) || /^admin[1-5]@sidera\.app$/.test(username);
+    const email = isAdminUser
+        ? (username.includes('@') ? username : username + '@sidera.app')
+        : username + '@sidera.local';
+
     const btn = document.getElementById('authBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Please wait...';
@@ -1394,12 +1398,26 @@ async function handleAuth() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
-            _studentUser = data.user;
-            localStorage.setItem('sideraStudentToken', data.access_token);
-            localStorage.setItem('sideraStudentRefresh', data.refresh_token);
-            localStorage.setItem('sideraUsername', username);
-            hideAuthOverlay();
+
+            if (isAdminUser) {
+                // Admin login — set admin session
+                authAccessToken = data.access_token;
+                isAdmin = true;
+                localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
+                localStorage.setItem('isSideraAdmin', 'true');
+                hideAuthOverlay();
+                location.reload();
+            } else {
+                // Student login
+                _studentUser = data.user;
+                localStorage.setItem('sideraStudentToken', data.access_token);
+                localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+                localStorage.setItem('sideraUsername', username);
+                hideAuthOverlay();
+            }
         } else {
+            // Sign Up — only for students, not admins
+            if (isAdminUser) return showAuthError('Admin accounts cannot be created. Please login.');
             const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
