@@ -465,7 +465,7 @@
         <button class="control-btn" id="loginBtn" onclick="showLogin()" style="display:none;">➞ Admin</button>
         <button class="control-btn" id="guestSignInBtn" onclick="showAuthForGuest()" style="display:none;">🔑 Sign In</button>
     </div>
-    <h1>SIDERA</h1>
+    <h1 ondblclick="showLogin()" title="Double click for admin login">SIDERA</h1>
 </header>
 
 <input type="text" id="searchBar" placeholder="Search for files, subjects, or notes...">
@@ -1498,6 +1498,7 @@ function setupApp() {
         document.getElementById('adminPanel').style.display = 'block';
         document.getElementById('loginBtn').innerText = 'Logout';
         document.getElementById('loginBtn').onclick = logout;
+        document.getElementById('loginBtn').style.display = 'flex';
         document.getElementById('dashBtn').style.display = 'flex';
     }
 
