@@ -1389,15 +1389,75 @@ function closePreview() {
 
 if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
+// ===== User Preferences Sync =====
+let _prefsSaveTimer = null;
+function getUserEmail() {
+    const saved = localStorage.getItem('sideraStudent');
+    if (saved) { try { return JSON.parse(saved).email; } catch(e) {} }
+    const username = localStorage.getItem('sideraUsername');
+    if (username) return username + '@sidera.local';
+    return null;
+}
+
+async function loadUserPrefs() {
+    const email = getUserEmail();
+    if (!email) return;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/user_preferences?user_email=eq.' + encodeURIComponent(email) + '&select=*&limit=1', { headers: getSbHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.length === 0) return;
+        const prefs = data[0];
+        // Apply saved theme
+        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'light')) {
+            localStorage.setItem('theme', prefs.theme);
+            document.documentElement.setAttribute('data-theme', prefs.theme);
+        }
+        // Apply saved filters
+        if (prefs.selected_grade && prefs.selected_grade !== 'All') {
+            currentGrade = prefs.selected_grade;
+        }
+        if (prefs.selected_subject && prefs.selected_subject !== 'All') {
+            currentSub = prefs.selected_subject;
+        }
+        if (prefs.selected_semester && prefs.selected_semester !== 'All') {
+            currentSemester = prefs.selected_semester;
+        }
+    } catch(e) { console.error('loadUserPrefs error:', e); }
+}
+
+function saveUserPrefs() {
+    clearTimeout(_prefsSaveTimer);
+    _prefsSaveTimer = setTimeout(_saveUserPrefsNow, 1000);
+}
+
+async function _saveUserPrefsNow() {
+    const email = getUserEmail();
+    if (!email) return;
+    const theme = localStorage.getItem('theme') || 'light';
+    const payload = { user_email: email, theme, selected_grade: currentGrade, selected_subject: currentSub, selected_semester: currentSemester, updated_at: new Date().toISOString() };
+    try {
+        // Upsert
+        await fetch(SUPABASE_URL + '/rest/v1/user_preferences', {
+            method: 'POST',
+            headers: { ...getSbHeaders(), 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+            body: JSON.stringify(payload)
+        });
+    } catch(e) { console.error('saveUserPrefs error:', e); }
+}
+
 async function initApp() {
     try {
-        // Parallelize session restore and data loading
-        const [_, __, subjects] = await Promise.all([
+        // Parallelize session restore, data loading, and preferences
+        const [_, __, ___, ____] = await Promise.all([
             restoreSession(),
             StorageManager.init(),
-            loadSubjectsFromDB()
+            loadSubjectsFromDB(),
+            loadUserPrefs()
         ]);
         setupApp();
+        // Apply saved filters to UI
+        applyFiltersToUI();
         // Load files and exams in parallel
         await Promise.all([render(), loadExams()]);
     } catch (err) {
@@ -1405,6 +1465,32 @@ async function initApp() {
         setupApp();
         render();
         loadExams();
+    }
+}
+
+function applyFiltersToUI() {
+    // Sync grade nav
+    if (currentGrade !== 'All') {
+        document.querySelectorAll('#gradeNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentGrade) || s.dataset?.grade === currentGrade) s.classList.add('active');
+        });
+        const semNav = document.getElementById('semesterNav');
+        if (semNav) semNav.style.display = '';
+    }
+    // Sync subject nav
+    if (currentSub !== 'All') {
+        document.querySelectorAll('#subjectNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentSub)) s.classList.add('active');
+        });
+    }
+    // Sync semester nav
+    if (currentSemester !== 'All') {
+        document.querySelectorAll('#semesterNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentSemester)) s.classList.add('active');
+        });
     }
 }
 
