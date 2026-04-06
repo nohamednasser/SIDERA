@@ -2145,14 +2145,16 @@ function showAdminTab(tab) {
     document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
     document.getElementById('adminSubjectsTab').style.display = tab === 'subjects' ? 'block' : 'none';
     document.getElementById('adminExamsTab').style.display = tab === 'exams' ? 'block' : 'none';
-    document.getElementById('tabUpload').style.borderColor = tab === 'upload' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabUpload').style.color = tab === 'upload' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabSubjects').style.borderColor = tab === 'subjects' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabSubjects').style.color = tab === 'subjects' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabExams').style.borderColor = tab === 'exams' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabExams').style.color = tab === 'exams' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('adminStatsTab').style.display = tab === 'stats' ? 'block' : 'none';
+    ['tabUpload','tabSubjects','tabExams','tabStats'].forEach(id => {
+        const el = document.getElementById(id);
+        const active = id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+        el.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+        el.style.color = active ? 'var(--accent)' : 'var(--text)';
+    });
     if (tab === 'subjects') renderSubjectsList();
     if (tab === 'exams') populateExamSubjects();
+    if (tab === 'stats') populateStatsExamSelect();
 }
 
 function renderSubjectsList() {
