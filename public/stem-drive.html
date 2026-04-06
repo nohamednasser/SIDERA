@@ -1946,11 +1946,7 @@ function rebuildSubjectUI() {
 }
 
 function scrollToExams() {
-    document.getElementById('examsSection').style.display = '';
-    document.getElementById('container').style.display = 'none';
-    setTimeout(() => {
-        document.getElementById('examsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    document.getElementById('examsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function filterGrade(g, el) {
