@@ -1850,15 +1850,37 @@ async function saveToHub() {
     }
 }
 
+function showSkeletonCards(count = 6) {
+    const cont = document.getElementById('container');
+    let html = '';
+    for (let i = 0; i < count; i++) {
+        html += '<div class="skeleton-card">' +
+            '<div class="skeleton-header"><div class="skeleton-line skeleton-tag"></div><div class="skeleton-line skeleton-tag-sm"></div></div>' +
+            '<div class="skeleton-line skeleton-title"></div>' +
+            '<div class="skeleton-line skeleton-text"></div>' +
+            '<div class="skeleton-btns"><div class="skeleton-line skeleton-btn"></div><div class="skeleton-line skeleton-btn"></div></div>' +
+        '</div>';
+    }
+    cont.innerHTML = html;
+}
+
 let _renderPending = false;
+let _firstRender = true;
 async function render() {
     if (_renderPending) return;
     _renderPending = true;
     
     const cont = document.getElementById('container');
 
+    // Show skeleton on first load
+    if (_firstRender) {
+        showSkeletonCards(6);
+    }
+
     try {
         const items = await StorageManager.getAllData();
+        _firstRender = false;
+
         if (items.length === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>';
             _renderPending = false;
