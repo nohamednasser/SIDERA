@@ -1419,16 +1419,25 @@ async function handleAuth() {
 function enterAsGuest() {
     localStorage.setItem('sideraGuest', 'true');
     hideAuthOverlay();
+    document.getElementById('guestSignInBtn').style.display = 'flex';
+}
+
+function showAuthForGuest() {
+    localStorage.removeItem('sideraGuest');
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
 function hideAuthOverlay() {
     const overlay = document.getElementById('authOverlay');
     overlay.classList.add('hidden');
     setTimeout(() => overlay.style.display = 'none', 300);
-    // Show logout button if logged in (not guest)
     const token = localStorage.getItem('sideraStudentToken');
     if (token) {
         document.getElementById('studentLogoutBtn').style.display = 'flex';
+        document.getElementById('guestSignInBtn').style.display = 'none';
     }
 }
 
@@ -1440,6 +1449,8 @@ function checkStudentAuth() {
     }
     if (token) {
         document.getElementById('studentLogoutBtn').style.display = 'flex';
+    } else if (isGuest) {
+        document.getElementById('guestSignInBtn').style.display = 'flex';
     }
 }
 
