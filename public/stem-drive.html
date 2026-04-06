@@ -2360,10 +2360,13 @@ function addOptionRow(btn) {
 
 async function publishExam() {
     const title = document.getElementById('examTitle').value.trim();
+    const externalUrl = document.getElementById('examExternalUrl').value.trim();
     if (!title) { showToast('Please enter exam title.', 'warning'); return; }
 
     const cards = document.querySelectorAll('#questionsBuilder .q-builder-card');
-    if (cards.length === 0) { showToast('Add at least one question.', 'warning'); return; }
+    
+    // Allow publishing with just an external link (no questions needed)
+    if (cards.length === 0 && !externalUrl) { showToast('Add at least one question or an external link.', 'warning'); return; }
 
     const questions = [];
     let valid = true;
@@ -2385,7 +2388,7 @@ async function publishExam() {
         }
     });
 
-    if (!valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
+    if (cards.length > 0 && !valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
 
     try {
         const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
@@ -2397,6 +2400,7 @@ async function publishExam() {
                 subject: document.getElementById('examSubject').value,
                 description: document.getElementById('examDesc').value.trim(),
                 time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
+                external_url: externalUrl,
                 is_published: true
             })
         });
@@ -2404,18 +2408,21 @@ async function publishExam() {
         const examData = await examRes.json();
         const examId = examData[0].id;
 
-        // Insert questions
-        const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
-        const qRes = await fetch(SUPABASE_URL + '/rest/v1/exam_questions', {
-            method: 'POST', headers: getSbHeaders(), body: JSON.stringify(qData)
-        });
-        if (!qRes.ok) throw new Error('Questions insert failed');
+        // Insert questions if any
+        if (questions.length > 0) {
+            const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
+            const qRes = await fetch(SUPABASE_URL + '/rest/v1/exam_questions', {
+                method: 'POST', headers: getSbHeaders(), body: JSON.stringify(qData)
+            });
+            if (!qRes.ok) throw new Error('Questions insert failed');
+        }
 
         showToast('✅ Exam published successfully!', 'success');
         document.getElementById('examTitle').value = '';
         document.getElementById('examDesc').value = '';
         document.getElementById('examTimeLimit').value = '0';
-        document.getElementById('questionsBuilder').innerHTML = '';
+        document.getElementById('examExternalUrl').value = '';
+        document.getElementById('questionsBuilder').innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
         _qBuilderCount = 0;
         loadExams();
     } catch (err) {
