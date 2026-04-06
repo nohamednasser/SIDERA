@@ -412,9 +412,11 @@
         .auth-container .auth-input-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
         .auth-container .auth-input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.2s, background 0.2s; color: var(--dark); }
         .auth-container .auth-input:focus { border-color: var(--accent); background: var(--card-bg); }
-        .auth-container .auth-input.input-error { border-color: #dc3545; background: #fff8f8; }
-        .auth-error { color: #dc3545; font-size: 0.8rem; margin-bottom: 15px; display: none; text-align: left; padding: 10px; background: #ffeef0; border-radius: 8px; border-left: 4px solid #dc3545; animation: shake 0.4s ease-in-out; }
+        .auth-container .auth-input.input-error { border-color: #dc3545; background: rgba(220,53,69,0.05); }
+        .auth-error { color: #dc3545; font-size: 0.8rem; margin-bottom: 15px; display: none; text-align: left; padding: 10px; background: rgba(220,53,69,0.08); border-radius: 8px; border-left: 4px solid #dc3545; animation: shake 0.4s ease-in-out; }
         .auth-success { color: #22c55e; font-size: 0.85rem; display: none; margin-bottom: 15px; padding: 10px; background: rgba(34,197,94,0.08); border-radius: 8px; border-left: 4px solid #22c55e; }
+        .auth-theme-toggle { position: absolute; top: 16px; right: 16px; background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 1rem; color: var(--dark); transition: background 0.2s, border-color 0.2s; }
+        .auth-theme-toggle:hover { background: var(--border); }
         .auth-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; }
         .auth-btn:hover { background: var(--accent); transform: translateY(-2px); }
         .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -433,7 +435,8 @@
 
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
-    <div class="auth-container">
+    <div class="auth-container" style="position:relative;">
+        <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <h2>SIDERA</h2>
         <p class="auth-sub" id="authSub">Login to access your files.</p>
         <div class="auth-error" id="authError"></div>
@@ -1487,6 +1490,8 @@ function setupApp() {
 
     if (localStorage.getItem('theme') === 'dark') {
         document.getElementById('themeBtn').innerText = '☀️ Mode';
+        const ab = document.getElementById('authThemeBtn');
+        if (ab) ab.innerText = '☀️';
     }
 
     let searchTimer;
@@ -1778,6 +1783,8 @@ function toggleTheme() {
     root.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
     document.getElementById('themeBtn').innerText = isDark ? '🌙 Mode' : '☀️ Mode';
+    const authThemeBtn = document.getElementById('authThemeBtn');
+    if (authThemeBtn) authThemeBtn.innerText = isDark ? '🌙' : '☀️';
 
     requestAnimationFrame(() => {
         root.classList.remove('theme-switching');
