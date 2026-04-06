@@ -326,15 +326,53 @@
         .exam-modal-header h2 { margin: 0; font-size: 1.15rem; }
         .exam-modal-body { padding: 24px; }
         .exam-timer { background: rgba(163,64,84,0.08); color: var(--accent); padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; }
+        .exam-timer.warning { background: rgba(239,68,68,0.12); color: #ef4444; animation: timerPulse 1s infinite; }
+        @keyframes timerPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+        /* Exam progress bar */
+        .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.03); }
+        .exam-progress-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .exam-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #c0526a); border-radius: 4px; transition: width 0.3s ease; }
+        .exam-progress-text { font-size: 0.75rem; font-weight: 700; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; }
+
+        /* Question dots navigator */
+        .exam-q-dots { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border); justify-content: center; }
+        .exam-q-dot { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .exam-q-dot:hover { border-color: var(--accent); }
+        .exam-q-dot.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .exam-q-dot.answered { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #22c55e; }
+        .exam-q-dot.active.answered { background: var(--accent); color: white; }
+
+        /* Navigation buttons */
+        .exam-nav-btns { display: flex; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); }
+        .exam-nav-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.15s; background: var(--input-bg); color: var(--dark); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .exam-nav-btn:hover { border-color: var(--accent); }
+        .exam-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .exam-nav-btn.primary { background: linear-gradient(135deg, var(--accent), #c0526a); color: white; border-color: transparent; }
+        .exam-nav-btn.primary:hover { filter: brightness(1.1); }
+        .exam-nav-btn.submit { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border-color: transparent; }
+        .exam-nav-btn.submit:hover { filter: brightness(1.1); }
 
         .question-block { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; transition: background-color 0.15s, border-color 0.15s; }
         .question-block .q-num { font-size: 0.72rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
         .question-block .q-text { font-size: 0.95rem; font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
-        .question-block .q-points { font-size: 0.7rem; color: var(--text); margin-bottom: 10px; }
-        .mcq-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 0.88rem; }
-        .mcq-option:hover { border-color: var(--accent); background: rgba(163,64,84,0.04); }
-        .mcq-option.selected { border-color: var(--accent); background: rgba(163,64,84,0.08); }
-        .mcq-option input[type="radio"] { accent-color: var(--accent); }
+        .question-block .q-points { font-size: 0.7rem; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .mcq-option { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s; font-size: 0.88rem; }
+        .mcq-option:hover { border-color: var(--accent); background: rgba(163,64,84,0.04); transform: translateX(4px); }
+        .mcq-option.selected { border-color: var(--accent); background: rgba(163,64,84,0.08); box-shadow: 0 2px 8px rgba(163,64,84,0.15); }
+        .mcq-option input[type="radio"] { accent-color: var(--accent); width: 18px; height: 18px; }
+
+        /* True/False options */
+        .tf-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .tf-option { padding: 16px; border: 1.5px solid var(--border); border-radius: 14px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1rem; transition: all 0.15s; }
+        .tf-option:hover { transform: translateY(-2px); }
+        .tf-option.true-opt:hover, .tf-option.true-opt.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); color: #22c55e; }
+        .tf-option.false-opt:hover, .tf-option.false-opt.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Fill in the blank */
+        .fill-blank-input { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card-bg); color: var(--dark); font-size: 1rem; font-weight: 600; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; text-align: center; letter-spacing: 1px; }
+        .fill-blank-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(163,64,84,0.1); }
+
         .essay-input { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--dark); font-size: 0.88rem; resize: vertical; outline: none; transition: border-color 0.15s; font-family: inherit; }
         .essay-input:focus { border-color: var(--accent); }
 
@@ -384,13 +422,18 @@
         .add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
         .exam-builder-empty { text-align: center; padding: 30px 20px; color: var(--text); font-size: 0.88rem; }
         .exam-builder-empty span { font-size: 2rem; display: block; margin-bottom: 8px; }
+        .q-type-badge.tf { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .q-type-badge.fill { background: rgba(234,179,8,0.1); color: #eab308; }
 
         @media (max-width: 768px) {
             .exam-grid { grid-template-columns: 1fr; gap: 12px; }
             .exam-modal-content { border-radius: 14px; }
             .exam-modal-body { padding: 16px; }
             .exam-section-header h2 { font-size: 1.1rem; }
-            .exam-filter-btn { font-size: 0.65rem; padding: 6px 12px; }
+            .exam-q-dots { gap: 4px; padding: 8px 16px; }
+            .exam-q-dot { width: 28px; height: 28px; font-size: 0.65rem; }
+            .exam-nav-btns { padding: 12px 16px; }
+            .tf-options { gap: 8px; }
         }
 
         /* AI Chatbot */
@@ -582,8 +625,10 @@
         <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <span style="font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;">📝 Questions</span>
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
                     <button class="control-btn" onclick="addQuestionBuilder('mcq')" style="font-size:0.75rem;padding:6px 14px;background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2);color:#3b82f6;">+ MCQ</button>
+                    <button class="control-btn" onclick="addQuestionBuilder('tf')" style="font-size:0.75rem;padding:6px 14px;background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.2);color:#22c55e;">+ T/F</button>
+                    <button class="control-btn" onclick="addQuestionBuilder('fill')" style="font-size:0.75rem;padding:6px 14px;background:rgba(234,179,8,0.1);border-color:rgba(234,179,8,0.2);color:#eab308;">+ Fill Blank</button>
                     <button class="control-btn" onclick="addQuestionBuilder('essay')" style="font-size:0.75rem;padding:6px 14px;background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.2);color:#a855f7;">+ Essay</button>
                 </div>
             </div>
@@ -652,11 +697,18 @@
                 <button class="dash-close" onclick="confirmExitExam()">✕</button>
             </div>
         </div>
+        <div class="exam-progress-bar" id="examProgressBar">
+            <div class="exam-progress-track"><div class="exam-progress-fill" id="examProgressFill" style="width:0%"></div></div>
+            <span class="exam-progress-text" id="examProgressText">0/0</span>
+        </div>
+        <div class="exam-q-dots" id="examQDots"></div>
         <div class="exam-modal-body" id="examTakingBody">
             <!-- Questions rendered here -->
         </div>
-        <div style="padding:0 24px 24px;">
-            <button class="btn-pub" id="submitExamBtn" onclick="submitExam()">✅ Submit Exam</button>
+        <div class="exam-nav-btns" id="examNavBtns">
+            <button class="exam-nav-btn" id="examPrevBtn" onclick="examNav(-1)">◀ Previous</button>
+            <button class="exam-nav-btn primary" id="examNextBtn" onclick="examNav(1)">Next ▶</button>
+            <button class="exam-nav-btn submit" id="examSubmitBtn" onclick="submitExam()" style="display:none;">✅ Submit Exam</button>
         </div>
     </div>
 </div>
@@ -2678,33 +2730,131 @@ function updateTimerDisplay() {
     const s = _examTimeLeft % 60;
     const el = document.getElementById('examTimerDisplay');
     el.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    if (_examTimeLeft <= 60) el.style.color = '#ef4444';
-    else el.style.color = '';
+    // Warning state when less than 2 minutes
+    if (_examTimeLeft <= 120) {
+        el.classList.add('warning');
+        if (_examTimeLeft === 120) showToast('⚠️ باقي دقيقتين!', 'warning');
+        if (_examTimeLeft === 30) showToast('🚨 باقي 30 ثانية!', 'error');
+    } else {
+        el.classList.remove('warning');
+    }
 }
 
+let _currentQIdx = 0;
+let _examAnswers = {}; // Store answers by question id
+
 function renderExamQuestions() {
+    _currentQIdx = 0;
+    _examAnswers = {};
+    renderQDots();
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function renderQDots() {
+    const dots = document.getElementById('examQDots');
+    dots.innerHTML = _currentExamQuestions.map((q, idx) =>
+        '<button class="exam-q-dot' + (idx === 0 ? ' active' : '') + '" onclick="goToQuestion(' + idx + ')" title="Question ' + (idx+1) + '">' + (idx+1) + '</button>'
+    ).join('');
+}
+
+function updateQDots() {
+    const dots = document.querySelectorAll('.exam-q-dot');
+    dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === _currentQIdx);
+        const q = _currentExamQuestions[idx];
+        dot.classList.toggle('answered', !!_examAnswers[q.id]);
+    });
+    // Update progress
+    const answered = Object.keys(_examAnswers).length;
+    const total = _currentExamQuestions.length;
+    const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+    document.getElementById('examProgressFill').style.width = pct + '%';
+    document.getElementById('examProgressText').textContent = answered + '/' + total;
+}
+
+function goToQuestion(idx) {
+    saveCurrentAnswer();
+    _currentQIdx = idx;
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function examNav(dir) {
+    saveCurrentAnswer();
+    _currentQIdx += dir;
+    if (_currentQIdx < 0) _currentQIdx = 0;
+    if (_currentQIdx >= _currentExamQuestions.length) _currentQIdx = _currentExamQuestions.length - 1;
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function updateExamNav() {
+    const total = _currentExamQuestions.length;
+    const isLast = _currentQIdx === total - 1;
+    const isFirst = _currentQIdx === 0;
+    document.getElementById('examPrevBtn').disabled = isFirst;
+    document.getElementById('examNextBtn').style.display = isLast ? 'none' : 'flex';
+    document.getElementById('examSubmitBtn').style.display = isLast ? 'flex' : 'none';
+}
+
+function saveCurrentAnswer() {
+    const q = _currentExamQuestions[_currentQIdx];
+    if (!q) return;
     const body = document.getElementById('examTakingBody');
-    body.innerHTML = _currentExamQuestions.map((q, idx) => {
-        let html = '<div class="question-block" data-qid="' + q.id + '">';
-        html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + _currentExamQuestions.length + '</div>';
-        html += '<div class="q-text">' + q.question_text + '</div>';
-        if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image">';
-        html += '<div class="q-points">' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</div>';
-        
-        if (q.question_type === 'mcq') {
-            const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-            options.forEach((opt, oi) => {
-                html += '<label class="mcq-option" onclick="selectMcq(this)">' +
-                    '<input type="radio" name="q_' + q.id + '" value="' + oi + '">' +
-                    '<span>' + opt + '</span>' +
-                '</label>';
-            });
-        } else {
-            html += '<textarea class="essay-input" data-qid="' + q.id + '" placeholder="Write your answer here..."></textarea>';
-        }
+
+    if (q.question_type === 'mcq') {
+        const selected = body.querySelector('input[name="q_' + q.id + '"]:checked');
+        if (selected) _examAnswers[q.id] = selected.value;
+    } else if (q.question_type === 'tf') {
+        const selected = body.querySelector('.tf-option.selected');
+        if (selected) _examAnswers[q.id] = selected.dataset.value;
+    } else if (q.question_type === 'fill') {
+        const input = body.querySelector('.fill-blank-input[data-qid="' + q.id + '"]');
+        if (input && input.value.trim()) _examAnswers[q.id] = input.value.trim();
+    } else {
+        const textarea = body.querySelector('textarea[data-qid="' + q.id + '"]');
+        if (textarea && textarea.value.trim()) _examAnswers[q.id] = textarea.value.trim();
+    }
+    updateQDots();
+}
+
+function renderCurrentQuestion() {
+    const body = document.getElementById('examTakingBody');
+    const q = _currentExamQuestions[_currentQIdx];
+    const idx = _currentQIdx;
+    const total = _currentExamQuestions.length;
+
+    let html = '<div class="question-block" data-qid="' + q.id + '" style="margin-bottom:0;">';
+    html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + total + '</div>';
+    html += '<div class="q-text">' + q.question_text + '</div>';
+    if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image" loading="lazy">';
+    html += '<div class="q-points">🏆 ' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</div>';
+
+    const savedAns = _examAnswers[q.id];
+
+    if (q.question_type === 'mcq') {
+        const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        options.forEach((opt, oi) => {
+            const isSelected = savedAns === String(oi);
+            html += '<label class="mcq-option' + (isSelected ? ' selected' : '') + '" onclick="selectMcq(this)">' +
+                '<input type="radio" name="q_' + q.id + '" value="' + oi + '"' + (isSelected ? ' checked' : '') + '>' +
+                '<span>' + opt + '</span>' +
+            '</label>';
+        });
+    } else if (q.question_type === 'tf') {
+        html += '<div class="tf-options">';
+        html += '<div class="tf-option true-opt' + (savedAns === 'True' ? ' selected' : '') + '" data-value="True" onclick="selectTF(this)">✅ True</div>';
+        html += '<div class="tf-option false-opt' + (savedAns === 'False' ? ' selected' : '') + '" data-value="False" onclick="selectTF(this)">❌ False</div>';
         html += '</div>';
-        return html;
-    }).join('');
+    } else if (q.question_type === 'fill') {
+        html += '<input type="text" class="fill-blank-input" data-qid="' + q.id + '" placeholder="Type your answer..." value="' + (savedAns || '') + '" autocomplete="off">';
+    } else {
+        html += '<textarea class="essay-input" data-qid="' + q.id + '" placeholder="Write your answer here...">' + (savedAns || '') + '</textarea>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    updateQDots();
 }
 
 function selectMcq(label) {
@@ -2712,6 +2862,13 @@ function selectMcq(label) {
     parent.querySelectorAll('.mcq-option').forEach(o => o.classList.remove('selected'));
     label.classList.add('selected');
     label.querySelector('input').checked = true;
+    saveCurrentAnswer();
+}
+
+function selectTF(el) {
+    el.parentElement.querySelectorAll('.tf-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    saveCurrentAnswer();
 }
 
 function confirmExitExam() {
@@ -2719,12 +2876,21 @@ function confirmExitExam() {
         if (_examTimer) clearInterval(_examTimer);
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
+        document.getElementById('examTimerDisplay').classList.remove('warning');
     }
 }
 
 async function submitExam() {
+    saveCurrentAnswer();
+    
+    // Check unanswered
+    const unanswered = _currentExamQuestions.filter(q => !_examAnswers[q.id]).length;
+    if (unanswered > 0) {
+        if (!confirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : '') + '. Submit anyway?')) return;
+    }
+
     if (_examTimer) clearInterval(_examTimer);
-    const btn = document.getElementById('submitExamBtn');
+    const btn = document.getElementById('examSubmitBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Submitting...';
 
@@ -2736,30 +2902,28 @@ async function submitExam() {
         _currentExamQuestions.forEach(q => {
             totalPoints += q.points;
             const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-            
+            const savedAns = _examAnswers[q.id];
+
             if (q.question_type === 'mcq') {
-                const selected = document.querySelector('input[name="q_' + q.id + '"]:checked');
-                const answerIdx = selected ? parseInt(selected.value) : -1;
+                const answerIdx = savedAns !== undefined ? parseInt(savedAns) : -1;
                 const answerText = answerIdx >= 0 ? options[answerIdx] : '';
                 const isCorrect = answerText === q.correct_answer;
-                answers.push({
-                    question_id: q.id,
-                    answer_text: answerText,
-                    is_correct: isCorrect,
-                    points_earned: isCorrect ? q.points : 0
-                });
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
+                if (isCorrect) score += q.points;
+            } else if (q.question_type === 'tf') {
+                const answerText = savedAns || '';
+                const isCorrect = answerText === q.correct_answer;
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
+                if (isCorrect) score += q.points;
+            } else if (q.question_type === 'fill') {
+                const answerText = savedAns || '';
+                const isCorrect = answerText.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim();
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
                 if (isCorrect) score += q.points;
             } else {
-                const textarea = document.querySelector('textarea[data-qid="' + q.id + '"]');
-                const answerText = textarea ? textarea.value.trim() : '';
-                // Essay questions: store answer, admin reviews later, give full points for answering
+                const answerText = savedAns || '';
                 const hasAnswer = answerText.length > 0;
-                answers.push({
-                    question_id: q.id,
-                    answer_text: answerText,
-                    is_correct: hasAnswer,
-                    points_earned: hasAnswer ? q.points : 0
-                });
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: hasAnswer, points_earned: hasAnswer ? q.points : 0 });
                 if (hasAnswer) score += q.points;
             }
         });
@@ -2792,6 +2956,7 @@ async function submitExam() {
         // Close exam modal and show results
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
+        document.getElementById('examTimerDisplay').classList.remove('warning');
         showExamResults(score, totalPoints, answers);
     } catch (err) {
         console.error('submitExam error:', err);
@@ -2813,12 +2978,12 @@ function showExamResults(score, totalPoints, answers) {
     else if (pct >= 50) { gradeLetter = 'D'; gradeClass = 'grade-d'; gradeEmoji = '😐'; }
     else { gradeLetter = 'F'; gradeClass = 'grade-f'; gradeEmoji = '😅'; }
 
-    const mcqAnswers = answers.filter(a => {
+    const gradedAnswers = answers.filter(a => {
         const q = _currentExamQuestions.find(q => q.id === a.question_id);
-        return q && q.question_type === 'mcq';
+        return q && (q.question_type === 'mcq' || q.question_type === 'tf' || q.question_type === 'fill');
     });
-    const correctCount = mcqAnswers.filter(a => a.is_correct).length;
-    const wrongCount = mcqAnswers.length - correctCount;
+    const correctCount = gradedAnswers.filter(a => a.is_correct).length;
+    const wrongCount = gradedAnswers.length - correctCount;
 
     // Grade scale info
     const gradeScale = '<div style="margin-top:16px;padding:12px;background:var(--input-bg);border-radius:10px;font-size:0.75rem;text-align:left;">' +
@@ -2841,10 +3006,11 @@ function showExamResults(score, totalPoints, answers) {
         reviewHtml += '<div class="q-review-card ' + (isCorrect ? 'correct' : 'wrong') + '">';
         reviewHtml += '<strong>' + icon + ' Q' + (idx+1) + ':</strong> ' + q.question_text;
         if (q.image_url) reviewHtml += '<br><img class="q-img" src="' + q.image_url + '" alt="Q image">';
+
         if (q.question_type === 'mcq') {
             const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
             reviewHtml += '<div style="margin-top:8px;">';
-            options.forEach((opt, oi) => {
+            options.forEach((opt) => {
                 const isStudentAnswer = (ans?.answer_text === opt);
                 const isCorrectOption = (opt === q.correct_answer);
                 let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:flex;align-items:center;gap:8px;';
@@ -2861,11 +3027,28 @@ function showExamResults(score, totalPoints, answers) {
                 reviewHtml += '<div style="' + optStyle + '">' + optIcon + ' ' + opt + '</div>';
             });
             reviewHtml += '</div>';
-            reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
+        } else if (q.question_type === 'tf') {
+            reviewHtml += '<div style="margin-top:8px;">';
+            ['True', 'False'].forEach(val => {
+                const isStudentAnswer = (ans?.answer_text === val);
+                const isCorrectOption = (val === q.correct_answer);
+                let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:inline-flex;align-items:center;gap:8px;margin-right:8px;';
+                let optIcon = '';
+                if (isCorrectOption) { optStyle += 'background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;'; optIcon = '✅'; }
+                else if (isStudentAnswer && !isCorrect) { optStyle += 'background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#ef4444;'; optIcon = '❌'; }
+                else { optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.6;'; }
+                reviewHtml += '<span style="' + optStyle + '">' + optIcon + ' ' + val + '</span>';
+            });
+            reviewHtml += '</div>';
+        } else if (q.question_type === 'fill') {
+            reviewHtml += '<div style="margin-top:8px;">';
+            reviewHtml += '<div style="font-size:0.82rem;color:var(--text);">Your answer: <strong style="color:' + (isCorrect ? '#22c55e' : '#ef4444') + ';">' + (ans?.answer_text || '<em>No answer</em>') + '</strong></div>';
+            if (!isCorrect) reviewHtml += '<div style="font-size:0.82rem;color:#22c55e;margin-top:4px;">✅ Correct: <strong>' + q.correct_answer + '</strong></div>';
+            reviewHtml += '</div>';
         } else {
             reviewHtml += '<br><span style="color:var(--text);">Your answer: </span>' + (ans?.answer_text || '<em>No answer</em>');
-            reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
         }
+        reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
         reviewHtml += '</div>';
     });
     reviewHtml += '</div>';
@@ -2877,7 +3060,7 @@ function showExamResults(score, totalPoints, answers) {
             '<div class="result-score">' + pct + '%</div>' +
             '<div class="result-details">' + score + ' / ' + totalPoints + ' points</div>' +
             '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%;background:' + (pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444') + '"></div></div>' +
-            (mcqAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
+            (gradedAnswers.length > 0 ? '<div style="font-size:0.88rem;margin-top:8px;"><span class="result-correct">✅ ' + correctCount + ' correct</span> · <span class="result-wrong">❌ ' + wrongCount + ' wrong</span></div>' : '') +
             gradeScale +
             reviewHtml +
         '</div>';
@@ -2913,6 +3096,23 @@ function addQuestionBuilder(type) {
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="3"><input type="text" placeholder="Option D"></div>' +
             '</div>' +
             '<button class="add-option-btn" onclick="addOptionRow(this)">+ Add Option</button>';
+    } else if (type === 'tf') {
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge tf">TRUE/FALSE</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+            '<input type="text" class="q-text-input" placeholder="Statement (e.g., Water boils at 100°C)..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
+            '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer:</div>' +
+            '<div style="display:flex;gap:8px;">' +
+                '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="True" checked style="accent-color:var(--accent);"> True</label>' +
+                '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:10px;font-weight:600;"><input type="radio" name="tf_correct_' + _qBuilderCount + '" value="False" style="accent-color:var(--accent);"> False</label>' +
+            '</div>';
+    } else if (type === 'fill') {
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge fill">FILL BLANK</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
+            '<input type="text" class="q-text-input" placeholder="Question (e.g., The capital of Egypt is _____)..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
+            '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Correct answer (case-insensitive):</div>' +
+            '<input type="text" class="fill-correct-input" placeholder="e.g., Cairo" style="margin-bottom:4px;">';
     } else {
         div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
@@ -2993,6 +3193,13 @@ async function publishExam() {
             if (options.length < 2) { valid = false; return; }
             const correctIdx = parseInt(card.querySelector('.mcq-options-container input[type="radio"]:checked')?.value || '0');
             questions.push({ question_text: text, question_type: 'mcq', options, correct_answer: options[correctIdx] || options[0], points, sort_order: idx, image_url: '' });
+        } else if (type === 'tf') {
+            const correctVal = card.querySelector('input[name^="tf_correct_"]:checked')?.value || 'True';
+            questions.push({ question_text: text, question_type: 'tf', options: ['True', 'False'], correct_answer: correctVal, points, sort_order: idx, image_url: '' });
+        } else if (type === 'fill') {
+            const correctAns = card.querySelector('.fill-correct-input')?.value.trim() || '';
+            if (!correctAns) { valid = false; return; }
+            questions.push({ question_text: text, question_type: 'fill', options: [], correct_answer: correctAns, points, sort_order: idx, image_url: '' });
         } else {
             questions.push({ question_text: text, question_type: 'essay', options: [], correct_answer: '', points, sort_order: idx, image_url: '' });
         }
