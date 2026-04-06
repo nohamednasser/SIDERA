@@ -1187,6 +1187,8 @@ async function openPreview(itemId) {
             img.alt = 'preview';
             img.src = publicUrl;
         } else if (ft === 'application/pdf') {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading PDF viewer...</span></div>';
+            await ensurePdfJs();
             renderPdfViewer(publicUrl, item.fileName || 'PDF File', previewBody);
         } else {
             previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + publicUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
