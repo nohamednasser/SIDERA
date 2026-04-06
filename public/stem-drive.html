@@ -2978,12 +2978,12 @@ function showExamResults(score, totalPoints, answers) {
     else if (pct >= 50) { gradeLetter = 'D'; gradeClass = 'grade-d'; gradeEmoji = '😐'; }
     else { gradeLetter = 'F'; gradeClass = 'grade-f'; gradeEmoji = '😅'; }
 
-    const mcqAnswers = answers.filter(a => {
+    const gradedAnswers = answers.filter(a => {
         const q = _currentExamQuestions.find(q => q.id === a.question_id);
-        return q && q.question_type === 'mcq';
+        return q && (q.question_type === 'mcq' || q.question_type === 'tf' || q.question_type === 'fill');
     });
-    const correctCount = mcqAnswers.filter(a => a.is_correct).length;
-    const wrongCount = mcqAnswers.length - correctCount;
+    const correctCount = gradedAnswers.filter(a => a.is_correct).length;
+    const wrongCount = gradedAnswers.length - correctCount;
 
     // Grade scale info
     const gradeScale = '<div style="margin-top:16px;padding:12px;background:var(--input-bg);border-radius:10px;font-size:0.75rem;text-align:left;">' +
@@ -3006,10 +3006,11 @@ function showExamResults(score, totalPoints, answers) {
         reviewHtml += '<div class="q-review-card ' + (isCorrect ? 'correct' : 'wrong') + '">';
         reviewHtml += '<strong>' + icon + ' Q' + (idx+1) + ':</strong> ' + q.question_text;
         if (q.image_url) reviewHtml += '<br><img class="q-img" src="' + q.image_url + '" alt="Q image">';
+
         if (q.question_type === 'mcq') {
             const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
             reviewHtml += '<div style="margin-top:8px;">';
-            options.forEach((opt, oi) => {
+            options.forEach((opt) => {
                 const isStudentAnswer = (ans?.answer_text === opt);
                 const isCorrectOption = (opt === q.correct_answer);
                 let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:flex;align-items:center;gap:8px;';
@@ -3026,11 +3027,28 @@ function showExamResults(score, totalPoints, answers) {
                 reviewHtml += '<div style="' + optStyle + '">' + optIcon + ' ' + opt + '</div>';
             });
             reviewHtml += '</div>';
-            reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
+        } else if (q.question_type === 'tf') {
+            reviewHtml += '<div style="margin-top:8px;">';
+            ['True', 'False'].forEach(val => {
+                const isStudentAnswer = (ans?.answer_text === val);
+                const isCorrectOption = (val === q.correct_answer);
+                let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:inline-flex;align-items:center;gap:8px;margin-right:8px;';
+                let optIcon = '';
+                if (isCorrectOption) { optStyle += 'background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;'; optIcon = '✅'; }
+                else if (isStudentAnswer && !isCorrect) { optStyle += 'background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#ef4444;'; optIcon = '❌'; }
+                else { optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.6;'; }
+                reviewHtml += '<span style="' + optStyle + '">' + optIcon + ' ' + val + '</span>';
+            });
+            reviewHtml += '</div>';
+        } else if (q.question_type === 'fill') {
+            reviewHtml += '<div style="margin-top:8px;">';
+            reviewHtml += '<div style="font-size:0.82rem;color:var(--text);">Your answer: <strong style="color:' + (isCorrect ? '#22c55e' : '#ef4444') + ';">' + (ans?.answer_text || '<em>No answer</em>') + '</strong></div>';
+            if (!isCorrect) reviewHtml += '<div style="font-size:0.82rem;color:#22c55e;margin-top:4px;">✅ Correct: <strong>' + q.correct_answer + '</strong></div>';
+            reviewHtml += '</div>';
         } else {
             reviewHtml += '<br><span style="color:var(--text);">Your answer: </span>' + (ans?.answer_text || '<em>No answer</em>');
-            reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
         }
+        reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
         reviewHtml += '</div>';
     });
     reviewHtml += '</div>';
