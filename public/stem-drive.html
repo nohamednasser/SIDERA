@@ -1525,7 +1525,12 @@ function studentLogout() {
     localStorage.removeItem('sideraStudentRefresh');
     localStorage.removeItem('sideraUsername');
     localStorage.removeItem('sideraGuest');
-    location.reload();
+    // Show auth overlay again without reload
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    document.getElementById('studentLogoutBtn').style.display = 'none';
+    document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
 // Check auth on load
