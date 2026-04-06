@@ -891,7 +891,7 @@ function formatSize(bytes) {
 
 let _cachedItems = null;
 let _cacheTime = 0;
-const CACHE_TTL = 30000; // 30s cache
+const CACHE_TTL = 15000; // 15s cache for snappier feel
 
 // Get the current auth token (use admin JWT if logged in, else anon key)
 function getAuthToken() {
