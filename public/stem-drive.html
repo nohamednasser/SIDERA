@@ -2165,8 +2165,11 @@ function filterSub(s, el) {
 
 function search() {
     const v = document.getElementById('searchBar').value.toLowerCase();
-    document.querySelectorAll('.card').forEach(c => {
-        c.style.display = c.innerText.toLowerCase().includes(v) ? 'flex' : 'none';
+    const cards = document.querySelectorAll('.card');
+    requestAnimationFrame(() => {
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].style.display = cards[i].innerText.toLowerCase().includes(v) ? 'flex' : 'none';
+        }
     });
 }
 
