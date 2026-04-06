@@ -2646,9 +2646,26 @@ function showExamResults(score, totalPoints, answers) {
         reviewHtml += '<strong>' + icon + ' Q' + (idx+1) + ':</strong> ' + q.question_text;
         if (q.image_url) reviewHtml += '<br><img class="q-img" src="' + q.image_url + '" alt="Q image">';
         if (q.question_type === 'mcq') {
-            reviewHtml += '<br><span style="color:var(--text);">Your answer: </span><span class="' + (isCorrect ? 'result-correct' : 'result-wrong') + '">' + (ans?.answer_text || 'No answer') + '</span>';
-            if (!isCorrect) reviewHtml += '<br><span style="color:var(--text);">Correct: </span><span class="result-correct">' + q.correct_answer + '</span>';
-            reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
+            const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+            reviewHtml += '<div style="margin-top:8px;">';
+            options.forEach((opt, oi) => {
+                const isStudentAnswer = (ans?.answer_text === opt);
+                const isCorrectOption = (opt === q.correct_answer);
+                let optStyle = 'padding:8px 12px;border-radius:8px;margin:4px 0;font-size:0.82rem;display:flex;align-items:center;gap:8px;';
+                let optIcon = '';
+                if (isCorrectOption) {
+                    optStyle += 'background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;color:#22c55e;font-weight:600;';
+                    optIcon = '✅';
+                } else if (isStudentAnswer && !isCorrect) {
+                    optStyle += 'background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;color:#ef4444;text-decoration:line-through;';
+                    optIcon = '❌';
+                } else {
+                    optStyle += 'background:var(--input-bg);border:1px solid var(--border);color:var(--text);opacity:0.6;';
+                }
+                reviewHtml += '<div style="' + optStyle + '">' + optIcon + ' ' + opt + '</div>';
+            });
+            reviewHtml += '</div>';
+            reviewHtml += '<div style="font-size:0.75rem;color:var(--text);margin-top:4px;">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</div>';
         } else {
             reviewHtml += '<br><span style="color:var(--text);">Your answer: </span>' + (ans?.answer_text || '<em>No answer</em>');
             reviewHtml += '<br><span style="font-size:0.75rem;color:var(--text);">' + (ans?.points_earned || 0) + '/' + q.points + ' pts</span>';
