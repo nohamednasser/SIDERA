@@ -58,10 +58,10 @@
         .btn-pub:active { transform: scale(0.98); }
         .btn-pub:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .content { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1400px; padding: 45px 0; }
+        .content { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1400px; padding: 45px 0; contain: layout style; }
         
-        .card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease, border-color 0.15s ease; min-height: 220px; }
-        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; transition: transform 0.15s ease, box-shadow 0.15s ease; min-height: 220px; contain: layout style paint; content-visibility: auto; contain-intrinsic-size: auto 240px; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
         .subj-tag { font-size: 0.65rem; font-weight: 800; color: var(--accent); text-transform: uppercase; background: rgba(163, 64, 84, 0.1); padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
@@ -281,10 +281,10 @@
         .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
         .exam-filter-btn:hover { border-color: var(--accent); }
         .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163,64,84,0.25); }
-        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
-        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s, border-color 0.15s; cursor: pointer; position: relative; overflow: hidden; }
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; contain: layout style; }
+        .exam-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer; position: relative; overflow: hidden; contain: layout style paint; content-visibility: auto; contain-intrinsic-size: auto 280px; }
         .exam-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), #c0526a, #e67e92); }
-        .exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.1); }
+        .exam-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .exam-card .exam-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; font-weight: 800; padding: 5px 12px; border-radius: 8px; text-transform: uppercase; }
         .exam-card .exam-badge.grade { background: rgba(163,64,84,0.1); color: var(--accent); }
         .exam-card .exam-badge.subject { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
@@ -382,7 +382,7 @@
         .chat-fab:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(163,64,84,0.5); }
         .chat-fab.has-dot::after { content: ''; position: absolute; top: 6px; right: 6px; width: 12px; height: 12px; background: #22c55e; border-radius: 50%; border: 2px solid var(--bg); }
 
-        .chatbot-panel { position: fixed; bottom: 96px; right: 24px; width: 380px; max-height: 520px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1100; display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.25s ease; transition: background-color 0.15s, border-color 0.15s; }
+        .chatbot-panel { position: fixed; bottom: 96px; right: 24px; width: 380px; max-height: 520px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1100; display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.2s ease; transition: background-color 0.15s, border-color 0.15s; will-change: transform, opacity; }
         .chatbot-panel.open { display: flex; }
 
         .chat-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(163,64,84,0.08), rgba(163,64,84,0.02)); }
@@ -891,7 +891,7 @@ function formatSize(bytes) {
 
 let _cachedItems = null;
 let _cacheTime = 0;
-const CACHE_TTL = 30000; // 30s cache
+const CACHE_TTL = 15000; // 15s cache for snappier feel
 
 // Get the current auth token (use admin JWT if logged in, else anon key)
 function getAuthToken() {
@@ -1690,10 +1690,11 @@ function setupApp() {
     }
 
     let searchTimer;
-    document.getElementById('searchBar').addEventListener('input', () => {
+    const searchBar = document.getElementById('searchBar');
+    searchBar.addEventListener('input', () => {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(search, 150);
-    });
+        searchTimer = setTimeout(search, 100);
+    }, { passive: true });
 
     const dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', (e) => {
@@ -1833,13 +1834,18 @@ async function saveToHub() {
     }
 }
 
+let _renderPending = false;
 async function render() {
+    if (_renderPending) return;
+    _renderPending = true;
+    
     const cont = document.getElementById('container');
 
     try {
         const items = await StorageManager.getAllData();
         if (items.length === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources found. Admin can start uploading!</p>';
+            _renderPending = false;
             return;
         }
 
@@ -1867,14 +1873,18 @@ async function render() {
 
         if (count === 0) {
             cont.innerHTML = '<p class="no-resources">📚 No resources match current filters.</p>';
+            _renderPending = false;
             return;
         }
 
-        cont.innerHTML = '';
-        cont.appendChild(frag);
+        requestAnimationFrame(() => {
+            cont.innerHTML = '';
+            cont.appendChild(frag);
+        });
     } catch (err) {
         console.error('Render error:', err);
     }
+    _renderPending = false;
 }
 
 document.getElementById('container').addEventListener('click', (e) => {
@@ -2164,8 +2174,11 @@ function filterSub(s, el) {
 
 function search() {
     const v = document.getElementById('searchBar').value.toLowerCase();
-    document.querySelectorAll('.card').forEach(c => {
-        c.style.display = c.innerText.toLowerCase().includes(v) ? 'flex' : 'none';
+    const cards = document.querySelectorAll('.card');
+    requestAnimationFrame(() => {
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].style.display = cards[i].innerText.toLowerCase().includes(v) ? 'flex' : 'none';
+        }
     });
 }
 
