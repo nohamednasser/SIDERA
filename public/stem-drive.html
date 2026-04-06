@@ -3113,7 +3113,7 @@ async function loadMiniLeaderboard(examId, examTitle) {
             return;
         }
         const medals = ['🥇','🥈','🥉'];
-        let html = '<div class="mini-lb-header"><span>🏆 Top Students</span><button onclick="event.stopPropagation();showLeaderboard(\'' + examId + '\',\'' + (examTitle||'').replace(/'/g,"\\'") + '\')">View All →</button></div>';
+        let html = '<div class="mini-lb-header"><span>🏆 Top Students</span></div>';
         subs.forEach((s, i) => {
             const pct = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
             const color = pct >= 70 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444';
