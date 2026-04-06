@@ -2013,6 +2013,9 @@ let _studentInfo = { name: '', email: '' };
 let _examTimer = null;
 let _examTimeLeft = 0;
 
+let _allExams = [];
+let _examFilter = 'all';
+
 // Load and render exams
 async function loadExams() {
     try {
@@ -2020,12 +2023,27 @@ async function loadExams() {
             headers: getSbHeaders()
         });
         if (!res.ok) throw new Error('Failed');
-        const exams = await res.json();
-        renderExams(exams);
+        _allExams = await res.json();
+        applyExamFilter();
     } catch (err) {
         console.error('loadExams error:', err);
         document.getElementById('examsGrid').innerHTML = '<p class="no-resources">Failed to load exams.</p>';
     }
+}
+
+function filterExams(filter, el) {
+    _examFilter = filter;
+    document.querySelectorAll('.exam-filter-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    applyExamFilter();
+}
+
+function applyExamFilter() {
+    let filtered = _allExams;
+    if (_examFilter !== 'all') {
+        filtered = _allExams.filter(e => e.grade === _examFilter);
+    }
+    renderExams(filtered);
 }
 
 async function loadAllExamsAdmin() {
