@@ -1650,9 +1650,9 @@ function processSelectedFile(file) {
     zipArea.innerHTML = '';
 
     const isZip = file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed';
-    if (isZip && typeof JSZip !== 'undefined') {
+    if (isZip) {
         zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⏳ Reading ZIP contents...</div>';
-        JSZip.loadAsync(file).then(zip => {
+        ensureJSZip().then(() => JSZip.loadAsync(file)).then(zip => {
             const entries = [];
             zip.forEach((path, entry) => {
                 if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0 });
