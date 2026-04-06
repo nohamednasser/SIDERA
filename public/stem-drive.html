@@ -2324,15 +2324,20 @@ let _qBuilderCount = 0;
 function addQuestionBuilder(type) {
     _qBuilderCount++;
     const container = document.getElementById('questionsBuilder');
+    // Remove empty state
+    const emptyEl = container.querySelector('.exam-builder-empty');
+    if (emptyEl) emptyEl.remove();
+    
     const div = document.createElement('div');
     div.className = 'q-builder-card';
     div.id = 'qBuilder_' + _qBuilderCount;
     div.dataset.type = type;
 
     if (type === 'mcq') {
-        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;">📝 MCQ Question</span><button class="remove-q-btn" onclick="this.closest(\'.q-builder-card\').remove()">Remove</button></div>' +
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge mcq">MCQ</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
             '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
+            '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Select the correct answer:</div>' +
             '<div class="mcq-options-container">' +
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="0" checked><input type="text" placeholder="Option A"></div>' +
                 '<div class="option-row"><input type="radio" name="correct_' + _qBuilderCount + '" value="1"><input type="text" placeholder="Option B"></div>' +
@@ -2341,11 +2346,20 @@ function addQuestionBuilder(type) {
             '</div>' +
             '<button class="add-option-btn" onclick="addOptionRow(this)">+ Add Option</button>';
     } else {
-        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;">📄 Essay Question</span><button class="remove-q-btn" onclick="this.closest(\'.q-builder-card\').remove()">Remove</button></div>' +
+        div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
             '<input type="number" class="q-points-input" placeholder="Points" value="2" min="1" style="width:80px;">';
     }
     container.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeQuestion(btn) {
+    btn.closest('.q-builder-card').remove();
+    const container = document.getElementById('questionsBuilder');
+    if (container.children.length === 0) {
+        container.innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
+    }
 }
 
 function addOptionRow(btn) {
