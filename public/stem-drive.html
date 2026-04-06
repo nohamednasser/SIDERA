@@ -1732,6 +1732,10 @@ function rebuildSubjectUI() {
     render();
 }
 
+function scrollToExams() {
+    document.getElementById('examsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function filterGrade(g, el) {
     document.querySelectorAll('#gradeNav span').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
