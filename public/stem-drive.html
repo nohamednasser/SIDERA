@@ -1690,10 +1690,11 @@ function setupApp() {
     }
 
     let searchTimer;
-    document.getElementById('searchBar').addEventListener('input', () => {
+    const searchBar = document.getElementById('searchBar');
+    searchBar.addEventListener('input', () => {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(search, 150);
-    });
+        searchTimer = setTimeout(search, 100);
+    }, { passive: true });
 
     const dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', (e) => {
