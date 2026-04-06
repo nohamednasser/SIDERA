@@ -1366,19 +1366,20 @@ function clearAuthError() {
 }
 
 async function handleAuth() {
-    const email = document.getElementById('authEmail').value.trim();
+    const username = document.getElementById('authUsername').value.trim().toLowerCase();
     const pass = document.getElementById('authPass').value.trim();
-    if (!email || !pass) return showAuthError('Please fill in all fields.');
-    if (!email.includes('@')) return showAuthError('Please enter a valid email.');
+    if (!username || !pass) return showAuthError('Please fill in all fields.');
+    if (username.length < 3) return showAuthError('Username must be at least 3 characters.');
+    if (/[^a-z0-9_.]/.test(username)) return showAuthError('Username can only contain letters, numbers, _ and .');
     if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
 
+    const email = username + '@sidera.local';
     const btn = document.getElementById('authBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Please wait...';
 
     try {
         if (_authIsLogin) {
-            // Login
             const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
@@ -1389,13 +1390,13 @@ async function handleAuth() {
             _studentUser = data.user;
             localStorage.setItem('sideraStudentToken', data.access_token);
             localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+            localStorage.setItem('sideraUsername', username);
             hideAuthOverlay();
         } else {
-            // Sign Up
             const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-                body: JSON.stringify({ email, password: pass })
+                body: JSON.stringify({ email, password: pass, data: { username: username } })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
