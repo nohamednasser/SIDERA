@@ -327,8 +327,11 @@
         .lb-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
         .lb-pct { font-weight: 800; font-size: 1rem; color: var(--text); min-width: 42px; text-align: right; }
         .lb-pts { font-size: 0.72rem; color: var(--text); opacity: 0.5; min-width: 50px; text-align: right; }
-        .exam-card .exam-del-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; display: none; transition: all 0.15s; z-index: 2; }
+        .exam-card .exam-admin-btns { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; }
+        .exam-card .exam-del-btn { background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: all 0.15s; }
         .exam-card .exam-del-btn:hover { background: #ff4d4d; color: white; }
+        .exam-card .exam-export-btn { background: rgba(34,197,94,0.12); color: #22c55e; border: 1.5px solid rgba(34,197,94,0.25); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: all 0.15s; }
+        .exam-card .exam-export-btn:hover { background: #22c55e; color: white; }
 
         /* Exam Modal (taking exam) */
         .exam-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1003; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 20px; }
@@ -2591,7 +2594,7 @@ function renderExams(exams) {
         const hasLink = exam.external_url && exam.external_url.trim();
         const hasQuestions = qCount > 0;
         return '<div class="exam-card" data-grade="' + exam.grade + '">' +
-            (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' : '') +
+            (isAdmin ? '<div class="exam-admin-btns"><button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button><button class="exam-export-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📥</button></div>' : '') +
             '<div class="exam-meta">' +
                 '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
@@ -3321,6 +3324,78 @@ async function deleteExam(examId) {
         showToast('Failed to delete exam.', 'error');
     }
 }
+
+// === EXPORT EXAM RESULTS AS XLSX ===
+async function exportExamResults(examId, examTitle) {
+    showToast('⏳ Preparing export...', 'info');
+    try {
+        // Fetch questions and submissions with answers
+        const [qRes, sRes] = await Promise.all([
+            fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=id,question_text,question_type,correct_answer,points,sort_order&order=sort_order.asc', { headers: getSbHeaders() }),
+            fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&select=*,exam_answers(question_id,answer_text,is_correct,points_earned)&order=score.desc', { headers: getSbHeaders() })
+        ]);
+        const questions = await qRes.json();
+        const submissions = await sRes.json();
+        if (!submissions || submissions.length === 0) { showToast('No submissions to export.', 'error'); return; }
+
+        // Build CSV-like data for XLSX
+        const headers = ['#', 'Student Name', 'Email', 'Score', 'Total', '%', 'Grade', 'Submitted At'];
+        questions.forEach((q, i) => headers.push('Q' + (i+1) + ': ' + q.question_text.substring(0, 40)));
+
+        const rows = submissions.map((sub, idx) => {
+            const pct = sub.total_points > 0 ? Math.round((sub.score / sub.total_points) * 100) : 0;
+            let grade;
+            if (pct >= 90) grade = 'A+'; else if (pct >= 80) grade = 'A'; else if (pct >= 70) grade = 'B';
+            else if (pct >= 60) grade = 'C'; else if (pct >= 50) grade = 'D'; else grade = 'F';
+            const row = [idx + 1, sub.student_name, sub.student_email, sub.score, sub.total_points, pct + '%', grade, sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : ''];
+            questions.forEach(q => {
+                const ans = (sub.exam_answers || []).find(a => a.question_id === q.id);
+                row.push(ans ? (ans.answer_text || '') + (ans.is_correct ? ' ✅' : ' ❌') : '—');
+            });
+            return row;
+        });
+
+        // Generate XLSX using simple XML (Excel 2003 XML Spreadsheet)
+        let xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
+        xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+        xml += '<Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Size="11"/><Interior ss:Color="#4F46E5" ss:Pattern="Solid"/><Font ss:Color="#FFFFFF" ss:Bold="1"/></Style>';
+        xml += '<Style ss:ID="correct"><Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/></Style>';
+        xml += '<Style ss:ID="wrong"><Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/></Style></Styles>';
+        xml += '<Worksheet ss:Name="Results"><Table>';
+        // Header row
+        xml += '<Row>';
+        headers.forEach(h => { xml += '<Cell ss:StyleID="header"><Data ss:Type="String">' + escapeXml(h) + '</Data></Cell>'; });
+        xml += '</Row>';
+        // Data rows
+        rows.forEach(row => {
+            xml += '<Row>';
+            row.forEach((cell, ci) => {
+                const val = String(cell);
+                const isQ = ci >= 8;
+                const style = isQ ? (val.includes('✅') ? ' ss:StyleID="correct"' : val.includes('❌') ? ' ss:StyleID="wrong"' : '') : '';
+                xml += '<Cell' + style + '><Data ss:Type="String">' + escapeXml(val) + '</Data></Cell>';
+            });
+            xml += '</Row>';
+        });
+        xml += '</Table></Worksheet></Workbook>';
+
+        // Download
+        const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (examTitle || 'exam') + '_results.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('✅ Results exported!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showToast('Failed to export results.', 'error');
+    }
+}
+function escapeXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 let chatHistory = [];
 let _chatLoaded = false;
