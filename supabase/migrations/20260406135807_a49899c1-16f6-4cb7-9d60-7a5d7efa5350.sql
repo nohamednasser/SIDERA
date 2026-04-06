@@ -1,0 +1,1 @@
+ALTER TABLE public.exam_questions ADD COLUMN image_url text DEFAULT '';

@@ -113,6 +113,7 @@ export type Database = {
           created_at: string
           exam_id: string
           id: string
+          image_url: string | null
           options: Json | null
           points: number | null
           question_text: string
@@ -124,6 +125,7 @@ export type Database = {
           created_at?: string
           exam_id: string
           id?: string
+          image_url?: string | null
           options?: Json | null
           points?: number | null
           question_text: string
@@ -135,6 +137,7 @@ export type Database = {
           created_at?: string
           exam_id?: string
           id?: string
+          image_url?: string | null
           options?: Json | null
           points?: number | null
           question_text?: string
