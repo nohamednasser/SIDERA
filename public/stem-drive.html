@@ -2069,19 +2069,23 @@ function renderExams(exams) {
         const qCount = exam.exam_questions ? exam.exam_questions.length : 0;
         const sInfo = subjectMap[exam.subject];
         const timeStr = exam.time_limit_minutes > 0 ? '⏱ ' + exam.time_limit_minutes + ' min' : '⏱ No limit';
-        return '<div class="exam-card">' +
+        const hasLink = exam.external_url && exam.external_url.trim();
+        const hasQuestions = qCount > 0;
+        return '<div class="exam-card" data-grade="' + exam.grade + '">' +
             (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' : '') +
             '<div class="exam-meta">' +
-                '<span class="exam-badge grade">' + exam.grade + '</span>' +
+                '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
-                '<span class="exam-badge questions">📋 ' + qCount + ' questions</span>' +
+                (hasQuestions ? '<span class="exam-badge questions">📋 ' + qCount + ' Q</span>' : '') +
+                '<span class="exam-badge time">' + timeStr + '</span>' +
             '</div>' +
             '<h3>' + exam.title + '</h3>' +
             '<p>' + (exam.description || 'No description') + '</p>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:0.78rem;color:var(--text);">' +
-                '<span>' + timeStr + '</span>' +
+            '<div class="exam-actions">' +
+                (hasQuestions ? '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' : '') +
+                (hasLink ? '<a class="exam-link-btn" href="' + exam.external_url + '" target="_blank" onclick="event.stopPropagation();">🔗 Open Link</a>' : '') +
+                (!hasQuestions && !hasLink ? '<button class="exam-start-btn" disabled style="opacity:0.5;cursor:not-allowed;">No content yet</button>' : '') +
             '</div>' +
-            '<button class="exam-start-btn" onclick="openStudentReg(\'' + exam.id + '\')">🚀 Start Exam</button>' +
         '</div>';
     }).join('');
 }
