@@ -1438,7 +1438,10 @@ async function handleAuth() {
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
                 hideAuthOverlay();
-                location.reload();
+                setupApp();
+                render();
+                loadExams();
+                showToast('✅ Welcome back, Admin!', 'success');
             } else {
                 // Student login
                 _studentUser = data.user;
