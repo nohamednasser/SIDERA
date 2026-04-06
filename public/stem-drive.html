@@ -3115,6 +3115,7 @@ async function askBot(question) {
         botDiv.innerHTML = formatAIResponse(fullText);
         msgs.scrollTop = msgs.scrollHeight;
         chatHistory.push({ role: 'assistant', content: fullText });
+        saveChatMsg('assistant', fullText);
     } catch (err) {
         console.error('AI error:', err);
         removeTyping();
