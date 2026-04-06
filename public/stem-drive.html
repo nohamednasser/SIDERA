@@ -1991,6 +1991,7 @@ function toggleTheme() {
     requestAnimationFrame(() => {
         root.classList.remove('theme-switching');
     });
+    saveUserPrefs();
 }
 
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
