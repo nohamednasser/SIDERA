@@ -1248,10 +1248,12 @@ async function initApp() {
         await loadSubjectsFromDB();
         setupApp();
         render();
+        loadExams();
     } catch (err) {
         console.error('Init failed:', err);
         setupApp();
         render();
+        loadExams();
     }
 }
 
