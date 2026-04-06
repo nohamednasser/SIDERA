@@ -2580,7 +2580,8 @@ function renderExams(exams) {
         const hasQuestions = qCount > 0;
         return '<div class="exam-card" data-grade="' + exam.grade + '">' +
             (isAdmin ? '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteExam(\'' + exam.id + '\')">🗑️</button>' +
-            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;right:40px;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📊</button>' : '') +
+            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;right:40px;" onclick="event.stopPropagation();exportExamResults(\'' + exam.id + '\',\'' + exam.title.replace(/'/g, "\\'") + '\')">📊</button>' +
+            '<button class="exam-del-btn" style="display:flex;align-items:center;justify-content:center;background:#3b82f6;color:#fff;right:76px;" onclick="event.stopPropagation();editExam(\'' + exam.id + '\')">✏️</button>' : '') +
             '<div class="exam-meta">' +
                 '<span class="exam-badge grade">🎓 ' + exam.grade + '</span>' +
                 (exam.subject ? '<span class="exam-badge subject">' + (sInfo?.icon || '📚') + ' ' + exam.subject + '</span>' : '') +
