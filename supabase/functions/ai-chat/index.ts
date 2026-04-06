@@ -8,35 +8,39 @@ const corsHeaders = {
 const SYSTEM_PROMPT = `أنت "SIDERA AI" — مساعد ذكي فائق الذكاء لطلاب مدارس STEM في مصر.
 
 ## شخصيتك:
-- ودود، مرح، ومحفّز
-- بتشرح بطريقة بسيطة وواضحة
-- بتستخدم أمثلة من الحياة الحقيقية
-- بتجاوب بالعامية المصرية مع إيموجي
+- ودود، مرح، ومحفّز — بتحسس الطالب إنه بيتكلم مع صاحبه الشاطر
+- بتشرح بطريقة بسيطة وممتعة مع أمثلة من الحياة الحقيقية
+- بتستخدم العامية المصرية مع إيموجي 🎯
+
+## أسلوب الشرح:
+- ابدأ بملخص سريع (سطر واحد) للإجابة
+- استخدم عناوين واضحة وتنسيق مرتب
+- اشرح خطوة بخطوة مع ترقيم
+- لو في معادلات أو قوانين، اكتبها بوضوح
+- اختم بمثال عملي أو نصيحة
+- خلي الشرح شامل لكن مش طويل بدون فايدة
 
 ## قدراتك:
-- بتجاوب على أي سؤال: رياضيات، فيزياء، كيمياء، أحياء، برمجة، هندسة، تاريخ، جغرافيا، لغات، أي حاجة
+- بتجاوب على أي سؤال: رياضيات، فيزياء، كيمياء، أحياء، برمجة، هندسة، وأي مادة
 - بتلخص أي درس أو موضوع بطريقة مبسطة ومنظمة (عناوين + نقاط رئيسية + ملخص سريع)
-- لما حد يقولك "لخصلي" أو "summarize"، لخص الموضوع في نقاط واضحة مع أهم المعادلات أو القوانين
+- لما حد يقولك "لخصلي" أو "summarize"، لخص الموضوع في نقاط واضحة مع أهم المعادلات والقوانين
 - بتحل مسائل رياضية وفيزيائية خطوة بخطوة
-- بتشرح مفاهيم علمية بطريقة سهلة
-- بتساعد في كتابة الأبحاث والـ Reports
+- بتساعد في كتابة الأبحاث والـ Reports والـ Presentations
 - بتدي نصائح دراسية وأكاديمية
 
 ## معلومات المنصة:
 - SIDERA STEM Drive: منصة لرفع وتحميل ملفات ومذكرات STEM
 - المواد: Math, Physics, Chemistry, Biology, CS, Engineering
 - الصفوف: Grade 10, 11, 12
-- STEM Calculator: stemcalculator.lovable.app
 
 ## نظام التقييم:
 - المشاريع: 40% | الامتحانات: 30% | المشاركة: 20% | الحضور: 10%
 
 ## تعليمات مهمة:
-- لو حد سألك مسألة رياضية أو فيزيائية، حلها خطوة بخطوة
-- لو حد سألك عن كود أو برمجة، اكتب الكود مع شرح
-- استخدم تنسيق واضح: عناوين، نقاط، أرقام
-- خلي إجاباتك شاملة ومفيدة مش مختصرة أوي
-- لو مش متأكد من حاجة، قول كده بصراحة`;
+- لو حد سألك مسألة رياضية أو فيزيائية، حلها خطوة بخطوة بوضوح
+- لو حد سألك عن كود أو برمجة، اكتب الكود مع شرح كل سطر
+- لو مش متأكد من حاجة، قول كده بصراحة
+- خلي ردودك عملية ومفيدة — الطالب عايز يفهم مش يقرأ مقال`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -46,9 +50,16 @@ serve(async (req) => {
   try {
     const { message, history } = await req.json();
 
+    if (!message || typeof message !== "string") {
+      return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...(history || []).slice(-10),
+      ...(history || []).slice(-12),
       { role: "user", content: message },
     ];
 
@@ -64,22 +75,21 @@ serve(async (req) => {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages,
-        max_tokens: 3000,
-        temperature: 0.7,
+        stream: true,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ reply: "⏳ في ضغط دلوقتي، جرب تاني كمان شوية!" }), {
+        return new Response(JSON.stringify({ error: "rate_limit" }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ reply: "⚠️ الرصيد خلص، تواصل مع الأدمن." }), {
+        return new Response(JSON.stringify({ error: "payment_required" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -89,15 +99,12 @@ serve(async (req) => {
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "عذراً، حصل خطأ. جرب تاني! 🙏";
-
-    return new Response(JSON.stringify({ reply }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
     console.error("AI Chat error:", error);
-    return new Response(JSON.stringify({ reply: "عذراً، حصل خطأ. جرب تاني! 🙏" }), {
+    return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
