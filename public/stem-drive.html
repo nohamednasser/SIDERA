@@ -480,7 +480,66 @@
     </div>
 </div>
 
+<!-- Exams Section -->
+<div class="exam-section" id="examsSection">
+    <div class="exam-section-header">
+        <h2>📝 Exams</h2>
+    </div>
+    <div class="exam-grid" id="examsGrid">
+        <p class="no-resources" style="grid-column:1/-1;">Loading exams...</p>
+    </div>
+</div>
+
 <div class="content" id="container"></div>
+
+<!-- Student Registration Modal -->
+<div id="studentRegModal" class="exam-modal" onclick="if(event.target===this)closeStudentReg()">
+    <div class="exam-modal-content" style="max-width:420px;">
+        <div class="exam-modal-header">
+            <h2>📋 Register to Take Exam</h2>
+            <button class="dash-close" onclick="closeStudentReg()">✕</button>
+        </div>
+        <div class="exam-modal-body">
+            <div class="student-reg">
+                <p style="font-size:0.85rem;color:var(--text);margin-bottom:16px;">Enter your info to start the exam. Your results will be shown after submission.</p>
+                <input type="text" id="studentName" placeholder="Your full name">
+                <input type="email" id="studentEmail" placeholder="Your email">
+                <button class="btn-pub" id="startExamBtn" onclick="startExamAfterReg()">🚀 Start Exam</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Taking Modal -->
+<div id="examTakingModal" class="exam-modal">
+    <div class="exam-modal-content" style="max-width:750px;">
+        <div class="exam-modal-header">
+            <h2 id="examTakingTitle">Exam</h2>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="exam-timer" id="examTimerDisplay" style="display:none;">⏱ 00:00</span>
+                <button class="dash-close" onclick="confirmExitExam()">✕</button>
+            </div>
+        </div>
+        <div class="exam-modal-body" id="examTakingBody">
+            <!-- Questions rendered here -->
+        </div>
+        <div style="padding:0 24px 24px;">
+            <button class="btn-pub" id="submitExamBtn" onclick="submitExam()">✅ Submit Exam</button>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Results Modal -->
+<div id="examResultModal" class="exam-modal" onclick="if(event.target===this)closeExamResult()">
+    <div class="exam-modal-content" style="max-width:500px;">
+        <div class="exam-modal-header">
+            <h2>📊 Your Results</h2>
+            <button class="dash-close" onclick="closeExamResult()">✕</button>
+        </div>
+        <div class="exam-modal-body" id="examResultBody">
+        </div>
+    </div>
+</div>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
