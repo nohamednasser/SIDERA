@@ -3325,6 +3325,78 @@ async function deleteExam(examId) {
     }
 }
 
+// === EXPORT EXAM RESULTS AS XLSX ===
+async function exportExamResults(examId, examTitle) {
+    showToast('⏳ Preparing export...', 'info');
+    try {
+        // Fetch questions and submissions with answers
+        const [qRes, sRes] = await Promise.all([
+            fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=id,question_text,question_type,correct_answer,points,sort_order&order=sort_order.asc', { headers: getSbHeaders() }),
+            fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&select=*,exam_answers(question_id,answer_text,is_correct,points_earned)&order=score.desc', { headers: getSbHeaders() })
+        ]);
+        const questions = await qRes.json();
+        const submissions = await sRes.json();
+        if (!submissions || submissions.length === 0) { showToast('No submissions to export.', 'error'); return; }
+
+        // Build CSV-like data for XLSX
+        const headers = ['#', 'Student Name', 'Email', 'Score', 'Total', '%', 'Grade', 'Submitted At'];
+        questions.forEach((q, i) => headers.push('Q' + (i+1) + ': ' + q.question_text.substring(0, 40)));
+
+        const rows = submissions.map((sub, idx) => {
+            const pct = sub.total_points > 0 ? Math.round((sub.score / sub.total_points) * 100) : 0;
+            let grade;
+            if (pct >= 90) grade = 'A+'; else if (pct >= 80) grade = 'A'; else if (pct >= 70) grade = 'B';
+            else if (pct >= 60) grade = 'C'; else if (pct >= 50) grade = 'D'; else grade = 'F';
+            const row = [idx + 1, sub.student_name, sub.student_email, sub.score, sub.total_points, pct + '%', grade, sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : ''];
+            questions.forEach(q => {
+                const ans = (sub.exam_answers || []).find(a => a.question_id === q.id);
+                row.push(ans ? (ans.answer_text || '') + (ans.is_correct ? ' ✅' : ' ❌') : '—');
+            });
+            return row;
+        });
+
+        // Generate XLSX using simple XML (Excel 2003 XML Spreadsheet)
+        let xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
+        xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+        xml += '<Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Size="11"/><Interior ss:Color="#4F46E5" ss:Pattern="Solid"/><Font ss:Color="#FFFFFF" ss:Bold="1"/></Style>';
+        xml += '<Style ss:ID="correct"><Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/></Style>';
+        xml += '<Style ss:ID="wrong"><Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/></Style></Styles>';
+        xml += '<Worksheet ss:Name="Results"><Table>';
+        // Header row
+        xml += '<Row>';
+        headers.forEach(h => { xml += '<Cell ss:StyleID="header"><Data ss:Type="String">' + escapeXml(h) + '</Data></Cell>'; });
+        xml += '</Row>';
+        // Data rows
+        rows.forEach(row => {
+            xml += '<Row>';
+            row.forEach((cell, ci) => {
+                const val = String(cell);
+                const isQ = ci >= 8;
+                const style = isQ ? (val.includes('✅') ? ' ss:StyleID="correct"' : val.includes('❌') ? ' ss:StyleID="wrong"' : '') : '';
+                xml += '<Cell' + style + '><Data ss:Type="String">' + escapeXml(val) + '</Data></Cell>';
+            });
+            xml += '</Row>';
+        });
+        xml += '</Table></Worksheet></Workbook>';
+
+        // Download
+        const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (examTitle || 'exam') + '_results.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('✅ Results exported!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showToast('Failed to export results.', 'error');
+    }
+}
+function escapeXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 let chatHistory = [];
 let _chatLoaded = false;
 
