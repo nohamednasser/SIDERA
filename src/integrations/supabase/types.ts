@@ -65,6 +65,166 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_answers: {
+        Row: {
+          answer_text: string | null
+          id: string
+          is_correct: boolean | null
+          points_earned: number | null
+          question_id: string
+          submission_id: string
+        }
+        Insert: {
+          answer_text?: string | null
+          id?: string
+          is_correct?: boolean | null
+          points_earned?: number | null
+          question_id: string
+          submission_id: string
+        }
+        Update: {
+          answer_text?: string | null
+          id?: string
+          is_correct?: boolean | null
+          points_earned?: number | null
+          question_id?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "exam_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_answers_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "exam_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_questions: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          exam_id: string
+          id: string
+          options: Json | null
+          points: number | null
+          question_text: string
+          question_type: string
+          sort_order: number | null
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          exam_id: string
+          id?: string
+          options?: Json | null
+          points?: number | null
+          question_text: string
+          question_type?: string
+          sort_order?: number | null
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          exam_id?: string
+          id?: string
+          options?: Json | null
+          points?: number | null
+          question_text?: string
+          question_type?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_submissions: {
+        Row: {
+          exam_id: string
+          id: string
+          score: number | null
+          started_at: string | null
+          student_email: string
+          student_name: string
+          submitted_at: string | null
+          total_points: number | null
+        }
+        Insert: {
+          exam_id: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          student_email: string
+          student_name: string
+          submitted_at?: string | null
+          total_points?: number | null
+        }
+        Update: {
+          exam_id?: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          student_email?: string
+          student_name?: string
+          submitted_at?: string | null
+          total_points?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_submissions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: string
+          id: string
+          is_published: boolean | null
+          subject: string
+          time_limit_minutes: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade?: string
+          id?: string
+          is_published?: boolean | null
+          subject?: string
+          time_limit_minutes?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: string
+          id?: string
+          is_published?: boolean | null
+          subject?: string
+          time_limit_minutes?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       learning_path_items: {
         Row: {
           created_at: string
