@@ -2580,6 +2580,7 @@ function addQuestionBuilder(type) {
     if (type === 'mcq') {
         div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge mcq">MCQ</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
             '<input type="number" class="q-points-input" placeholder="Points" value="1" min="1" style="width:80px;margin-bottom:10px;">' +
             '<div style="font-size:0.72rem;color:var(--text);margin-bottom:6px;font-weight:600;">Select the correct answer:</div>' +
             '<div class="mcq-options-container">' +
@@ -2592,10 +2593,35 @@ function addQuestionBuilder(type) {
     } else {
         div.innerHTML = '<div class="q-builder-header"><span style="font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:6px;"><span class="q-type-badge essay">ESSAY</span> Question ' + _qBuilderCount + '</span><button class="remove-q-btn" onclick="removeQuestion(this)">✕ Remove</button></div>' +
             '<input type="text" class="q-text-input" placeholder="Question text..." style="margin-bottom:8px;">' +
+            '<div class="q-image-upload"><label>📷 Add Image <input type="file" accept="image/*" style="display:none;" onchange="previewQImage(this)"></label><img class="q-image-preview"></div>' +
             '<input type="number" class="q-points-input" placeholder="Points" value="2" min="1" style="width:80px;">';
     }
     container.appendChild(div);
     div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function previewQImage(input) {
+    const preview = input.closest('.q-image-upload').querySelector('.q-image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+async function uploadQuestionImage(file) {
+    const ext = file.name.split('.').pop();
+    const path = 'exam-images/' + crypto.randomUUID() + '.' + ext;
+    const res = await fetch(SUPABASE_URL + '/storage/v1/object/stem-drive-files/' + path, {
+        method: 'POST',
+        headers: { ...getSbHeaders(), 'Content-Type': file.type },
+        body: file
+    });
+    if (!res.ok) throw new Error('Image upload failed');
+    return SUPABASE_URL + '/storage/v1/object/public/stem-drive-files/' + path;
 }
 
 function removeQuestion(btn) {
