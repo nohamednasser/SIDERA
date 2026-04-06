@@ -1659,6 +1659,18 @@ async function deleteSubject(name) {
     }
 }
 
+function populateExamSubjects() {
+    const sel = document.getElementById('examSubject');
+    if (!sel) return;
+    sel.innerHTML = '';
+    subjectData.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.icon + ' ' + s.name;
+        sel.appendChild(opt);
+    });
+}
+
 function rebuildSubjectUI() {
     const nav = document.getElementById('subjectNav');
     const sel = document.getElementById('subIn');
