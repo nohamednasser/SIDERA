@@ -2414,6 +2414,7 @@ function renderExamQuestions() {
         let html = '<div class="question-block" data-qid="' + q.id + '">';
         html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + _currentExamQuestions.length + '</div>';
         html += '<div class="q-text">' + q.question_text + '</div>';
+        if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image">';
         html += '<div class="q-points">' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</div>';
         
         if (q.question_type === 'mcq') {
