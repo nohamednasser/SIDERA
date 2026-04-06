@@ -271,9 +271,13 @@
         }
 
         /* Exam System */
-        .exam-section { width: 90%; max-width: 1400px; padding: 0 0 30px; }
-        .exam-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .exam-section-header h2 { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+         .exam-section { width: 90%; max-width: 1400px; padding: 0 0 30px; margin-top: 20px; }
+         .exam-divider { width: 90%; max-width: 1400px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); margin: 30px auto 10px; opacity: 0.5; }
+         .exam-section-title { width: 90%; max-width: 1400px; text-align: center; margin: 20px auto 10px; }
+         .exam-section-title h2 { font-size: 1.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+         .exam-section-title p { font-size: 0.85rem; color: var(--text); opacity: 0.7; margin-top: 4px; }
+         .exam-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+         .exam-section-header h2 { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         .exam-filter-btn { cursor: pointer; font-size: 0.75rem; padding: 8px 16px; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; transition: background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
         .exam-filter-btn:hover { border-color: var(--accent); }
         .exam-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(163,64,84,0.25); }
@@ -573,11 +577,15 @@
     </div>
 </div>
 
+<!-- Exams Divider & Title -->
+<div class="exam-divider"></div>
+<div class="exam-section-title">
+    <h2>📝 Exams & Quizzes</h2>
+    <p>Test your knowledge and track your progress</p>
+</div>
+
 <!-- Exams Section -->
 <div class="exam-section" id="examsSection">
-    <div class="exam-section-header">
-        <h2>📝 Exams</h2>
-    </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="examFilters">
         <span class="exam-filter-btn active" data-filter="all" onclick="filterExams('all',this)">All</span>
         <span class="exam-filter-btn" data-filter="G10" onclick="filterExams('G10',this)">Grade 10</span>
