@@ -786,12 +786,32 @@
 }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
-<script type="module">
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
-window._pdfjsLib = pdfjsLib;
+<!-- Lazy-loaded: JSZip and PDF.js are loaded on demand for faster initial page load -->
+<script>
+// Lazy load JSZip
+let _jsZipLoaded = false;
+function ensureJSZip() {
+    if (_jsZipLoaded || typeof JSZip !== 'undefined') { _jsZipLoaded = true; return Promise.resolve(); }
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        s.onload = () => { _jsZipLoaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+// Lazy load PDF.js
+let _pdfJsLoading = null;
+function ensurePdfJs() {
+    if (window._pdfjsLib) return Promise.resolve();
+    if (_pdfJsLoading) return _pdfJsLoading;
+    _pdfJsLoading = import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs').then(pdfjsLib => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+        window._pdfjsLib = pdfjsLib;
+    });
+    return _pdfJsLoading;
+}
 </script>
 <script>
 // Toast notification system
@@ -1123,7 +1143,9 @@ async function openPreview(itemId) {
         const fn = (item.fileName || '').toLowerCase();
         const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
 
-        if (isZip && typeof JSZip !== 'undefined') {
+        if (isZip) {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP viewer...</span></div>';
+            await ensureJSZip();
             previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
             _currentZipItemId = itemId;
             
@@ -1165,6 +1187,8 @@ async function openPreview(itemId) {
             img.alt = 'preview';
             img.src = publicUrl;
         } else if (ft === 'application/pdf') {
+            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading PDF viewer...</span></div>';
+            await ensurePdfJs();
             renderPdfViewer(publicUrl, item.fileName || 'PDF File', previewBody);
         } else {
             previewBody.innerHTML = '<p>Preview not available for ' + (item.fileName || 'this file') + '.<br><br><a href="' + publicUrl + '" download="' + (item.fileName || 'file') + '" style="color:var(--accent);font-weight:bold;">Download instead</a></p>';
@@ -1365,15 +1389,75 @@ function closePreview() {
 
 if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
+// ===== User Preferences Sync =====
+let _prefsSaveTimer = null;
+function getUserEmail() {
+    const saved = localStorage.getItem('sideraStudent');
+    if (saved) { try { return JSON.parse(saved).email; } catch(e) {} }
+    const username = localStorage.getItem('sideraUsername');
+    if (username) return username + '@sidera.local';
+    return null;
+}
+
+async function loadUserPrefs() {
+    const email = getUserEmail();
+    if (!email) return;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/user_preferences?user_email=eq.' + encodeURIComponent(email) + '&select=*&limit=1', { headers: getSbHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.length === 0) return;
+        const prefs = data[0];
+        // Apply saved theme
+        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'light')) {
+            localStorage.setItem('theme', prefs.theme);
+            document.documentElement.setAttribute('data-theme', prefs.theme);
+        }
+        // Apply saved filters
+        if (prefs.selected_grade && prefs.selected_grade !== 'All') {
+            currentGrade = prefs.selected_grade;
+        }
+        if (prefs.selected_subject && prefs.selected_subject !== 'All') {
+            currentSub = prefs.selected_subject;
+        }
+        if (prefs.selected_semester && prefs.selected_semester !== 'All') {
+            currentSemester = prefs.selected_semester;
+        }
+    } catch(e) { console.error('loadUserPrefs error:', e); }
+}
+
+function saveUserPrefs() {
+    clearTimeout(_prefsSaveTimer);
+    _prefsSaveTimer = setTimeout(_saveUserPrefsNow, 1000);
+}
+
+async function _saveUserPrefsNow() {
+    const email = getUserEmail();
+    if (!email) return;
+    const theme = localStorage.getItem('theme') || 'light';
+    const payload = { user_email: email, theme, selected_grade: currentGrade, selected_subject: currentSub, selected_semester: currentSemester, updated_at: new Date().toISOString() };
+    try {
+        // Upsert
+        await fetch(SUPABASE_URL + '/rest/v1/user_preferences', {
+            method: 'POST',
+            headers: { ...getSbHeaders(), 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+            body: JSON.stringify(payload)
+        });
+    } catch(e) { console.error('saveUserPrefs error:', e); }
+}
+
 async function initApp() {
     try {
-        // Parallelize session restore and data loading
-        const [_, __, subjects] = await Promise.all([
+        // Parallelize session restore, data loading, and preferences
+        const [_, __, ___, ____] = await Promise.all([
             restoreSession(),
             StorageManager.init(),
-            loadSubjectsFromDB()
+            loadSubjectsFromDB(),
+            loadUserPrefs()
         ]);
         setupApp();
+        // Apply saved filters to UI
+        applyFiltersToUI();
         // Load files and exams in parallel
         await Promise.all([render(), loadExams()]);
     } catch (err) {
@@ -1381,6 +1465,32 @@ async function initApp() {
         setupApp();
         render();
         loadExams();
+    }
+}
+
+function applyFiltersToUI() {
+    // Sync grade nav
+    if (currentGrade !== 'All') {
+        document.querySelectorAll('#gradeNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentGrade) || s.dataset?.grade === currentGrade) s.classList.add('active');
+        });
+        const semNav = document.getElementById('semesterNav');
+        if (semNav) semNav.style.display = '';
+    }
+    // Sync subject nav
+    if (currentSub !== 'All') {
+        document.querySelectorAll('#subjectNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentSub)) s.classList.add('active');
+        });
+    }
+    // Sync semester nav
+    if (currentSemester !== 'All') {
+        document.querySelectorAll('#semesterNav span').forEach(s => {
+            s.classList.remove('active');
+            if (s.textContent.includes(currentSemester)) s.classList.add('active');
+        });
     }
 }
 
@@ -1626,9 +1736,9 @@ function processSelectedFile(file) {
     zipArea.innerHTML = '';
 
     const isZip = file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed';
-    if (isZip && typeof JSZip !== 'undefined') {
+    if (isZip) {
         zipArea.innerHTML = '<div style="padding:8px;color:var(--text);font-size:0.8rem;">⏳ Reading ZIP contents...</div>';
-        JSZip.loadAsync(file).then(zip => {
+        ensureJSZip().then(() => JSZip.loadAsync(file)).then(zip => {
             const entries = [];
             zip.forEach((path, entry) => {
                 if (!entry.dir) entries.push({ name: entry.name, size: entry._data?.uncompressedSize || 0 });
@@ -1881,6 +1991,7 @@ function toggleTheme() {
     requestAnimationFrame(() => {
         root.classList.remove('theme-switching');
     });
+    saveUserPrefs();
 }
 
 function showLogin() { document.getElementById('loginModal').classList.add('show'); }
@@ -2027,6 +2138,7 @@ function filterGrade(g, el) {
         filterExams(g, document.querySelector('.exam-filter-btn[data-filter="' + g + '"]'));
     }
     render();
+    saveUserPrefs();
 }
 
 function filterSemester(s, el) {
@@ -2034,6 +2146,7 @@ function filterSemester(s, el) {
     el.classList.add('active');
     currentSemester = s;
     render();
+    saveUserPrefs();
 }
 
 function showFilesHideExams() {
@@ -2046,6 +2159,7 @@ function filterSub(s, el) {
     currentSub = s;
     showFilesHideExams();
     render();
+    saveUserPrefs();
 }
 
 function search() {
