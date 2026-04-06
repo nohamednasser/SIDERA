@@ -326,15 +326,53 @@
         .exam-modal-header h2 { margin: 0; font-size: 1.15rem; }
         .exam-modal-body { padding: 24px; }
         .exam-timer { background: rgba(163,64,84,0.08); color: var(--accent); padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; }
+        .exam-timer.warning { background: rgba(239,68,68,0.12); color: #ef4444; animation: timerPulse 1s infinite; }
+        @keyframes timerPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+        /* Exam progress bar */
+        .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.03); }
+        .exam-progress-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .exam-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #c0526a); border-radius: 4px; transition: width 0.3s ease; }
+        .exam-progress-text { font-size: 0.75rem; font-weight: 700; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; }
+
+        /* Question dots navigator */
+        .exam-q-dots { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border); justify-content: center; }
+        .exam-q-dot { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .exam-q-dot:hover { border-color: var(--accent); }
+        .exam-q-dot.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .exam-q-dot.answered { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #22c55e; }
+        .exam-q-dot.active.answered { background: var(--accent); color: white; }
+
+        /* Navigation buttons */
+        .exam-nav-btns { display: flex; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); }
+        .exam-nav-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.15s; background: var(--input-bg); color: var(--dark); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .exam-nav-btn:hover { border-color: var(--accent); }
+        .exam-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .exam-nav-btn.primary { background: linear-gradient(135deg, var(--accent), #c0526a); color: white; border-color: transparent; }
+        .exam-nav-btn.primary:hover { filter: brightness(1.1); }
+        .exam-nav-btn.submit { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border-color: transparent; }
+        .exam-nav-btn.submit:hover { filter: brightness(1.1); }
 
         .question-block { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; transition: background-color 0.15s, border-color 0.15s; }
         .question-block .q-num { font-size: 0.72rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
         .question-block .q-text { font-size: 0.95rem; font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
-        .question-block .q-points { font-size: 0.7rem; color: var(--text); margin-bottom: 10px; }
-        .mcq-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 0.88rem; }
-        .mcq-option:hover { border-color: var(--accent); background: rgba(163,64,84,0.04); }
-        .mcq-option.selected { border-color: var(--accent); background: rgba(163,64,84,0.08); }
-        .mcq-option input[type="radio"] { accent-color: var(--accent); }
+        .question-block .q-points { font-size: 0.7rem; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .mcq-option { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s; font-size: 0.88rem; }
+        .mcq-option:hover { border-color: var(--accent); background: rgba(163,64,84,0.04); transform: translateX(4px); }
+        .mcq-option.selected { border-color: var(--accent); background: rgba(163,64,84,0.08); box-shadow: 0 2px 8px rgba(163,64,84,0.15); }
+        .mcq-option input[type="radio"] { accent-color: var(--accent); width: 18px; height: 18px; }
+
+        /* True/False options */
+        .tf-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .tf-option { padding: 16px; border: 1.5px solid var(--border); border-radius: 14px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1rem; transition: all 0.15s; }
+        .tf-option:hover { transform: translateY(-2px); }
+        .tf-option.true-opt:hover, .tf-option.true-opt.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); color: #22c55e; }
+        .tf-option.false-opt:hover, .tf-option.false-opt.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Fill in the blank */
+        .fill-blank-input { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card-bg); color: var(--dark); font-size: 1rem; font-weight: 600; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit; text-align: center; letter-spacing: 1px; }
+        .fill-blank-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(163,64,84,0.1); }
+
         .essay-input { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--dark); font-size: 0.88rem; resize: vertical; outline: none; transition: border-color 0.15s; font-family: inherit; }
         .essay-input:focus { border-color: var(--accent); }
 
