@@ -2145,6 +2145,7 @@ function filterSemester(s, el) {
     el.classList.add('active');
     currentSemester = s;
     render();
+    saveUserPrefs();
 }
 
 function showFilesHideExams() {
