@@ -2653,11 +2653,14 @@ async function publishExam() {
     if (cards.length === 0 && !externalUrl) { showToast('Add at least one question or an external link.', 'warning'); return; }
 
     const questions = [];
+    const imageFiles = [];
     let valid = true;
     cards.forEach((card, idx) => {
         const type = card.dataset.type;
         const text = card.querySelector('.q-text-input').value.trim();
         const points = parseInt(card.querySelector('.q-points-input').value) || 1;
+        const fileInput = card.querySelector('.q-image-upload input[type="file"]');
+        const imgFile = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
         if (!text) { valid = false; return; }
 
         if (type === 'mcq') {
@@ -2666,10 +2669,11 @@ async function publishExam() {
             optionInputs.forEach(i => { if (i.value.trim()) options.push(i.value.trim()); });
             if (options.length < 2) { valid = false; return; }
             const correctIdx = parseInt(card.querySelector('.mcq-options-container input[type="radio"]:checked')?.value || '0');
-            questions.push({ question_text: text, question_type: 'mcq', options, correct_answer: options[correctIdx] || options[0], points, sort_order: idx });
+            questions.push({ question_text: text, question_type: 'mcq', options, correct_answer: options[correctIdx] || options[0], points, sort_order: idx, image_url: '' });
         } else {
-            questions.push({ question_text: text, question_type: 'essay', options: [], correct_answer: '', points, sort_order: idx });
+            questions.push({ question_text: text, question_type: 'essay', options: [], correct_answer: '', points, sort_order: idx, image_url: '' });
         }
+        imageFiles.push(imgFile);
     });
 
     if (cards.length > 0 && !valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
