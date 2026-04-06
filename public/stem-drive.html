@@ -1656,18 +1656,16 @@ async function handleAuth() {
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
 
             if (isAdminUser) {
-                // Admin login — set admin session
                 authAccessToken = data.access_token;
                 isAdmin = true;
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
                 hideAuthOverlay();
-                setupApp();
-                render();
-                loadExams();
+                try { setupApp(); } catch(e) { console.error('setupApp error', e); }
+                try { render(); } catch(e) { console.error('render error', e); }
+                try { loadExams(); } catch(e) { console.error('loadExams error', e); }
                 showToast('✅ Welcome back, Admin!', 'success');
             } else {
-                // Student login
                 _studentUser = data.user;
                 localStorage.setItem('sideraStudentToken', data.access_token);
                 localStorage.setItem('sideraStudentRefresh', data.refresh_token);
@@ -1675,7 +1673,6 @@ async function handleAuth() {
                 hideAuthOverlay();
             }
         } else {
-            // Sign Up — only for students, not admins
             if (isAdminUser) return showAuthError('Admin accounts cannot be created. Please login.');
             const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
                 method: 'POST',
@@ -1688,6 +1685,7 @@ async function handleAuth() {
             toggleAuthMode();
         }
     } catch (err) {
+        console.error('Auth error:', err);
         showAuthError(err.message);
     }
     btn.disabled = false;
