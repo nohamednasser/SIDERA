@@ -3439,8 +3439,8 @@ function populateStatsExamSelect() {
     const sel = document.getElementById('statsExamSelect');
     const current = sel.value;
     sel.innerHTML = '<option value="">Select an exam...</option>';
-    if (window._allExams) {
-        window._allExams.forEach(e => {
+    if (_allExams) {
+        _allExams.forEach(e => {
             sel.innerHTML += '<option value="' + e.id + '">' + e.title + ' (' + e.grade + ')</option>';
         });
     }
