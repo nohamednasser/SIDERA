@@ -3270,6 +3270,58 @@ async function deleteExam(examId) {
     }
 }
 
+async function exportExamResults(examId, examTitle) {
+    showToast('⏳ Preparing export...', 'info');
+    try {
+        const [subRes, qRes] = await Promise.all([
+            fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&select=*&order=submitted_at.desc', { headers: getSbHeaders() }),
+            fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=*&order=sort_order.asc', { headers: getSbHeaders() })
+        ]);
+        const subs = await subRes.json();
+        const questions = await qRes.json();
+        if (!subs.length) { showToast('No submissions yet for this exam.', 'warning'); return; }
+
+        // Fetch all answers for these submissions
+        const subIds = subs.map(s => s.id);
+        const ansRes = await fetch(SUPABASE_URL + '/rest/v1/exam_answers?submission_id=in.(' + subIds.join(',') + ')&select=*', { headers: getSbHeaders() });
+        const allAnswers = await ansRes.json();
+
+        // Build CSV
+        const esc = v => { const s = String(v ?? '').replace(/"/g, '""'); return '"' + s + '"'; };
+        const headers = ['Student Name', 'Email', 'Score', 'Total Points', '%', 'Grade', 'Submitted At'];
+        questions.forEach((q, i) => { headers.push('Q' + (i+1) + ' Answer'); headers.push('Q' + (i+1) + ' Correct?'); });
+        
+        const rows = subs.map(sub => {
+            const pct = sub.total_points > 0 ? Math.round((sub.score / sub.total_points) * 100) : 0;
+            let grade;
+            if (pct >= 90) grade = 'A+'; else if (pct >= 80) grade = 'A'; else if (pct >= 70) grade = 'B';
+            else if (pct >= 60) grade = 'C'; else if (pct >= 50) grade = 'D'; else grade = 'F';
+            const subAnswers = allAnswers.filter(a => a.submission_id === sub.id);
+            const row = [sub.student_name, sub.student_email, sub.score, sub.total_points, pct + '%', grade, sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : ''];
+            questions.forEach(q => {
+                const ans = subAnswers.find(a => a.question_id === q.id);
+                row.push(ans?.answer_text || '—');
+                row.push(ans ? (ans.is_correct ? '✅' : '❌') : '—');
+            });
+            return row.map(esc).join(',');
+        });
+
+        const bom = '\uFEFF';
+        const csv = bom + headers.map(esc).join(',') + '\n' + rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (examTitle || 'exam') + '_results.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('✅ Results exported!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showToast('Failed to export results.', 'error');
+    }
+}
+
 let chatHistory = [];
 let _chatLoaded = false;
 
