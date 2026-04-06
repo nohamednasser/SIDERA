@@ -439,8 +439,8 @@
         <div class="auth-error" id="authError"></div>
         <div class="auth-success" id="authSuccess">✅ Account created! You can login now.</div>
         <div class="auth-input-group">
-            <label>Email</label>
-            <input type="email" class="auth-input" id="authEmail" placeholder="Enter your email" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()">
+            <label>Username</label>
+            <input type="text" class="auth-input" id="authUsername" placeholder="Enter your username" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()" autocomplete="username">
         </div>
         <div class="auth-input-group">
             <label>Password</label>
