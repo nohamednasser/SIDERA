@@ -1974,14 +1974,10 @@ async function checkAuth() {
     }
 }
 
-async function logout() {
-    // Sign out from Supabase
-    try {
-        await fetch(SUPABASE_URL + '/auth/v1/logout', {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (authAccessToken || '') }
-        });
-    } catch (e) {}
+function logout() {
+    // Capture token before clearing
+    const token = authAccessToken;
+    // Clear state immediately for instant UI response
     authAccessToken = null;
     isAdmin = false;
     localStorage.removeItem('sideraAuthSession');
@@ -1990,6 +1986,13 @@ async function logout() {
     render();
     loadExams();
     showToast('👋 Logged out', 'success');
+    // Fire-and-forget sign out from backend
+    if (token) {
+        fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token }
+        }).catch(() => {});
+    }
 }
 
 let pendingDeleteId = null;
