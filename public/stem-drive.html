@@ -435,7 +435,8 @@
 
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
-    <div class="auth-container">
+    <div class="auth-container" style="position:relative;">
+        <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <h2>SIDERA</h2>
         <p class="auth-sub" id="authSub">Login to access your files.</p>
         <div class="auth-error" id="authError"></div>
