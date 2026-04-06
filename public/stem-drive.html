@@ -3311,30 +3311,55 @@ async function publishExam() {
     if (cards.length > 0 && !valid) { showToast('Fill all question texts and at least 2 options for MCQ.', 'warning'); return; }
 
     try {
-        const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
-            method: 'POST',
-            headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
-            body: JSON.stringify({
-                title,
-                grade: document.getElementById('examGrade').value,
-                subject: document.getElementById('examSubject').value,
-                description: document.getElementById('examDesc').value.trim(),
-                time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
-                external_url: externalUrl,
-                is_published: true
-            })
-        });
-        if (!examRes.ok) throw new Error(await examRes.text());
-        const examData = await examRes.json();
-        const examId = examData[0].id;
+        let examId;
+        const examPayload = {
+            title,
+            grade: document.getElementById('examGrade').value,
+            subject: document.getElementById('examSubject').value,
+            description: document.getElementById('examDesc').value.trim(),
+            time_limit_minutes: parseInt(document.getElementById('examTimeLimit').value) || 0,
+            external_url: externalUrl,
+            is_published: true
+        };
+
+        if (_editingExamId) {
+            // UPDATE existing exam
+            const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + _editingExamId, {
+                method: 'PATCH',
+                headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
+                body: JSON.stringify(examPayload)
+            });
+            if (!examRes.ok) throw new Error(await examRes.text());
+            examId = _editingExamId;
+
+            // Delete old questions
+            await fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId, {
+                method: 'DELETE', headers: getSbHeaders()
+            });
+        } else {
+            // CREATE new exam
+            const examRes = await fetch(SUPABASE_URL + '/rest/v1/exams', {
+                method: 'POST',
+                headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
+                body: JSON.stringify(examPayload)
+            });
+            if (!examRes.ok) throw new Error(await examRes.text());
+            const examData = await examRes.json();
+            examId = examData[0].id;
+        }
 
         // Upload images and insert questions
         if (questions.length > 0) {
             for (let i = 0; i < questions.length; i++) {
+                // Keep existing image_url from loaded questions
+                const card = cards[i];
+                const existingImg = card.querySelector('.q-image-preview');
                 if (imageFiles[i]) {
                     try {
                         questions[i].image_url = await uploadQuestionImage(imageFiles[i]);
                     } catch(e) { console.warn('Image upload failed for Q' + (i+1), e); }
+                } else if (existingImg && existingImg.src && existingImg.style.display !== 'none') {
+                    questions[i].image_url = existingImg.src;
                 }
             }
             const qData = questions.map(q => ({ ...q, exam_id: examId, options: JSON.stringify(q.options) }));
@@ -3344,17 +3369,19 @@ async function publishExam() {
             if (!qRes.ok) throw new Error('Questions insert failed');
         }
 
-        showToast('✅ Exam published successfully!', 'success');
+        showToast(_editingExamId ? '✅ Exam updated successfully!' : '✅ Exam published successfully!', 'success');
+        _editingExamId = null;
         document.getElementById('examTitle').value = '';
         document.getElementById('examDesc').value = '';
         document.getElementById('examTimeLimit').value = '0';
         document.getElementById('examExternalUrl').value = '';
         document.getElementById('questionsBuilder').innerHTML = '<div class="exam-builder-empty"><span>📋</span>Click + MCQ or + Essay to add questions</div>';
+        document.querySelector('#adminExamsTab .btn-pub').textContent = '📝 Publish Exam';
         _qBuilderCount = 0;
         loadExams();
     } catch (err) {
         console.error('publishExam error:', err);
-        showToast('Failed to publish exam: ' + err.message, 'error');
+        showToast('Failed to ' + (_editingExamId ? 'update' : 'publish') + ' exam: ' + err.message, 'error');
     }
 }
 
