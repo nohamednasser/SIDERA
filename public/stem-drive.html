@@ -902,13 +902,21 @@ async function restoreSession() {
         return;
     }
 
+    // Optimistic: set admin immediately from cache while refreshing token in background
+    const cachedAdmin = localStorage.getItem('isSideraAdmin');
+    if (cachedAdmin) { isAdmin = true; }
+
     try {
         const session = JSON.parse(storedSession);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
         const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
             method: 'POST',
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh_token: session.refresh_token })
+            body: JSON.stringify({ refresh_token: session.refresh_token }),
+            signal: controller.signal
         });
+        clearTimeout(timeout);
 
         if (!res.ok) throw new Error('Session expired');
 
@@ -1359,12 +1367,15 @@ if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttrib
 
 async function initApp() {
     try {
-        await restoreSession();
-        await StorageManager.init();
-        await loadSubjectsFromDB();
+        // Parallelize session restore and data loading
+        const [_, __, subjects] = await Promise.all([
+            restoreSession(),
+            StorageManager.init(),
+            loadSubjectsFromDB()
+        ]);
         setupApp();
-        render();
-        loadExams();
+        // Load files and exams in parallel
+        await Promise.all([render(), loadExams()]);
     } catch (err) {
         console.error('Init failed:', err);
         setupApp();
@@ -1438,7 +1449,10 @@ async function handleAuth() {
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
                 hideAuthOverlay();
-                location.reload();
+                setupApp();
+                render();
+                loadExams();
+                showToast('✅ Welcome back, Admin!', 'success');
             } else {
                 // Student login
                 _studentUser = data.user;
@@ -1511,7 +1525,12 @@ function studentLogout() {
     localStorage.removeItem('sideraStudentRefresh');
     localStorage.removeItem('sideraUsername');
     localStorage.removeItem('sideraGuest');
-    location.reload();
+    // Show auth overlay again without reload
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    document.getElementById('studentLogoutBtn').style.display = 'none';
+    document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
 // Check auth on load
@@ -1787,7 +1806,10 @@ async function checkAuth() {
         localStorage.setItem('isSideraAdmin', 'true');
         errEl.style.display = 'none';
         hideLogin();
-        location.reload();
+        setupApp();
+        render();
+        loadExams();
+        showToast('✅ Admin logged in!', 'success');
     } catch (err) {
         errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
@@ -1803,9 +1825,13 @@ async function logout() {
         });
     } catch (e) {}
     authAccessToken = null;
+    isAdmin = false;
     localStorage.removeItem('sideraAuthSession');
     localStorage.removeItem('isSideraAdmin');
-    location.reload();
+    setupApp();
+    render();
+    loadExams();
+    showToast('👋 Logged out', 'success');
 }
 
 let pendingDeleteId = null;
