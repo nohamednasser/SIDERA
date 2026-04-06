@@ -1781,6 +1781,8 @@ function toggleTheme() {
     root.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
     document.getElementById('themeBtn').innerText = isDark ? '🌙 Mode' : '☀️ Mode';
+    const authThemeBtn = document.getElementById('authThemeBtn');
+    if (authThemeBtn) authThemeBtn.innerText = isDark ? '🌙' : '☀️';
 
     requestAnimationFrame(() => {
         root.classList.remove('theme-switching');
