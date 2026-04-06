@@ -2730,33 +2730,131 @@ function updateTimerDisplay() {
     const s = _examTimeLeft % 60;
     const el = document.getElementById('examTimerDisplay');
     el.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    if (_examTimeLeft <= 60) el.style.color = '#ef4444';
-    else el.style.color = '';
+    // Warning state when less than 2 minutes
+    if (_examTimeLeft <= 120) {
+        el.classList.add('warning');
+        if (_examTimeLeft === 120) showToast('⚠️ باقي دقيقتين!', 'warning');
+        if (_examTimeLeft === 30) showToast('🚨 باقي 30 ثانية!', 'error');
+    } else {
+        el.classList.remove('warning');
+    }
 }
 
+let _currentQIdx = 0;
+let _examAnswers = {}; // Store answers by question id
+
 function renderExamQuestions() {
+    _currentQIdx = 0;
+    _examAnswers = {};
+    renderQDots();
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function renderQDots() {
+    const dots = document.getElementById('examQDots');
+    dots.innerHTML = _currentExamQuestions.map((q, idx) =>
+        '<button class="exam-q-dot' + (idx === 0 ? ' active' : '') + '" onclick="goToQuestion(' + idx + ')" title="Question ' + (idx+1) + '">' + (idx+1) + '</button>'
+    ).join('');
+}
+
+function updateQDots() {
+    const dots = document.querySelectorAll('.exam-q-dot');
+    dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === _currentQIdx);
+        const q = _currentExamQuestions[idx];
+        dot.classList.toggle('answered', !!_examAnswers[q.id]);
+    });
+    // Update progress
+    const answered = Object.keys(_examAnswers).length;
+    const total = _currentExamQuestions.length;
+    const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+    document.getElementById('examProgressFill').style.width = pct + '%';
+    document.getElementById('examProgressText').textContent = answered + '/' + total;
+}
+
+function goToQuestion(idx) {
+    saveCurrentAnswer();
+    _currentQIdx = idx;
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function examNav(dir) {
+    saveCurrentAnswer();
+    _currentQIdx += dir;
+    if (_currentQIdx < 0) _currentQIdx = 0;
+    if (_currentQIdx >= _currentExamQuestions.length) _currentQIdx = _currentExamQuestions.length - 1;
+    renderCurrentQuestion();
+    updateExamNav();
+}
+
+function updateExamNav() {
+    const total = _currentExamQuestions.length;
+    const isLast = _currentQIdx === total - 1;
+    const isFirst = _currentQIdx === 0;
+    document.getElementById('examPrevBtn').disabled = isFirst;
+    document.getElementById('examNextBtn').style.display = isLast ? 'none' : 'flex';
+    document.getElementById('examSubmitBtn').style.display = isLast ? 'flex' : 'none';
+}
+
+function saveCurrentAnswer() {
+    const q = _currentExamQuestions[_currentQIdx];
+    if (!q) return;
     const body = document.getElementById('examTakingBody');
-    body.innerHTML = _currentExamQuestions.map((q, idx) => {
-        let html = '<div class="question-block" data-qid="' + q.id + '">';
-        html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + _currentExamQuestions.length + '</div>';
-        html += '<div class="q-text">' + q.question_text + '</div>';
-        if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image">';
-        html += '<div class="q-points">' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</div>';
-        
-        if (q.question_type === 'mcq') {
-            const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-            options.forEach((opt, oi) => {
-                html += '<label class="mcq-option" onclick="selectMcq(this)">' +
-                    '<input type="radio" name="q_' + q.id + '" value="' + oi + '">' +
-                    '<span>' + opt + '</span>' +
-                '</label>';
-            });
-        } else {
-            html += '<textarea class="essay-input" data-qid="' + q.id + '" placeholder="Write your answer here..."></textarea>';
-        }
+
+    if (q.question_type === 'mcq') {
+        const selected = body.querySelector('input[name="q_' + q.id + '"]:checked');
+        if (selected) _examAnswers[q.id] = selected.value;
+    } else if (q.question_type === 'tf') {
+        const selected = body.querySelector('.tf-option.selected');
+        if (selected) _examAnswers[q.id] = selected.dataset.value;
+    } else if (q.question_type === 'fill') {
+        const input = body.querySelector('.fill-blank-input[data-qid="' + q.id + '"]');
+        if (input && input.value.trim()) _examAnswers[q.id] = input.value.trim();
+    } else {
+        const textarea = body.querySelector('textarea[data-qid="' + q.id + '"]');
+        if (textarea && textarea.value.trim()) _examAnswers[q.id] = textarea.value.trim();
+    }
+    updateQDots();
+}
+
+function renderCurrentQuestion() {
+    const body = document.getElementById('examTakingBody');
+    const q = _currentExamQuestions[_currentQIdx];
+    const idx = _currentQIdx;
+    const total = _currentExamQuestions.length;
+
+    let html = '<div class="question-block" data-qid="' + q.id + '" style="margin-bottom:0;">';
+    html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + total + '</div>';
+    html += '<div class="q-text">' + q.question_text + '</div>';
+    if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image" loading="lazy">';
+    html += '<div class="q-points">🏆 ' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</div>';
+
+    const savedAns = _examAnswers[q.id];
+
+    if (q.question_type === 'mcq') {
+        const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        options.forEach((opt, oi) => {
+            const isSelected = savedAns === String(oi);
+            html += '<label class="mcq-option' + (isSelected ? ' selected' : '') + '" onclick="selectMcq(this)">' +
+                '<input type="radio" name="q_' + q.id + '" value="' + oi + '"' + (isSelected ? ' checked' : '') + '>' +
+                '<span>' + opt + '</span>' +
+            '</label>';
+        });
+    } else if (q.question_type === 'tf') {
+        html += '<div class="tf-options">';
+        html += '<div class="tf-option true-opt' + (savedAns === 'True' ? ' selected' : '') + '" data-value="True" onclick="selectTF(this)">✅ True</div>';
+        html += '<div class="tf-option false-opt' + (savedAns === 'False' ? ' selected' : '') + '" data-value="False" onclick="selectTF(this)">❌ False</div>';
         html += '</div>';
-        return html;
-    }).join('');
+    } else if (q.question_type === 'fill') {
+        html += '<input type="text" class="fill-blank-input" data-qid="' + q.id + '" placeholder="Type your answer..." value="' + (savedAns || '') + '" autocomplete="off">';
+    } else {
+        html += '<textarea class="essay-input" data-qid="' + q.id + '" placeholder="Write your answer here...">' + (savedAns || '') + '</textarea>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    updateQDots();
 }
 
 function selectMcq(label) {
@@ -2764,6 +2862,13 @@ function selectMcq(label) {
     parent.querySelectorAll('.mcq-option').forEach(o => o.classList.remove('selected'));
     label.classList.add('selected');
     label.querySelector('input').checked = true;
+    saveCurrentAnswer();
+}
+
+function selectTF(el) {
+    el.parentElement.querySelectorAll('.tf-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    saveCurrentAnswer();
 }
 
 function confirmExitExam() {
@@ -2771,12 +2876,21 @@ function confirmExitExam() {
         if (_examTimer) clearInterval(_examTimer);
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
+        document.getElementById('examTimerDisplay').classList.remove('warning');
     }
 }
 
 async function submitExam() {
+    saveCurrentAnswer();
+    
+    // Check unanswered
+    const unanswered = _currentExamQuestions.filter(q => !_examAnswers[q.id]).length;
+    if (unanswered > 0) {
+        if (!confirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : '') + '. Submit anyway?')) return;
+    }
+
     if (_examTimer) clearInterval(_examTimer);
-    const btn = document.getElementById('submitExamBtn');
+    const btn = document.getElementById('examSubmitBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Submitting...';
 
@@ -2788,30 +2902,28 @@ async function submitExam() {
         _currentExamQuestions.forEach(q => {
             totalPoints += q.points;
             const options = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-            
+            const savedAns = _examAnswers[q.id];
+
             if (q.question_type === 'mcq') {
-                const selected = document.querySelector('input[name="q_' + q.id + '"]:checked');
-                const answerIdx = selected ? parseInt(selected.value) : -1;
+                const answerIdx = savedAns !== undefined ? parseInt(savedAns) : -1;
                 const answerText = answerIdx >= 0 ? options[answerIdx] : '';
                 const isCorrect = answerText === q.correct_answer;
-                answers.push({
-                    question_id: q.id,
-                    answer_text: answerText,
-                    is_correct: isCorrect,
-                    points_earned: isCorrect ? q.points : 0
-                });
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
+                if (isCorrect) score += q.points;
+            } else if (q.question_type === 'tf') {
+                const answerText = savedAns || '';
+                const isCorrect = answerText === q.correct_answer;
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
+                if (isCorrect) score += q.points;
+            } else if (q.question_type === 'fill') {
+                const answerText = savedAns || '';
+                const isCorrect = answerText.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim();
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: isCorrect, points_earned: isCorrect ? q.points : 0 });
                 if (isCorrect) score += q.points;
             } else {
-                const textarea = document.querySelector('textarea[data-qid="' + q.id + '"]');
-                const answerText = textarea ? textarea.value.trim() : '';
-                // Essay questions: store answer, admin reviews later, give full points for answering
+                const answerText = savedAns || '';
                 const hasAnswer = answerText.length > 0;
-                answers.push({
-                    question_id: q.id,
-                    answer_text: answerText,
-                    is_correct: hasAnswer,
-                    points_earned: hasAnswer ? q.points : 0
-                });
+                answers.push({ question_id: q.id, answer_text: answerText, is_correct: hasAnswer, points_earned: hasAnswer ? q.points : 0 });
                 if (hasAnswer) score += q.points;
             }
         });
@@ -2844,6 +2956,7 @@ async function submitExam() {
         // Close exam modal and show results
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
+        document.getElementById('examTimerDisplay').classList.remove('warning');
         showExamResults(score, totalPoints, answers);
     } catch (err) {
         console.error('submitExam error:', err);
