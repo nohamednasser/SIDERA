@@ -3193,6 +3193,13 @@ async function publishExam() {
             if (options.length < 2) { valid = false; return; }
             const correctIdx = parseInt(card.querySelector('.mcq-options-container input[type="radio"]:checked')?.value || '0');
             questions.push({ question_text: text, question_type: 'mcq', options, correct_answer: options[correctIdx] || options[0], points, sort_order: idx, image_url: '' });
+        } else if (type === 'tf') {
+            const correctVal = card.querySelector('input[name^="tf_correct_"]:checked')?.value || 'True';
+            questions.push({ question_text: text, question_type: 'tf', options: ['True', 'False'], correct_answer: correctVal, points, sort_order: idx, image_url: '' });
+        } else if (type === 'fill') {
+            const correctAns = card.querySelector('.fill-correct-input')?.value.trim() || '';
+            if (!correctAns) { valid = false; return; }
+            questions.push({ question_text: text, question_type: 'fill', options: [], correct_answer: correctAns, points, sort_order: idx, image_url: '' });
         } else {
             questions.push({ question_text: text, question_type: 'essay', options: [], correct_answer: '', points, sort_order: idx, image_url: '' });
         }
