@@ -3044,6 +3044,7 @@ async function askBot(question) {
     showTyping();
 
     chatHistory.push({ role: 'user', content: question });
+    saveChatMsg('user', question);
 
     try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
