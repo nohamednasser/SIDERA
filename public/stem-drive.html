@@ -2335,7 +2335,7 @@ function renderExams(exams) {
 }
 
 // Student Registration
-function openStudentReg(examId) {
+async function openStudentReg(examId) {
     _currentExamId = examId;
     const saved = localStorage.getItem('sideraStudent');
     if (saved) {
@@ -2343,10 +2343,73 @@ function openStudentReg(examId) {
             const s = JSON.parse(saved);
             document.getElementById('studentName').value = s.name || '';
             document.getElementById('studentEmail').value = s.email || '';
+            // Check for previous submission
+            const email = s.email;
+            if (email) {
+                try {
+                    const prevRes = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&student_email=eq.' + encodeURIComponent(email) + '&select=*&order=submitted_at.desc&limit=1', { headers: getSbHeaders() });
+                    const prevSubs = await prevRes.json();
+                    if (prevSubs.length > 0) {
+                        const sub = prevSubs[0];
+                        await showPreviousResult(examId, sub);
+                        return;
+                    }
+                } catch(e) { console.error('Check prev submission:', e); }
+            }
         } catch(e) {}
     }
     document.getElementById('studentRegModal').classList.add('show');
 }
+
+async function showPreviousResult(examId, submission) {
+    // Load exam questions and answers
+    const [examRes, qRes, aRes] = await Promise.all([
+        fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId + '&select=*', { headers: getSbHeaders() }),
+        fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=*&order=sort_order.asc', { headers: getSbHeaders() }),
+        fetch(SUPABASE_URL + '/rest/v1/exam_answers?submission_id=eq.' + submission.id + '&select=*', { headers: getSbHeaders() })
+    ]);
+    const exams = await examRes.json();
+    const questions = await qRes.json();
+    const answers = await aRes.json();
+    
+    if (!exams.length) { showToast('Exam not found.', 'error'); return; }
+    _currentExamData = exams[0];
+    _currentExamQuestions = questions;
+
+    const score = submission.score || 0;
+    const totalPoints = submission.total_points || 0;
+    
+    // Map answers to match format
+    const mappedAnswers = questions.map(q => {
+        const a = answers.find(a => a.question_id === q.id);
+        return {
+            question_id: q.id,
+            answer_text: a?.answer_text || '',
+            is_correct: a?.is_correct || false,
+            points_earned: a?.points_earned || 0
+        };
+    });
+    
+    showExamResults(score, totalPoints, mappedAnswers);
+    
+    // Add retake button to result modal
+    const resultBody = document.getElementById('examResultBody');
+    const retakeDiv = document.createElement('div');
+    retakeDiv.style.cssText = 'text-align:center;margin-top:16px;';
+    retakeDiv.innerHTML = '<div style="font-size:0.8rem;color:var(--text);margin-bottom:8px;">📝 You already took this exam on ' + new Date(submission.submitted_at).toLocaleDateString() + '</div>' +
+        '<button class="btn-pub" onclick="closeExamResult();retakeExam(\'' + examId + '\')" style="background:#8b5cf6;">🔄 Retake Exam</button>';
+    resultBody.querySelector('.result-card').appendChild(retakeDiv);
+}
+
+async function retakeExam(examId) {
+    _currentExamId = examId;
+    const saved = localStorage.getItem('sideraStudent');
+    if (saved) {
+        _studentInfo = JSON.parse(saved);
+    }
+    await loadAndStartExam(examId);
+}
+
 function closeStudentReg() { document.getElementById('studentRegModal').classList.remove('show'); }
 
 async function startExamAfterReg() {
