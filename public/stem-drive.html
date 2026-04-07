@@ -2053,7 +2053,10 @@ function setupApp() {
     const searchBar = document.getElementById('searchBar');
     searchBar.addEventListener('input', () => {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(search, 100);
+        searchTimer = setTimeout(() => {
+            search();
+            aiSmartSearch(searchBar.value);
+        }, 100);
     }, { passive: true });
 
     const dropZone = document.getElementById('dropZone');
