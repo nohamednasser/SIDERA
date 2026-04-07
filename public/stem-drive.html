@@ -4943,6 +4943,38 @@ async function generateCapstonePDF() {
         </div>
     </div>
 </div>
+<!-- XP Bar -->
+<div class="xp-bar-container" id="xpBar">
+    <div class="xp-bar-inner">
+        <span class="xp-level-badge junior" id="xpBadge">🌱 Junior</span>
+        <div class="xp-progress"><div class="xp-progress-fill" id="xpFill" style="width:0%"></div></div>
+        <span class="xp-text" id="xpText">0 XP</span>
+    </div>
+</div>
+
+<!-- XP Popup -->
+<div class="xp-popup" id="xpPopup">
+    <div style="font-size:2rem;margin-bottom:8px;">⬆️</div>
+    <div class="xp-amount" id="xpPopupAmount">+10 XP</div>
+    <div style="font-size:0.8rem;color:var(--text);margin-top:4px;" id="xpPopupReason">File downloaded!</div>
+</div>
+
+<!-- Snippets Panel -->
+<div class="snippets-panel" id="snippetsPanel">
+    <div class="snippets-header">
+        <h3>📝 My Notes</h3>
+        <div style="display:flex;gap:8px;">
+            <button class="control-btn" onclick="exportSnippets()" style="font-size:0.7rem;padding:4px 10px;">📋 Copy All</button>
+            <button class="dash-close" onclick="toggleSnippets()">✕</button>
+        </div>
+    </div>
+    <div class="snippets-list" id="snippetsList">
+        <div style="text-align:center;padding:30px;color:var(--text);font-size:0.82rem;">
+            <div style="font-size:2rem;margin-bottom:8px;">📝</div>
+            Select text while viewing a PDF and click "Save to Notes" to start collecting your study notes.
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
