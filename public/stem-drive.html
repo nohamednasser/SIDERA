@@ -1179,12 +1179,20 @@
             <button class="dash-tab" onclick="switchDashTab('exams', this)">📝 Exams</button>
             <button class="dash-tab" onclick="switchDashTab('students', this)">👥 Students</button>
             <button class="dash-tab" onclick="switchDashTab('activity', this)">🕐 Activity</button>
+            <button class="dash-tab" onclick="switchDashTab('vlabs', this)">🧪 Labs</button>
+            <button class="dash-tab" onclick="switchDashTab('radio', this)">🎶 Radio</button>
+            <button class="dash-tab" onclick="switchDashTab('alumni', this)">🎓 Alumni</button>
+            <button class="dash-tab" onclick="switchDashTab('gamification', this)">🎮 XP</button>
         </div>
         <div class="dash-body" id="dashBody">
             <div id="dashTabOverview" class="dash-tab-content active"></div>
             <div id="dashTabExams" class="dash-tab-content"></div>
             <div id="dashTabStudents" class="dash-tab-content"></div>
             <div id="dashTabActivity" class="dash-tab-content"></div>
+            <div id="dashTabVlabs" class="dash-tab-content"></div>
+            <div id="dashTabRadio" class="dash-tab-content"></div>
+            <div id="dashTabAlumni" class="dash-tab-content"></div>
+            <div id="dashTabGamification" class="dash-tab-content"></div>
         </div>
     </div>
 </div>
@@ -2834,6 +2842,10 @@ async function loadAllDashboardData() {
         renderExamsTab();
         renderStudentsTab();
         renderActivityTab();
+        renderVlabsTab();
+        renderRadioTab();
+        renderAlumniTab();
+        renderGamificationTab();
     } catch (err) {
         console.error('Dashboard error:', err);
         document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
@@ -2985,7 +2997,235 @@ function renderActivityTab() {
     document.getElementById('dashTabActivity').innerHTML = html;
 }
 
-function getTimeAgo(timestamp) {
+// === DASHBOARD: VIRTUAL LABS TAB ===
+function renderVlabsTab() {
+    let html = '<div class="dash-section-title">🧪 Manage Virtual Labs (' + virtualLabs.length + ' labs)</div>';
+    html += '<div style="margin-bottom:16px;padding:16px;background:var(--input-bg);border-radius:14px;border:1px solid var(--border);">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">➕ Add New Lab</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+            '<input id="newVlabTitle" placeholder="Lab title" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<select id="newVlabSubject" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+                '<option value="physics">Physics</option><option value="chemistry">Chemistry</option><option value="biology">Biology</option><option value="math">Math</option><option value="geology">Geology</option>' +
+            '</select>' +
+            '<input id="newVlabDesc" placeholder="Description" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;">' +
+            '<input id="newVlabUrl" placeholder="Simulation URL (PhET or embed link)" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;">' +
+            '<input id="newVlabIcon" placeholder="Emoji icon (e.g. ⚡)" value="🧪" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<button onclick="addVlabFromDash()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">Add Lab</button>' +
+        '</div>' +
+    '</div>';
+
+    virtualLabs.forEach(function(lab, i) {
+        html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<div class="dash-exam-info"><h4>' + lab.icon + ' ' + lab.title + '</h4><p>' + lab.subject + ' · ' + lab.desc.substring(0, 60) + '...</p></div>' +
+            '<button onclick="removeVlab(' + i + ')" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️ Remove</button>' +
+        '</div>';
+    });
+    document.getElementById('dashTabVlabs').innerHTML = html;
+}
+
+function addVlabFromDash() {
+    var title = document.getElementById('newVlabTitle').value.trim();
+    var subject = document.getElementById('newVlabSubject').value;
+    var desc = document.getElementById('newVlabDesc').value.trim();
+    var url = document.getElementById('newVlabUrl').value.trim();
+    var icon = document.getElementById('newVlabIcon').value.trim() || '🧪';
+    if (!title || !url) { showToast('Please fill in title and URL', 'warning'); return; }
+    virtualLabs.push({ subject: subject, icon: icon, title: title, desc: desc, url: url });
+    saveCustomVlabs();
+    renderVlabsTab();
+    renderVirtualLabs();
+    showToast('Lab added!', 'success');
+}
+
+function removeVlab(idx) {
+    virtualLabs.splice(idx, 1);
+    saveCustomVlabs();
+    renderVlabsTab();
+    renderVirtualLabs();
+    showToast('Lab removed', 'success');
+}
+
+function saveCustomVlabs() { localStorage.setItem('sideraVlabs', JSON.stringify(virtualLabs)); }
+function loadCustomVlabs() {
+    var saved = localStorage.getItem('sideraVlabs');
+    if (saved) { try { virtualLabs = JSON.parse(saved); } catch(e) {} }
+}
+
+// === DASHBOARD: RADIO TAB ===
+function renderRadioTab() {
+    let html = '<div class="dash-section-title">🎶 Manage Study Radio (' + radioPlaylist.length + ' tracks)</div>';
+    html += '<div style="margin-bottom:16px;padding:16px;background:var(--input-bg);border-radius:14px;border:1px solid var(--border);">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">➕ Add New Track</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+            '<input id="newRadioTitle" placeholder="Track title" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<input id="newRadioArtist" placeholder="Artist name" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<input id="newRadioUrl" placeholder="YouTube embed URL" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;">' +
+            '<div></div>' +
+            '<button onclick="addRadioFromDash()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">Add Track</button>' +
+        '</div>' +
+    '</div>';
+
+    radioPlaylist.forEach(function(track, i) {
+        html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<div class="dash-exam-info"><h4>🎵 ' + track.title + '</h4><p>' + track.artist + '</p></div>' +
+            '<button onclick="removeRadioTrack(' + i + ')" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️ Remove</button>' +
+        '</div>';
+    });
+    document.getElementById('dashTabRadio').innerHTML = html;
+}
+
+function addRadioFromDash() {
+    var title = document.getElementById('newRadioTitle').value.trim();
+    var artist = document.getElementById('newRadioArtist').value.trim();
+    var url = document.getElementById('newRadioUrl').value.trim();
+    if (!title || !url) { showToast('Please fill in title and URL', 'warning'); return; }
+    if (!url.includes('youtube.com/embed')) {
+        var match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/);
+        if (match) url = 'https://www.youtube.com/embed/' + match[1] + '?autoplay=1';
+    }
+    radioPlaylist.push({ title: title, artist: artist || 'Unknown', url: url, type: 'yt' });
+    saveCustomRadio();
+    renderRadioTab();
+    renderRadioTracks();
+    showToast('Track added!', 'success');
+}
+
+function removeRadioTrack(idx) {
+    radioPlaylist.splice(idx, 1);
+    saveCustomRadio();
+    renderRadioTab();
+    renderRadioTracks();
+    showToast('Track removed', 'success');
+}
+
+function saveCustomRadio() { localStorage.setItem('sideraRadio', JSON.stringify(radioPlaylist)); }
+function loadCustomRadio() {
+    var saved = localStorage.getItem('sideraRadio');
+    if (saved) { try { radioPlaylist = JSON.parse(saved); } catch(e) {} }
+}
+
+// === DASHBOARD: ALUMNI TAB ===
+function renderAlumniTab() {
+    let html = '<div class="dash-section-title">🎓 Manage Alumni Insights (' + alumniData.length + ' entries)</div>';
+    html += '<div style="margin-bottom:16px;padding:16px;background:var(--input-bg);border-radius:14px;border:1px solid var(--border);">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">➕ Add Alumni Insight</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+            '<input id="newAlumniName" placeholder="Name (e.g. Ahmed M.)" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<input id="newAlumniYear" placeholder="Year (e.g. 2025)" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;">' +
+            '<input id="newAlumniTags" placeholder="Tags comma-separated (e.g. EST, Scholarships)" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;">' +
+            '<textarea id="newAlumniText" placeholder="Advice text..." rows="2" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;resize:vertical;"></textarea>' +
+            '<input id="newAlumniQuote" placeholder="Quote (optional)" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;grid-column:span 2;">' +
+            '<div></div>' +
+            '<button onclick="addAlumniFromDash()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">Add Insight</button>' +
+        '</div>' +
+    '</div>';
+
+    alumniData.forEach(function(a, i) {
+        html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<div class="dash-exam-info"><h4>🎓 ' + a.name + ' (Class of ' + a.year + ')</h4><p>' + a.tags.join(', ') + ' · ' + a.text.substring(0, 60) + '...</p></div>' +
+            '<button onclick="removeAlumni(' + i + ')" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️ Remove</button>' +
+        '</div>';
+    });
+    document.getElementById('dashTabAlumni').innerHTML = html;
+}
+
+function addAlumniFromDash() {
+    var name = document.getElementById('newAlumniName').value.trim();
+    var year = document.getElementById('newAlumniYear').value.trim();
+    var tagsStr = document.getElementById('newAlumniTags').value.trim();
+    var text = document.getElementById('newAlumniText').value.trim();
+    var quote = document.getElementById('newAlumniQuote').value.trim();
+    if (!name || !text) { showToast('Please fill in name and advice text', 'warning'); return; }
+    var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+    alumniData.push({ name: name, year: year || '2025', avatar: name.charAt(0).toUpperCase(), tags: tags, text: text, quote: quote || '' });
+    saveCustomAlumni();
+    renderAlumniTab();
+    renderAlumniSection();
+    showToast('Alumni insight added!', 'success');
+}
+
+function removeAlumni(idx) {
+    alumniData.splice(idx, 1);
+    saveCustomAlumni();
+    renderAlumniTab();
+    renderAlumniSection();
+    showToast('Alumni insight removed', 'success');
+}
+
+function saveCustomAlumni() { localStorage.setItem('sideraAlumni', JSON.stringify(alumniData)); }
+function loadCustomAlumni() {
+    var saved = localStorage.getItem('sideraAlumni');
+    if (saved) { try { var d = JSON.parse(saved); alumniData.length = 0; d.forEach(function(a) { alumniData.push(a); }); } catch(e) {} }
+}
+
+// === DASHBOARD: GAMIFICATION/XP TAB ===
+function renderGamificationTab() {
+    var totalXPUsers = 0;
+    var html = '<div class="dash-section-title">🎮 XP & Gamification Settings</div>';
+    
+    // Current XP Config display
+    html += '<div style="margin-bottom:16px;padding:16px;background:var(--input-bg);border-radius:14px;border:1px solid var(--border);">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">⚙️ XP Rewards per Action</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+    
+    var actions = [
+        { key: 'login', label: '🔑 Login', val: XP_CONFIG.actions.login },
+        { key: 'download', label: '📥 Download', val: XP_CONFIG.actions.download },
+        { key: 'preview', label: '👁️ Preview', val: XP_CONFIG.actions.preview },
+        { key: 'exam_complete', label: '📝 Exam Complete', val: XP_CONFIG.actions.exam_complete },
+        { key: 'exam_pass', label: '✅ Exam Pass', val: XP_CONFIG.actions.exam_pass },
+        { key: 'exam_perfect', label: '🏆 Perfect Score', val: XP_CONFIG.actions.exam_perfect },
+    ];
+    
+    actions.forEach(function(a) {
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);">' +
+            '<span style="font-size:0.8rem;font-weight:600;">' + a.label + '</span>' +
+            '<input type="number" id="xpAction_' + a.key + '" value="' + a.val + '" min="0" max="500" style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--dark);font-size:0.82rem;text-align:center;">' +
+        '</div>';
+    });
+    
+    html += '</div>' +
+        '<button onclick="saveXPConfig()" style="margin-top:10px;padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">💾 Save XP Config</button>' +
+    '</div>';
+
+    // Levels config
+    html += '<div style="margin-bottom:16px;padding:16px;background:var(--input-bg);border-radius:14px;border:1px solid var(--border);">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">🏅 Level Thresholds</h4>';
+    XP_CONFIG.levels.forEach(function(lvl, i) {
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;">' +
+            '<span style="font-size:1.2rem;">' + lvl.icon + '</span>' +
+            '<span style="font-size:0.82rem;font-weight:700;flex:1;">' + lvl.name + '</span>' +
+            '<span style="font-size:0.75rem;color:var(--text);">Min XP: ' + lvl.min + '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    // Reset all XP button
+    html += '<div style="padding:16px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:14px;">' +
+        '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:8px;color:#ef4444;">⚠️ Danger Zone</h4>' +
+        '<p style="font-size:0.78rem;color:var(--text);margin-bottom:10px;">Reset XP data for all students. This cannot be undone.</p>' +
+        '<button onclick="if(confirm(\'Are you sure you want to reset all XP data?\')) { localStorage.removeItem(\'sideraXP\'); showToast(\'All XP data reset\', \'success\'); }" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Reset All XP</button>' +
+    '</div>';
+
+    document.getElementById('dashTabGamification').innerHTML = html;
+}
+
+function saveXPConfig() {
+    var actions = ['login', 'download', 'preview', 'exam_complete', 'exam_pass', 'exam_perfect'];
+    actions.forEach(function(key) {
+        var val = parseInt(document.getElementById('xpAction_' + key).value) || 0;
+        XP_CONFIG.actions[key] = val;
+    });
+    localStorage.setItem('sideraXPConfig', JSON.stringify(XP_CONFIG.actions));
+    showToast('XP config saved!', 'success');
+}
+
+function loadXPConfig() {
+    var saved = localStorage.getItem('sideraXPConfig');
+    if (saved) { try { XP_CONFIG.actions = JSON.parse(saved); } catch(e) {} }
+}
+
+
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Just now';
@@ -5380,6 +5620,11 @@ var _featuresInitialized = false;
 function initFeatures() {
     if (_featuresInitialized) return;
     _featuresInitialized = true;
+    // Load admin-customized data
+    loadCustomVlabs();
+    loadCustomRadio();
+    loadCustomAlumni();
+    loadXPConfig();
     // Show notification + snippets buttons
     document.getElementById('notifBtn').style.display = '';
     document.getElementById('snippetsBtn').style.display = '';
