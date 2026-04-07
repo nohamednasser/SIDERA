@@ -5620,6 +5620,11 @@ var _featuresInitialized = false;
 function initFeatures() {
     if (_featuresInitialized) return;
     _featuresInitialized = true;
+    // Load admin-customized data
+    loadCustomVlabs();
+    loadCustomRadio();
+    loadCustomAlumni();
+    loadXPConfig();
     // Show notification + snippets buttons
     document.getElementById('notifBtn').style.display = '';
     document.getElementById('snippetsBtn').style.display = '';
