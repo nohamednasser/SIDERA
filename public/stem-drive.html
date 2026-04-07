@@ -2710,6 +2710,158 @@ let _currentExamQuestions = [];
 let _studentInfo = { name: '', email: '' };
 let _examTimer = null;
 let _examTimeLeft = 0;
+let _examSecurityActive = false;
+let _tabSwitchTimer = null;
+let _tabSwitchCountdown = 5;
+let _tabSwitchWarnings = 0;
+
+// === EXAM SECURITY SYSTEM ===
+function enableExamSecurity() {
+    _examSecurityActive = true;
+    _tabSwitchWarnings = 0;
+
+    // 1. Prevent screenshots (CSS-based + key blocking)
+    document.body.classList.add('exam-secure-mode');
+
+    // 2. Block PrintScreen, Ctrl+Shift+S, etc.
+    document.addEventListener('keydown', _blockScreenshotKeys, true);
+    document.addEventListener('keyup', _blockScreenshotKeys, true);
+
+    // 3. Block right-click during exam
+    document.addEventListener('contextmenu', _blockContextMenu, true);
+
+    // 4. Request fullscreen
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (rfs) rfs.call(el).catch(() => {});
+
+    // 5. Detect tab switch / visibility change
+    document.addEventListener('visibilitychange', _onVisibilityChange);
+    window.addEventListener('blur', _onWindowBlur);
+    document.addEventListener('fullscreenchange', _onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', _onFullscreenChange);
+
+    // Show security badge
+    document.getElementById('examSecureBadge').style.display = 'inline-flex';
+}
+
+function disableExamSecurity() {
+    _examSecurityActive = false;
+    document.body.classList.remove('exam-secure-mode');
+    document.removeEventListener('keydown', _blockScreenshotKeys, true);
+    document.removeEventListener('keyup', _blockScreenshotKeys, true);
+    document.removeEventListener('contextmenu', _blockContextMenu, true);
+    document.removeEventListener('visibilitychange', _onVisibilityChange);
+    window.removeEventListener('blur', _onWindowBlur);
+    document.removeEventListener('fullscreenchange', _onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', _onFullscreenChange);
+
+    if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
+    hideTabWarning();
+
+    // Exit fullscreen
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+    document.getElementById('examSecureBadge').style.display = 'none';
+}
+
+function _blockScreenshotKeys(e) {
+    if (!_examSecurityActive) return;
+    // Block: PrintScreen, Ctrl+Shift+S, Ctrl+Shift+I, Ctrl+P, Cmd+Shift+3/4/5 (Mac)
+    if (e.key === 'PrintScreen' || e.key === 'Snapshot') { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    // Block F12 dev tools
+    if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
+}
+
+function _blockContextMenu(e) {
+    if (_examSecurityActive) { e.preventDefault(); e.stopPropagation(); }
+}
+
+function _onVisibilityChange() {
+    if (!_examSecurityActive) return;
+    if (document.hidden) {
+        _startTabSwitchCountdown();
+    } else {
+        _cancelTabSwitchCountdown();
+    }
+}
+
+function _onWindowBlur() {
+    if (!_examSecurityActive) return;
+    _startTabSwitchCountdown();
+}
+
+function _onFullscreenChange() {
+    if (!_examSecurityActive) return;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // User exited fullscreen — start countdown
+        _startTabSwitchCountdown();
+        showToast('⚠️ ارجع للامتحان فوراً! عندك 5 ثواني', 'error');
+    }
+}
+
+function _startTabSwitchCountdown() {
+    if (_tabSwitchTimer) return; // already counting
+    _tabSwitchWarnings++;
+    _tabSwitchCountdown = 5;
+    showTabWarning();
+
+    _tabSwitchTimer = setInterval(() => {
+        _tabSwitchCountdown--;
+        updateTabWarning();
+        if (_tabSwitchCountdown <= 0) {
+            clearInterval(_tabSwitchTimer);
+            _tabSwitchTimer = null;
+            // Auto-submit the exam
+            hideTabWarning();
+            showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة', 'error');
+            _forceSubmitExam();
+        }
+    }, 1000);
+}
+
+function _cancelTabSwitchCountdown() {
+    if (_tabSwitchTimer) {
+        clearInterval(_tabSwitchTimer);
+        _tabSwitchTimer = null;
+    }
+    hideTabWarning();
+
+    // Re-request fullscreen
+    if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement;
+        const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (rfs) rfs.call(el).catch(() => {});
+    }
+
+    if (_tabSwitchWarnings >= 1) {
+        showToast('⚠️ تحذير ' + _tabSwitchWarnings + ' - لو خرجت تاني الامتحان هيتقفل!', 'warning');
+    }
+}
+
+function _forceSubmitExam() {
+    if (_examTimer) clearInterval(_examTimer);
+    submitExam();
+}
+
+function showTabWarning() {
+    const overlay = document.getElementById('tabWarningOverlay');
+    overlay.style.display = 'flex';
+    updateTabWarning();
+}
+
+function updateTabWarning() {
+    document.getElementById('tabWarningCount').textContent = _tabSwitchCountdown;
+}
+
+function hideTabWarning() {
+    document.getElementById('tabWarningOverlay').style.display = 'none';
+}
+
 
 let _allExams = [];
 let _examFilter = 'all';
