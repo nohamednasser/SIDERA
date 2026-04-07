@@ -1138,7 +1138,11 @@
             <button class="close-preview" onclick="closePreview()">✕</button>
         </div>
         <div class="preview-body" id="previewBody">
-            <p>Loading...</p>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:40px;">
+                <div class="skeleton-line" style="width:80%;height:20px;"></div>
+                <div class="skeleton-line" style="width:60%;height:14px;"></div>
+                <div class="skeleton-line" style="width:90%;height:300px;border-radius:12px;"></div>
+            </div>
         </div>
     </div>
 </div>
