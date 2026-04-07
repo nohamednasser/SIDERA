@@ -1183,6 +1183,8 @@
             <button class="dash-tab" onclick="switchDashTab('radio', this)">🎶 Radio</button>
             <button class="dash-tab" onclick="switchDashTab('alumni', this)">🎓 Alumni</button>
             <button class="dash-tab" onclick="switchDashTab('gamification', this)">🎮 XP</button>
+            <button class="dash-tab" onclick="switchDashTab('capstone', this)">📄 Capstone</button>
+            <button class="dash-tab" onclick="switchDashTab('chatmgmt', this)">💬 Chat</button>
         </div>
         <div class="dash-body" id="dashBody">
             <div id="dashTabOverview" class="dash-tab-content active"></div>
@@ -1193,6 +1195,8 @@
             <div id="dashTabRadio" class="dash-tab-content"></div>
             <div id="dashTabAlumni" class="dash-tab-content"></div>
             <div id="dashTabGamification" class="dash-tab-content"></div>
+            <div id="dashTabCapstone" class="dash-tab-content"></div>
+            <div id="dashTabChatmgmt" class="dash-tab-content"></div>
         </div>
     </div>
 </div>
@@ -2067,8 +2071,18 @@ async function handleAuth() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
-            document.getElementById('authSuccess').style.display = 'block';
-            toggleAuthMode();
+            // Auto-login after signup (auto-confirm is enabled)
+            if (data.access_token) {
+                _studentUser = data.user;
+                localStorage.setItem('sideraStudentToken', data.access_token);
+                localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+                localStorage.setItem('sideraUsername', username);
+                showWelcome(username);
+                hideAuthOverlay();
+            } else {
+                document.getElementById('authSuccess').style.display = 'block';
+                toggleAuthMode();
+            }
         }
     } catch (err) {
         showAuthError(err.message);
@@ -2846,6 +2860,8 @@ async function loadAllDashboardData() {
         renderRadioTab();
         renderAlumniTab();
         renderGamificationTab();
+        renderCapstoneTab();
+        renderChatmgmtTab();
     } catch (err) {
         console.error('Dashboard error:', err);
         document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
@@ -3223,6 +3239,139 @@ function saveXPConfig() {
 function loadXPConfig() {
     var saved = localStorage.getItem('sideraXPConfig');
     if (saved) { try { XP_CONFIG.actions = JSON.parse(saved); } catch(e) {} }
+}
+
+// === DASHBOARD: CAPSTONE PROJECTS TAB ===
+async function renderCapstoneTab() {
+    var html = '<div class="dash-section-title">📄 Manage Capstone Projects</div>';
+    html += '<div style="text-align:center;padding:12px;"><span class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;"></span></div>';
+    document.getElementById('dashTabCapstone').innerHTML = html;
+    
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?select=*&order=created_at.desc', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } });
+        var projects = await res.json();
+        if (!Array.isArray(projects)) projects = [];
+        
+        html = '<div class="dash-section-title">📄 Capstone Projects (' + projects.length + ')</div>';
+        
+        if (projects.length === 0) {
+            html += '<div class="dash-empty">📄 No capstone projects yet. Students can create them via the Capstone PDF Builder.</div>';
+        } else {
+            projects.forEach(function(p) {
+                html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+                    '<div class="dash-exam-info"><h4>📄 ' + esc(p.title) + '</h4><p>' + esc(p.grade) + ' · ' + (p.team_members || 'No team') + ' · ' + new Date(p.created_at).toLocaleDateString() + '</p></div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        (p.video_url ? '<a href="' + esc(p.video_url) + '" target="_blank" style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;">🎬 Video</a>' : '') +
+                        '<button onclick="deleteCapstoneProject(\'' + p.id + '\')" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️</button>' +
+                    '</div>' +
+                '</div>';
+            });
+        }
+        document.getElementById('dashTabCapstone').innerHTML = html;
+    } catch(e) {
+        document.getElementById('dashTabCapstone').innerHTML = '<div class="dash-empty">❌ Failed to load capstone projects</div>';
+    }
+}
+
+async function deleteCapstoneProject(id) {
+    if (!confirm('Delete this capstone project?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?id=eq.' + id, {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('Capstone project deleted', 'success');
+        renderCapstoneTab();
+    } catch(e) { showToast('Failed to delete', 'error'); }
+}
+
+// === DASHBOARD: CHAT MANAGEMENT TAB ===
+async function renderChatmgmtTab() {
+    var html = '<div class="dash-section-title">💬 Chat Messages Management</div>';
+    html += '<div style="text-align:center;padding:12px;"><span class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;"></span></div>';
+    document.getElementById('dashTabChatmgmt').innerHTML = html;
+    
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?select=*&order=created_at.desc&limit=200', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } });
+        var msgs = await res.json();
+        if (!Array.isArray(msgs)) msgs = [];
+        
+        // Group by user
+        var users = {};
+        msgs.forEach(function(m) {
+            if (!users[m.user_email]) users[m.user_email] = [];
+            users[m.user_email].push(m);
+        });
+        var userList = Object.keys(users);
+        
+        html = '<div class="dash-section-title">💬 Chat Messages (' + msgs.length + ' messages from ' + userList.length + ' users)</div>';
+        
+        // Clear all button
+        html += '<div style="margin-bottom:16px;display:flex;gap:8px;">' +
+            '<button onclick="clearAllChatMessages()" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Clear All Chats</button>' +
+        '</div>';
+        
+        if (userList.length === 0) {
+            html += '<div class="dash-empty">💬 No chat messages yet</div>';
+        } else {
+            userList.forEach(function(email) {
+                var userMsgs = users[email];
+                var displayName = email.replace('@sidera.local', '').replace('@sidera.app', '');
+                html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+                    '<div class="dash-exam-info"><h4>👤 ' + esc(displayName) + '</h4><p>' + userMsgs.length + ' messages · Last: ' + new Date(userMsgs[0].created_at).toLocaleString() + '</p></div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<button onclick="viewUserChat(\'' + esc(email) + '\')" style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">👁️ View</button>' +
+                        '<button onclick="clearUserChat(\'' + esc(email) + '\')" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️</button>' +
+                    '</div>' +
+                '</div>';
+            });
+        }
+        document.getElementById('dashTabChatmgmt').innerHTML = html;
+    } catch(e) {
+        document.getElementById('dashTabChatmgmt').innerHTML = '<div class="dash-empty">❌ Failed to load chat messages</div>';
+    }
+}
+
+async function viewUserChat(email) {
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email) + '&select=*&order=created_at.asc&limit=100', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } });
+        var msgs = await res.json();
+        var displayName = email.replace('@sidera.local', '').replace('@sidera.app', '');
+        var html = '<div class="dash-section-title">💬 Chat with ' + esc(displayName) + '</div>';
+        html += '<button onclick="renderChatmgmtTab()" style="margin-bottom:12px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--dark);">← Back</button>';
+        msgs.forEach(function(m) {
+            var isUser = m.role === 'user';
+            html += '<div style="padding:8px 12px;margin-bottom:6px;border-radius:10px;background:' + (isUser ? 'var(--input-bg)' : 'rgba(163,64,84,0.08)') + ';border:1px solid var(--border);font-size:0.82rem;">' +
+                '<span style="font-weight:700;font-size:0.72rem;color:' + (isUser ? 'var(--accent)' : '#22c55e') + ';">' + (isUser ? '👤 Student' : '🤖 AI') + '</span><br>' +
+                esc(m.content.substring(0, 300)) + (m.content.length > 300 ? '...' : '') +
+            '</div>';
+        });
+        document.getElementById('dashTabChatmgmt').innerHTML = html;
+    } catch(e) { showToast('Failed to load chat', 'error'); }
+}
+
+async function clearUserChat(email) {
+    if (!confirm('Delete all chat messages for ' + email.replace('@sidera.local', '') + '?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email), {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('Chat messages cleared for ' + email.replace('@sidera.local', ''), 'success');
+    } catch(e) { showToast('Failed to delete', 'error'); }
+    renderChatmgmtTab();
+}
+
+async function clearAllChatMessages() {
+    if (!confirm('Delete ALL chat messages? This cannot be undone.')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages?id=neq.00000000-0000-0000-0000-000000000000', {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('All chat messages cleared', 'success');
+    } catch(e) { showToast('Failed to delete', 'error'); }
+    renderChatmgmtTab();
 }
 
 
