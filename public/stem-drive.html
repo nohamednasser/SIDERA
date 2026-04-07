@@ -5073,7 +5073,7 @@ function awardXP(amount, reason) {
     document.getElementById('xpPopupAmount').textContent = '+' + amount + ' XP';
     document.getElementById('xpPopupReason').textContent = reason;
     popup.classList.add('show');
-    setTimeout(function() { popup.classList.remove('show'); }, 2000);
+    setTimeout(function() { popup.classList.remove('show'); }, 1500);
     // Level up notification
     if (newLevel.level.name !== oldLevel.level.name) {
         setTimeout(function() {
