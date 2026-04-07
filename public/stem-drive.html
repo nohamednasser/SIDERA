@@ -2207,10 +2207,10 @@ async function checkAuth() {
         localStorage.setItem('isSideraAdmin', 'true');
         errEl.style.display = 'none';
         hideLogin();
+        showWelcome('Admin');
         setupApp();
         render();
         loadExams();
-        showToast('✅ Admin logged in!', 'success');
     } catch (err) {
         errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
