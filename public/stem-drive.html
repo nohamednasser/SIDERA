@@ -1777,6 +1777,7 @@ async function initApp() {
         applyFiltersToUI();
         // Load files and exams in parallel
         await Promise.all([render(), loadExams()]);
+        renderAlumniSection();
     } catch (err) {
         console.error('Init failed:', err);
         setupApp();
