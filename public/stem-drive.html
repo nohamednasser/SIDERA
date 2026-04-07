@@ -1655,7 +1655,7 @@ async function openPreview(itemId) {
 
         if (ft.startsWith('image/')) {
             // Show spinner then swap to image instantly
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading image...</span></div>';
+            previewBody.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><div class="skeleton-line" style="width:70%;height:60%;border-radius:12px;"></div></div>';
             const img = new Image();
             img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
             img.onerror = () => { previewBody.innerHTML = '<p>Failed to load image. <a href="' + publicUrl + '" download style="color:var(--accent);">Download</a></p>'; };
