@@ -3156,6 +3156,7 @@ async function submitExam() {
         });
 
         // Close exam modal and show results
+        disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
