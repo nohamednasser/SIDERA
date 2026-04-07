@@ -4805,6 +4805,545 @@ async function generateCapstonePDF() {
     showToast('PDF downloaded! 🎉', 'success');
 }
 
+// ========================================
+// === FEATURE PACK: 8 NEW FEATURES ===
+// ========================================
+
+// === 1. RADAR CHART (Performance Radar) ===
+let _chartJsLoaded = false;
+function loadChartJs() {
+    if (_chartJsLoaded) return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js';
+        s.onload = function() { _chartJsLoaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+function buildRadarData(questions, answers) {
+    // Group questions by topic (using first 2 words of question as proxy topic)
+    var topicMap = {};
+    questions.forEach(function(q) {
+        // Try to detect topic from question type or first words
+        var topic = q.question_type === 'mcq' ? 'Multiple Choice' :
+                    q.question_type === 'tf' ? 'True/False' :
+                    q.question_type === 'fill' ? 'Fill Blank' : 'Essay';
+        // Better: group by every 3 questions as a "section"
+        var sectionIdx = Math.floor(questions.indexOf(q) / 3);
+        topic = 'Section ' + (sectionIdx + 1);
+        if (!topicMap[topic]) topicMap[topic] = { correct: 0, total: 0 };
+        topicMap[topic].total++;
+        var ans = answers.find(function(a) { return a.question_id === q.id; });
+        if (ans && ans.is_correct) topicMap[topic].correct++;
+    });
+    var labels = Object.keys(topicMap);
+    var data = labels.map(function(l) { return topicMap[l].total > 0 ? Math.round((topicMap[l].correct / topicMap[l].total) * 100) : 0; });
+    return { labels: labels, data: data };
+}
+
+async function renderRadarChart(containerId, questions, answers) {
+    await loadChartJs();
+    var radarData = buildRadarData(questions, answers);
+    if (radarData.labels.length < 3) return; // Need at least 3 points for radar
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '<canvas id="radarCanvas" width="280" height="280"></canvas>';
+    var ctx = document.getElementById('radarCanvas').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: radarData.labels,
+            datasets: [{
+                label: 'Your Performance %',
+                data: radarData.data,
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                borderColor: '#8b5cf6',
+                borderWidth: 2,
+                pointBackgroundColor: '#8b5cf6',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, grid: { color: 'rgba(150,150,150,0.2)' }, pointLabels: { font: { size: 11, weight: '600' } } } },
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+}
+
+// === 2. BROWSER NOTIFICATIONS ===
+function requestNotifPermission() {
+    if (!('Notification' in window)) { showToast('Browser does not support notifications', 'error'); return; }
+    if (Notification.permission === 'granted') { showToast('Notifications already enabled! ✅', 'success'); return; }
+    Notification.requestPermission().then(function(perm) {
+        if (perm === 'granted') {
+            showToast('Notifications enabled! 🔔', 'success');
+            localStorage.setItem('sideraNotifs', 'true');
+            new Notification('SIDERA STEM Drive', { body: 'You will now receive deadline reminders!', icon: '📚' });
+        } else {
+            showToast('Notifications blocked. Enable in browser settings.', 'warning');
+        }
+    });
+}
+
+function sendNotification(title, body) {
+    if (Notification.permission === 'granted') {
+        new Notification(title, { body: body, icon: '📚', tag: 'sidera-' + Date.now() });
+    }
+}
+
+// Check for upcoming exams and notify
+function checkDeadlineNotifications() {
+    if (Notification.permission !== 'granted') return;
+    if (!_allExams || _allExams.length === 0) return;
+    var lastNotif = localStorage.getItem('sideraLastNotif');
+    var now = Date.now();
+    if (lastNotif && (now - parseInt(lastNotif)) < 3600000) return; // Max once per hour
+    localStorage.setItem('sideraLastNotif', now.toString());
+    var name = _studentInfo.name || 'Student';
+    sendNotification('Hey ' + name + '! 📚', 'There are ' + _allExams.length + ' exams available. Time to test your knowledge!');
+}
+
+// === 3. VIRTUAL LABS ===
+var virtualLabs = [
+    { subject: 'physics', icon: '⚡', title: 'Circuit Construction Kit', desc: 'Build circuits with batteries, resistors, and light bulbs. Experiment with Ohm\'s Law.', url: 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html' },
+    { subject: 'physics', icon: '🎯', title: 'Forces and Motion', desc: 'Explore forces, friction, and Newton\'s laws with interactive simulations.', url: 'https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_all.html' },
+    { subject: 'physics', icon: '🌊', title: 'Wave Interference', desc: 'Visualize wave properties including interference, diffraction, and superposition.', url: 'https://phet.colorado.edu/sims/html/wave-interference/latest/wave-interference_all.html' },
+    { subject: 'chemistry', icon: '⚗️', title: 'Balancing Chemical Equations', desc: 'Practice balancing equations with an interactive scale and molecule visualization.', url: 'https://phet.colorado.edu/sims/html/balancing-chemical-equations/latest/balancing-chemical-equations_all.html' },
+    { subject: 'chemistry', icon: '🧪', title: 'Acid-Base Solutions', desc: 'Explore acids, bases, and pH with virtual litmus tests and indicators.', url: 'https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html' },
+    { subject: 'chemistry', icon: '⚛️', title: 'Build an Atom', desc: 'Build atoms from protons, neutrons, and electrons. Learn about isotopes and ions.', url: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_all.html' },
+    { subject: 'biology', icon: '🧬', title: 'Natural Selection', desc: 'Simulate evolution by natural selection with bunnies and environmental pressures.', url: 'https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_all.html' },
+    { subject: 'biology', icon: '🔬', title: 'Gene Expression', desc: 'Explore how DNA is transcribed and translated into proteins.', url: 'https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_all.html' },
+    { subject: 'math', icon: '📐', title: 'Graphing Quadratics', desc: 'Graph quadratic equations and explore vertex form, standard form, and roots.', url: 'https://phet.colorado.edu/sims/html/graphing-quadratics/latest/graphing-quadratics_all.html' },
+    { subject: 'math', icon: '📊', title: 'Area Model Algebra', desc: 'Use area models to multiply polynomials and factor expressions visually.', url: 'https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_all.html' },
+    { subject: 'geology', icon: '🌋', title: 'Plate Tectonics', desc: 'Explore plate boundaries, continental drift, and geological formations.', url: 'https://phet.colorado.edu/sims/html/plate-tectonics/latest/plate-tectonics_all.html' },
+    { subject: 'physics', icon: '🔭', title: 'Gravity and Orbits', desc: 'Explore gravitational forces between planets, stars, and moons.', url: 'https://phet.colorado.edu/sims/html/gravity-and-orbits/latest/gravity-and-orbits_all.html' },
+];
+
+function renderVirtualLabs() {
+    var grid = document.getElementById('vlabGrid');
+    if (!grid) return;
+    var filtered = virtualLabs;
+    if (currentSub !== 'All') {
+        filtered = virtualLabs.filter(function(l) { return l.subject.toLowerCase() === currentSub.toLowerCase(); });
+    }
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text);grid-column:1/-1;">No labs available for this subject. Try "All" subjects.</div>';
+        return;
+    }
+    grid.innerHTML = filtered.map(function(lab) {
+        return '<div class="vlab-card" onclick="window.open(\'' + lab.url + '\', \'_blank\')">' +
+            '<div class="vlab-icon">' + lab.icon + '</div>' +
+            '<div class="vlab-title">' + lab.title + '</div>' +
+            '<div class="vlab-desc">' + lab.desc + '</div>' +
+            '<div class="vlab-btn">🚀 Open Simulation →</div>' +
+        '</div>';
+    }).join('');
+}
+
+// === 4. XP & LEVELS GAMIFICATION ===
+var XP_CONFIG = {
+    levels: [
+        { name: 'Junior', min: 0, icon: '🌱', class: 'junior' },
+        { name: 'Senior', min: 200, icon: '🎓', class: 'senior' },
+        { name: 'Expert', min: 500, icon: '🏅', class: 'expert' },
+        { name: 'STEM Legend', min: 1000, icon: '🏆', class: 'legend' },
+    ],
+    actions: { download: 10, exam_complete: 25, exam_pass: 50, exam_perfect: 100, preview: 3, login: 5 }
+};
+
+function getXP() { return parseInt(localStorage.getItem('sideraXP') || '0'); }
+function setXP(val) { localStorage.setItem('sideraXP', val.toString()); }
+
+function getXPLevel(xp) {
+    var level = XP_CONFIG.levels[0];
+    for (var i = XP_CONFIG.levels.length - 1; i >= 0; i--) {
+        if (xp >= XP_CONFIG.levels[i].min) { level = XP_CONFIG.levels[i]; break; }
+    }
+    var nextLevel = null;
+    var idx = XP_CONFIG.levels.indexOf(level);
+    if (idx < XP_CONFIG.levels.length - 1) nextLevel = XP_CONFIG.levels[idx + 1];
+    return { level: level, next: nextLevel };
+}
+
+function updateXPBar() {
+    var xp = getXP();
+    var info = getXPLevel(xp);
+    var badge = document.getElementById('xpBadge');
+    var fill = document.getElementById('xpFill');
+    var text = document.getElementById('xpText');
+    if (!badge) return;
+    badge.className = 'xp-level-badge ' + info.level.class;
+    badge.textContent = info.level.icon + ' ' + info.level.name;
+    text.textContent = xp + ' XP';
+    if (info.next) {
+        var progress = ((xp - info.level.min) / (info.next.min - info.level.min)) * 100;
+        fill.style.width = Math.min(100, progress) + '%';
+    } else {
+        fill.style.width = '100%';
+    }
+    document.getElementById('xpBar').style.display = '';
+}
+
+function awardXP(amount, reason) {
+    var oldXP = getXP();
+    var newXP = oldXP + amount;
+    setXP(newXP);
+    var oldLevel = getXPLevel(oldXP);
+    var newLevel = getXPLevel(newXP);
+    // Show popup
+    var popup = document.getElementById('xpPopup');
+    document.getElementById('xpPopupAmount').textContent = '+' + amount + ' XP';
+    document.getElementById('xpPopupReason').textContent = reason;
+    popup.classList.add('show');
+    setTimeout(function() { popup.classList.remove('show'); }, 2000);
+    // Level up notification
+    if (newLevel.level.name !== oldLevel.level.name) {
+        setTimeout(function() {
+            showToast('🎉 Level Up! You are now ' + newLevel.level.icon + ' ' + newLevel.level.name + '!', 'success');
+            if (Notification.permission === 'granted') {
+                sendNotification('Level Up! ' + newLevel.level.icon, 'You reached ' + newLevel.level.name + ' with ' + newXP + ' XP!');
+            }
+        }, 2200);
+    }
+    updateXPBar();
+}
+
+// === 5. SMART SNIPPETS ===
+function getSnippets() {
+    try { return JSON.parse(localStorage.getItem('sideraSnippets') || '[]'); } catch(e) { return []; }
+}
+function saveSnippets(snippets) { localStorage.setItem('sideraSnippets', JSON.stringify(snippets)); }
+
+function addSnippet(text, source) {
+    if (!text || text.trim().length < 3) return;
+    var snippets = getSnippets();
+    snippets.unshift({ text: text.trim(), source: source || 'Unknown', date: new Date().toLocaleDateString() });
+    if (snippets.length > 100) snippets = snippets.slice(0, 100);
+    saveSnippets(snippets);
+    renderSnippets();
+    awardXP(5, 'Note saved!');
+    showToast('📝 Note saved!', 'success');
+}
+
+function deleteSnippet(idx) {
+    var snippets = getSnippets();
+    snippets.splice(idx, 1);
+    saveSnippets(snippets);
+    renderSnippets();
+}
+
+function renderSnippets() {
+    var list = document.getElementById('snippetsList');
+    var snippets = getSnippets();
+    if (snippets.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text);font-size:0.82rem;"><div style="font-size:2rem;margin-bottom:8px;">📝</div>Select text while viewing a PDF and click "Save to Notes".</div>';
+        return;
+    }
+    list.innerHTML = snippets.map(function(s, i) {
+        return '<div class="snippet-item"><span class="snippet-del" onclick="deleteSnippet(' + i + ')">✕</span>' + esc(s.text) + '<div class="snippet-source">📄 ' + esc(s.source) + ' · ' + s.date + '</div></div>';
+    }).join('');
+}
+
+function toggleSnippets() {
+    document.getElementById('snippetsPanel').classList.toggle('open');
+    renderSnippets();
+}
+
+function exportSnippets() {
+    var snippets = getSnippets();
+    if (snippets.length === 0) { showToast('No notes to copy', 'warning'); return; }
+    var text = '📝 My Study Notes - SIDERA\n' + '='.repeat(30) + '\n\n';
+    snippets.forEach(function(s, i) {
+        text += (i + 1) + '. ' + s.text + '\n   Source: ' + s.source + '\n\n';
+    });
+    navigator.clipboard.writeText(text).then(function() { showToast('Notes copied to clipboard! 📋', 'success'); });
+}
+
+// Listen for text selection in preview to offer "Save to Notes"
+document.addEventListener('mouseup', function() {
+    var sel = window.getSelection();
+    if (!sel || sel.toString().trim().length < 5) return;
+    var previewModal = document.getElementById('previewModal');
+    if (!previewModal || !previewModal.classList.contains('show')) return;
+    // Show a small floating "save" button
+    var existing = document.getElementById('saveNoteBtn');
+    if (existing) existing.remove();
+    var btn = document.createElement('button');
+    btn.id = 'saveNoteBtn';
+    btn.innerHTML = '📝 Save to Notes';
+    btn.style.cssText = 'position:fixed;bottom:60px;right:20px;z-index:99999;background:linear-gradient(135deg,#8b5cf6,#a855f7);color:white;border:none;padding:10px 18px;border-radius:14px;font-weight:700;font-size:0.82rem;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,0.4);animation:bounceIn 0.3s cubic-bezier(.68,-.55,.27,1.55);';
+    btn.onclick = function() {
+        var selectedText = window.getSelection().toString();
+        var source = document.getElementById('previewTitle')?.textContent || 'PDF';
+        addSnippet(selectedText, source);
+        btn.remove();
+    };
+    document.body.appendChild(btn);
+    setTimeout(function() { if (document.getElementById('saveNoteBtn')) document.getElementById('saveNoteBtn').remove(); }, 8000);
+});
+
+// === 6. AI RECOMMENDER ===
+function generateRecommendations(questions, answers, examSubject) {
+    var weakAreas = [];
+    var strongAreas = [];
+    // Group by question type
+    var typePerf = {};
+    questions.forEach(function(q) {
+        var type = q.question_type;
+        if (!typePerf[type]) typePerf[type] = { correct: 0, total: 0 };
+        typePerf[type].total++;
+        var ans = answers.find(function(a) { return a.question_id === q.id; });
+        if (ans && ans.is_correct) typePerf[type].correct++;
+    });
+    for (var type in typePerf) {
+        var pct = (typePerf[type].correct / typePerf[type].total) * 100;
+        if (pct < 60) weakAreas.push(type);
+        else strongAreas.push(type);
+    }
+
+    var recs = [];
+    var sub = examSubject || '';
+    // Recommend based on weak areas
+    if (_cachedItems) {
+        var related = _cachedItems.filter(function(item) {
+            return item.subject.toLowerCase() === sub.toLowerCase();
+        }).slice(0, 3);
+        related.forEach(function(item) {
+            recs.push({ icon: subjectMap[item.subject]?.icon || '📄', title: item.title, desc: 'Review this material', id: item.id });
+        });
+    }
+    // Recommend related exams
+    if (_allExams) {
+        var relatedExams = _allExams.filter(function(e) {
+            return e.subject.toLowerCase() === sub.toLowerCase() && e.id !== _currentExamId;
+        }).slice(0, 2);
+        relatedExams.forEach(function(e) {
+            recs.push({ icon: '📝', title: e.title, desc: 'Try this related exam' });
+        });
+    }
+    // Recommend virtual labs
+    var relatedLabs = virtualLabs.filter(function(l) { return l.subject.toLowerCase() === sub.toLowerCase(); }).slice(0, 1);
+    relatedLabs.forEach(function(l) {
+        recs.push({ icon: l.icon, title: l.title, desc: 'Interactive simulation', url: l.url });
+    });
+    return { recs: recs, weakAreas: weakAreas, strongAreas: strongAreas };
+}
+
+function renderRecommendationBanner(recs) {
+    if (!recs || recs.recs.length === 0) return '';
+    var html = '<div class="ai-rec-banner"><h4>🤖 AI Study Recommendations</h4>';
+    if (recs.weakAreas.length > 0) {
+        html += '<div style="font-size:0.78rem;color:var(--text);margin-bottom:8px;">You struggled with: <strong>' + recs.weakAreas.join(', ') + '</strong> questions. Here are resources to help:</div>';
+    }
+    html += '<div class="rec-items">';
+    recs.recs.forEach(function(r) {
+        var onclick = r.id ? 'openPreview(\'' + r.id + '\')' : (r.url ? 'window.open(\'' + r.url + '\', \'_blank\')' : '');
+        html += '<div class="rec-item" onclick="' + onclick + ';closeExamResult()"><span>' + r.icon + '</span><div><strong style="font-size:0.8rem;">' + r.title + '</strong><div style="font-size:0.7rem;color:var(--text);">' + r.desc + '</div></div><span style="margin-left:auto;">→</span></div>';
+    });
+    html += '</div></div>';
+    return html;
+}
+
+// === 7. STUDY RADIO ===
+var radioPlaylist = [
+    { title: 'Lofi Hip Hop - Beats to Study', artist: 'ChilledCow', url: 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1', type: 'yt' },
+    { title: 'Jazz Piano for Studying', artist: 'Cafe Music BGM', url: 'https://www.youtube.com/embed/fEvM-OUbaKs?autoplay=1', type: 'yt' },
+    { title: 'Classical Study Music - Mozart', artist: 'Mozart', url: 'https://www.youtube.com/embed/F-4wUfZD6oc?autoplay=1', type: 'yt' },
+    { title: 'Rain Sounds for Concentration', artist: 'Nature Sounds', url: 'https://www.youtube.com/embed/mPZkdNFkNps?autoplay=1', type: 'yt' },
+    { title: 'Deep Focus - Ambient Music', artist: 'Greenred Productions', url: 'https://www.youtube.com/embed/lTRiuFIWV54?autoplay=1', type: 'yt' },
+    { title: 'Synthwave Study Session', artist: 'Synthwave', url: 'https://www.youtube.com/embed/4xDzrJKXOOY?autoplay=1', type: 'yt' },
+];
+
+var _currentRadioIdx = -1;
+var _radioIframe = null;
+
+function renderRadioTracks() {
+    var container = document.getElementById('radioTracks');
+    container.innerHTML = radioPlaylist.map(function(track, i) {
+        return '<div class="radio-track' + (i === _currentRadioIdx ? ' playing' : '') + '" onclick="playRadioTrack(' + i + ')">' +
+            '<span>' + (i === _currentRadioIdx ? '🔊' : '▶️') + '</span>' +
+            '<div style="flex:1;"><div style="font-weight:600;">' + track.title + '</div><div style="font-size:0.7rem;color:var(--text);">' + track.artist + '</div></div>' +
+        '</div>';
+    }).join('');
+}
+
+function playRadioTrack(idx) {
+    _currentRadioIdx = idx;
+    var track = radioPlaylist[idx];
+    document.getElementById('radioNowTitle').textContent = '🎵 ' + track.title;
+    document.getElementById('radioNowArtist').textContent = track.artist;
+    document.getElementById('radioVisualizer').style.display = 'flex';
+    // Create iframe for YouTube
+    if (_radioIframe) _radioIframe.remove();
+    _radioIframe = document.createElement('iframe');
+    _radioIframe.src = track.url;
+    _radioIframe.style.cssText = 'width:100%;height:200px;border:none;border-radius:12px;margin-top:12px;';
+    _radioIframe.allow = 'autoplay';
+    document.querySelector('.radio-player').appendChild(_radioIframe);
+    renderRadioTracks();
+    awardXP(2, 'Study music started!');
+}
+
+// === 8. OCR SEARCH (Tesseract.js) ===
+var _tesseractLoaded = false;
+function loadTesseract() {
+    if (_tesseractLoaded) return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js';
+        s.onload = function() { _tesseractLoaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+// Add OCR button to header
+function addOCRButton() {
+    var controls = document.querySelector('.top-controls');
+    if (!controls || document.getElementById('ocrBtn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'ocrBtn';
+    btn.className = 'control-btn';
+    btn.innerHTML = '📷 OCR Search';
+    btn.onclick = function() { document.getElementById('ocrInput').click(); };
+    controls.insertBefore(btn, controls.firstChild);
+    // Hidden file input
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.id = 'ocrInput';
+    inp.accept = 'image/*';
+    inp.hidden = true;
+    inp.onchange = function() { if (inp.files[0]) processOCRImage(inp.files[0]); };
+    document.body.appendChild(inp);
+}
+
+async function processOCRImage(file) {
+    showToast('📷 Scanning image...', 'info');
+    await loadTesseract();
+    try {
+        var result = await Tesseract.recognize(file, 'eng+ara', { logger: function() {} });
+        var text = result.data.text.trim();
+        if (!text) { showToast('No text found in image', 'warning'); return; }
+        showToast('Found text! Searching...', 'success');
+        document.getElementById('searchBar').value = text.substring(0, 100);
+        search();
+        aiSmartSearch(text.substring(0, 100));
+    } catch (err) {
+        console.error('OCR error:', err);
+        showToast('OCR failed. Try a clearer image.', 'error');
+    }
+}
+
+// === INTEGRATE FEATURES INTO EXISTING CODE ===
+
+// Patch showExamResults to include radar chart + AI recommendations
+var _origShowExamResults = showExamResults;
+showExamResults = function(score, totalPoints, answers) {
+    _origShowExamResults(score, totalPoints, answers);
+    // Award XP
+    var pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
+    awardXP(XP_CONFIG.actions.exam_complete, 'Exam completed!');
+    if (pct >= 50) awardXP(XP_CONFIG.actions.exam_pass, 'Exam passed! 🎉');
+    if (pct === 100) awardXP(XP_CONFIG.actions.exam_perfect, 'Perfect score! 🏆');
+    // Add radar chart
+    var resultBody = document.getElementById('examResultBody');
+    if (resultBody && _currentExamQuestions && _currentExamQuestions.length >= 3) {
+        var radarDiv = document.createElement('div');
+        radarDiv.className = 'radar-container';
+        radarDiv.id = 'radarChartContainer';
+        radarDiv.innerHTML = '<div style="text-align:center;font-weight:700;font-size:0.85rem;margin-bottom:8px;">🕸️ Performance Radar</div>';
+        var card = resultBody.querySelector('.result-card');
+        if (card) {
+            var statsGrid = card.querySelector('.result-stats-grid');
+            if (statsGrid) statsGrid.after(radarDiv);
+            else card.appendChild(radarDiv);
+        }
+        renderRadarChart('radarChartContainer', _currentExamQuestions, answers);
+    }
+    // Add AI recommendations
+    var currentExam = _allExams.find(function(e) { return e.id === _currentExamId; });
+    var recData = generateRecommendations(_currentExamQuestions, answers, currentExam?.subject || '');
+    if (recData.recs.length > 0) {
+        var recDiv = document.createElement('div');
+        recDiv.innerHTML = renderRecommendationBanner(recData);
+        var card2 = resultBody.querySelector('.result-card');
+        if (card2) card2.appendChild(recDiv);
+    }
+};
+
+// Patch downloadFile to award XP
+var _origDownloadFile = downloadFile;
+downloadFile = async function(itemId) {
+    await _origDownloadFile(itemId);
+    awardXP(XP_CONFIG.actions.download, 'File downloaded!');
+};
+
+// Patch openPreview to award XP
+var _origOpenPreview = openPreview;
+openPreview = async function(itemId) {
+    await _origOpenPreview(itemId);
+    awardXP(XP_CONFIG.actions.preview, 'File previewed!');
+};
+
+// Initialize all features on page load
+var _origInitApp;
+(function() {
+    // Wait for initApp to be available, then patch it
+    var checkInit = setInterval(function() {
+        if (typeof initApp === 'function' && !_origInitApp) {
+            _origInitApp = initApp;
+            clearInterval(checkInit);
+        }
+    }, 100);
+})();
+
+// Show buttons after auth
+var _featuresInitialized = false;
+function initFeatures() {
+    if (_featuresInitialized) return;
+    _featuresInitialized = true;
+    // Show notification + snippets buttons
+    document.getElementById('notifBtn').style.display = '';
+    document.getElementById('snippetsBtn').style.display = '';
+    // XP
+    awardXP(XP_CONFIG.actions.login, 'Welcome back!');
+    updateXPBar();
+    // Virtual Labs
+    renderVirtualLabs();
+    // Radio
+    renderRadioTracks();
+    // OCR
+    addOCRButton();
+    // Notifications
+    if (localStorage.getItem('sideraNotifs') === 'true') {
+        setTimeout(checkDeadlineNotifications, 5000);
+    }
+    // Snippets
+    renderSnippets();
+}
+
+// Hook into auth completion
+var _checkAuthInterval = setInterval(function() {
+    if (document.getElementById('authOverlay') && document.getElementById('authOverlay').style.display === 'none') {
+        initFeatures();
+        clearInterval(_checkAuthInterval);
+    }
+}, 500);
+
+// Also patch render to update virtual labs when subject changes
+var _origFilterSub;
+if (typeof filterSub === 'function') {
+    _origFilterSub = filterSub;
+    filterSub = function(s, el) {
+        _origFilterSub(s, el);
+        renderVirtualLabs();
+    };
+}
+
 </script>
 
 <!-- Chatbot Widget -->
