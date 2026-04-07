@@ -1774,17 +1774,18 @@ async function handleAuth() {
                 isAdmin = true;
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
+                showWelcome('Admin');
                 hideAuthOverlay();
                 setupApp();
                 render();
                 loadExams();
-                showToast('✅ Welcome back, Admin!', 'success');
             } else {
                 // Student login
                 _studentUser = data.user;
                 localStorage.setItem('sideraStudentToken', data.access_token);
                 localStorage.setItem('sideraStudentRefresh', data.refresh_token);
                 localStorage.setItem('sideraUsername', username);
+                showWelcome(username);
                 hideAuthOverlay();
             }
         } else {
