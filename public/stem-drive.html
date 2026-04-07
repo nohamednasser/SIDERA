@@ -2942,6 +2942,9 @@ function enableExamSecurity() {
     // 1. Prevent screenshots (CSS-based + key blocking)
     document.body.classList.add('exam-secure-mode');
 
+    // 1.5 Show watermark with student info
+    showExamWatermark();
+
     // 2. Block PrintScreen, Ctrl+Shift+S, etc.
     document.addEventListener('keydown', _blockScreenshotKeys, true);
     document.addEventListener('keyup', _blockScreenshotKeys, true);
