@@ -233,57 +233,69 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            header { padding: 16px 0 45px; }
-            header h1 { font-size: 1.6rem; letter-spacing: 2px; }
+            header { padding: 14px 0 42px; }
+            header h1 { font-size: 1.5rem; letter-spacing: 1.5px; }
             
-            .top-controls { gap: 6px; padding: 0 12px; margin-bottom: 12px; }
-            .control-btn { padding: 6px 10px; font-size: 0.7rem; gap: 3px; border-radius: 14px; }
+            .top-controls { gap: 5px; padding: 0 10px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
+            .control-btn { padding: 7px 12px; font-size: 0.72rem; gap: 4px; border-radius: 14px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+            .control-btn:active { transform: scale(0.95); background: rgba(163,64,84,0.08); }
             
-            #searchBar { max-width: 92%; padding: 12px 18px; font-size: 0.85rem; margin-top: -25px; }
+            #searchBar { max-width: 92%; padding: 13px 18px; font-size: 0.88rem; margin-top: -22px; }
             
-            .filter-container { margin-top: 30px; gap: 10px; }
-            nav { gap: 6px; padding: 0 12px; }
-            nav span { font-size: 0.65rem; padding: 6px 12px; }
+            .filter-container { margin-top: 28px; gap: 10px; }
+            nav { gap: 5px; padding: 0 10px; }
+            nav span { font-size: 0.68rem; padding: 7px 14px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+            nav span:active { transform: scale(0.95); }
             
-            #adminPanel { width: 95%; padding: 20px; border-radius: 18px; margin-top: 20px; }
+            #adminPanel { width: 95%; padding: 18px; border-radius: 18px; margin-top: 18px; }
             .form-grid { grid-template-columns: 1fr; gap: 10px; }
             .full-w { grid-column: span 1; }
             .file-drop-zone { grid-column: span 1; }
             
-            .content { grid-template-columns: 1fr; gap: 14px; width: 95%; padding: 25px 0; }
+            .content { grid-template-columns: 1fr; gap: 12px; width: 95%; padding: 20px 0; }
             
-            .card { padding: 16px; border-radius: 14px; min-height: 180px; }
+            .card { padding: 16px; border-radius: 16px; min-height: 170px; }
+            .card:active { transform: scale(0.98); }
             .card h3 { font-size: 0.95rem; }
-            .card p { font-size: 0.75rem; margin-bottom: 12px; }
-            .card-header { flex-wrap: wrap; }
-            .subj-tag, .type-tag { font-size: 0.6rem; }
+            .card p { font-size: 0.78rem; margin-bottom: 12px; }
+            .card-header { flex-wrap: wrap; gap: 6px; }
+            .subj-tag, .type-tag { font-size: 0.62rem; }
             
-            .btn-group { flex-direction: column; gap: 6px; }
-            .btn-preview, .btn-dl { padding: 10px; font-size: 0.8rem; border-radius: 8px; }
+            .btn-group { flex-direction: row; gap: 8px; }
+            .btn-preview, .btn-dl { padding: 11px 8px; font-size: 0.78rem; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
+            .btn-preview:active, .btn-dl:active { transform: scale(0.95); }
             
-            .modal-content { width: 90%; padding: 25px; border-radius: 18px; }
+            .modal-content { width: 92%; padding: 24px; border-radius: 20px; }
             .preview-modal { background: rgba(0,0,0,0.95); }
             .preview-wrapper { width: 100%; height: 100%; max-width: 100%; max-height: 100%; border-radius: 0; }
-            .preview-header { padding: 10px 15px; }
-            .preview-header h2 { font-size: 0.85rem; }
-            .close-preview { width: 40px; height: 40px; min-width: 40px; font-size: 1.3rem; }
+            .preview-header { padding: 10px 14px; }
+            .preview-header h2 { font-size: 0.88rem; }
+            .close-preview { width: 42px; height: 42px; min-width: 42px; font-size: 1.3rem; -webkit-tap-highlight-color: transparent; }
             .preview-body { -webkit-overflow-scrolling: touch; }
             .preview-body img { padding: 5px; }
             .zip-browser { padding: 10px !important; }
-            .zip-browser-grid { gap: 6px !important; }
-            .zip-item-card { padding: 10px !important; }
+            .zip-browser-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .zip-item-card { padding: 12px !important; }
             
-            .progress-container { bottom: 10px; right: 10px; left: 10px; min-width: auto; }
+            .progress-container { bottom: 10px; right: 10px; left: 10px; min-width: auto; border-radius: 14px; }
             
-            footer { padding: 25px 0; font-size: 0.78rem; }
+            footer { padding: 22px 12px; font-size: 0.78rem; }
+
+            /* Better touch targets */
+            .del-btn { width: 36px; height: 36px; border-radius: 12px; }
+            .exam-card { border-radius: 18px; }
+            .exam-card:active { transform: scale(0.98); }
+            .exam-start-btn { padding: 14px !important; font-size: 0.9rem !important; -webkit-tap-highlight-color: transparent; }
+            .exam-q-dot { width: 32px; height: 32px; }
         }
 
         @media (max-width: 400px) {
-            header { padding: 12px 0 35px; }
-            header h1 { font-size: 1.3rem; }
+            header { padding: 10px 0 32px; }
+            header h1 { font-size: 1.2rem; }
             .top-controls { gap: 4px; padding: 0 8px; }
-            .control-btn { padding: 5px 8px; font-size: 0.65rem; }
-            nav span { font-size: 0.6rem; padding: 5px 10px; }
+            .control-btn { padding: 6px 10px; font-size: 0.68rem; }
+            nav span { font-size: 0.62rem; padding: 6px 11px; }
+            .card { padding: 14px; border-radius: 14px; }
         }
 
         /* ═══════════════════════════════════════════
@@ -587,33 +599,56 @@
         }
 
         /* Student Auth Overlay */
-        .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.3s; }
+        .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.4s cubic-bezier(.4,0,.2,1); }
         .auth-overlay.hidden { opacity: 0; pointer-events: none; }
-        .auth-container { background: var(--card-bg); padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); transition: background-color 0.15s, border-color 0.15s; }
+        .auth-container { background: var(--card-bg); padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); transition: background-color 0.15s, border-color 0.15s; animation: authFadeIn 0.5s cubic-bezier(.4,0,.2,1); }
+        @keyframes authFadeIn { from { opacity:0; transform: translateY(20px) scale(0.96); } to { opacity:1; transform: none; } }
         .auth-container h2 { margin: 0 0 10px; color: var(--dark); font-weight: 700; font-size: 1.5rem; letter-spacing: 2px; }
         .auth-container .auth-sub { color: var(--text); font-size: 0.9rem; margin-bottom: 25px; }
         .auth-container .auth-input-group { margin-bottom: 15px; text-align: left; }
         .auth-container .auth-input-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
-        .auth-container .auth-input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.2s, background 0.2s; color: var(--dark); }
-        .auth-container .auth-input:focus { border-color: var(--accent); background: var(--card-bg); }
+        .auth-container .auth-input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; color: var(--dark); }
+        .auth-container .auth-input:focus { border-color: var(--accent); background: var(--card-bg); box-shadow: 0 0 0 4px rgba(163,64,84,0.08); }
         .auth-container .auth-input.input-error { border-color: #dc3545; background: rgba(220,53,69,0.05); }
         .auth-error { color: #dc3545; font-size: 0.8rem; margin-bottom: 15px; display: none; text-align: left; padding: 10px; background: rgba(220,53,69,0.08); border-radius: 8px; border-left: 4px solid #dc3545; animation: shake 0.4s ease-in-out; }
         .auth-success { color: #22c55e; font-size: 0.85rem; display: none; margin-bottom: 15px; padding: 10px; background: rgba(34,197,94,0.08); border-radius: 8px; border-left: 4px solid #22c55e; }
         .auth-theme-toggle { position: absolute; top: 16px; right: 16px; background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 1rem; color: var(--dark); transition: background 0.2s, border-color 0.2s; }
         .auth-theme-toggle:hover { background: var(--border); }
-        .auth-btn { width: 100%; padding: 16px; background: #1B1931; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; }
-        .auth-btn:hover { background: var(--accent); transform: translateY(-2px); }
+        .auth-btn { width: 100%; padding: 16px; background: #1B1931; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; }
+        .auth-btn:hover { background: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(163,64,84,0.25); }
         [data-theme="dark"] .auth-btn { background: var(--accent); }
         [data-theme="dark"] .auth-btn:hover { background: #ff6b85; }
-        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
         .auth-switch { margin-top: 25px; font-size: 0.85rem; color: var(--text); }
         .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 700; }
         .auth-switch span:hover { text-decoration: underline; }
-        .auth-guest { margin-top: 15px; font-size: 0.8rem; color: var(--text); cursor: pointer; }
+        .auth-guest { margin-top: 15px; font-size: 0.8rem; color: var(--text); cursor: pointer; transition: color 0.15s; }
         .auth-guest:hover { color: var(--accent); }
+
+        /* Welcome Overlay */
+        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.6s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+        .welcome-overlay.fade-out { opacity: 0; }
+        .welcome-content { text-align: center; animation: welcomeBounce 0.7s cubic-bezier(.34,1.56,.64,1); }
+        .welcome-emoji { font-size: 4rem; margin-bottom: 16px; animation: welcomeWave 1.2s ease-in-out; }
+        .welcome-text { font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; letter-spacing: -0.5px; }
+        .welcome-sub { font-size: 1rem; color: var(--text); opacity: 0.7; }
+        @keyframes welcomeBounce { from { opacity:0; transform: scale(0.8) translateY(20px); } to { opacity:1; transform: none; } }
+        @keyframes welcomeWave { 0%,100%{transform:rotate(0)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(10deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(6deg)} }
+
+        /* Smooth page entrance */
+        .page-enter header,
+        .page-enter .filter-container,
+        .page-enter .content,
+        .page-enter .exam-section { animation: pageSlideUp 0.5s cubic-bezier(.4,0,.2,1) both; }
+        .page-enter .filter-container { animation-delay: 0.05s; }
+        .page-enter .content { animation-delay: 0.1s; }
+        .page-enter .exam-section { animation-delay: 0.15s; }
+        @keyframes pageSlideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
         @media (max-width: 768px) {
             .auth-container { margin: 16px; padding: 28px 24px; }
+            .welcome-text { font-size: 1.4rem; }
+            .welcome-emoji { font-size: 3rem; }
         }
     </style>
 </head>
@@ -639,6 +674,15 @@
         <p class="auth-switch" id="authToggle">Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span></p>
         <p class="auth-guest" onclick="openAdminLoginFromAuth()">Admin? Sign in here →</p>
         <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
+    </div>
+</div>
+
+<!-- Welcome Overlay -->
+<div class="welcome-overlay" id="welcomeOverlay" style="display:none;">
+    <div class="welcome-content">
+        <div class="welcome-emoji">👋</div>
+        <div class="welcome-text" id="welcomeText">Welcome back!</div>
+        <div class="welcome-sub" id="welcomeSub">Loading your resources...</div>
     </div>
 </div>
 
@@ -1730,17 +1774,18 @@ async function handleAuth() {
                 isAdmin = true;
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
+                showWelcome('Admin');
                 hideAuthOverlay();
                 setupApp();
                 render();
                 loadExams();
-                showToast('✅ Welcome back, Admin!', 'success');
             } else {
                 // Student login
                 _studentUser = data.user;
                 localStorage.setItem('sideraStudentToken', data.access_token);
                 localStorage.setItem('sideraStudentRefresh', data.refresh_token);
                 localStorage.setItem('sideraUsername', username);
+                showWelcome(username);
                 hideAuthOverlay();
             }
         } else {
@@ -1765,6 +1810,7 @@ async function handleAuth() {
 
 function enterAsGuest() {
     localStorage.setItem('sideraGuest', 'true');
+    showWelcome('Guest');
     hideAuthOverlay();
     document.getElementById('guestSignInBtn').style.display = 'flex';
 }
@@ -1777,10 +1823,43 @@ function showAuthForGuest() {
     document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
+function showWelcome(name) {
+    const wo = document.getElementById('welcomeOverlay');
+    const hour = new Date().getHours();
+    let greeting = '👋';
+    let text = 'Welcome back!';
+    if (hour < 12) { greeting = '🌅'; text = 'Good morning'; }
+    else if (hour < 18) { greeting = '☀️'; text = 'Good afternoon'; }
+    else { greeting = '🌙'; text = 'Good evening'; }
+    
+    if (name && name !== 'Guest') {
+        text += ', ' + name + '!';
+    } else if (name === 'Guest') {
+        text = 'Welcome to SIDERA! 🎓';
+    } else {
+        text += '!';
+    }
+    
+    document.getElementById('welcomeText').textContent = text;
+    document.querySelector('.welcome-emoji').textContent = greeting;
+    document.getElementById('welcomeSub').textContent = 'Loading your resources...';
+    wo.style.display = 'flex';
+    
+    setTimeout(() => {
+        wo.classList.add('fade-out');
+        document.body.classList.add('page-enter');
+        setTimeout(() => {
+            wo.style.display = 'none';
+            wo.classList.remove('fade-out');
+            document.body.classList.remove('page-enter');
+        }, 600);
+    }, 1400);
+}
+
 function hideAuthOverlay() {
     const overlay = document.getElementById('authOverlay');
     overlay.classList.add('hidden');
-    setTimeout(() => overlay.style.display = 'none', 300);
+    setTimeout(() => overlay.style.display = 'none', 400);
     const token = localStorage.getItem('sideraStudentToken');
     if (token) {
         document.getElementById('studentLogoutBtn').style.display = 'flex';
@@ -1793,6 +1872,14 @@ function checkStudentAuth() {
     const isGuest = localStorage.getItem('sideraGuest');
     const isAdminSession = localStorage.getItem('sideraAuthSession');
     if (token || isGuest || isAdminSession) {
+        const username = localStorage.getItem('sideraUsername');
+        if (token && username) {
+            showWelcome(username);
+        } else if (isAdminSession) {
+            showWelcome('Admin');
+        } else if (isGuest) {
+            showWelcome('Guest');
+        }
         hideAuthOverlay();
     }
     if (token) {
@@ -2120,10 +2207,10 @@ async function checkAuth() {
         localStorage.setItem('isSideraAdmin', 'true');
         errEl.style.display = 'none';
         hideLogin();
+        showWelcome('Admin');
         setupApp();
         render();
         loadExams();
-        showToast('✅ Admin logged in!', 'success');
     } catch (err) {
         errEl.textContent = '❌ Connection error. Please try again.';
         errEl.style.display = 'block';
