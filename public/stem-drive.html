@@ -2758,10 +2758,10 @@ let _dashData = {};
 
 async function loadAllDashboardData() {
     // Show loading in overview
-    document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabExams').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabStudents').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabActivity').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
+    document.getElementById('dashTabOverview').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabExams').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabStudents').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabActivity').innerHTML = showDashSkeleton();
 
     try {
         // Fetch all data in parallel
