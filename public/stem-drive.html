@@ -2067,8 +2067,18 @@ async function handleAuth() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
-            document.getElementById('authSuccess').style.display = 'block';
-            toggleAuthMode();
+            // Auto-login after signup (auto-confirm is enabled)
+            if (data.access_token) {
+                _studentUser = data.user;
+                localStorage.setItem('sideraStudentToken', data.access_token);
+                localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+                localStorage.setItem('sideraUsername', username);
+                showWelcome(username);
+                hideAuthOverlay();
+            } else {
+                document.getElementById('authSuccess').style.display = 'block';
+                toggleAuthMode();
+            }
         }
     } catch (err) {
         showAuthError(err.message);
