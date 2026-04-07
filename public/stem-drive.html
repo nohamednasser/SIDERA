@@ -140,32 +140,60 @@
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
         /* Admin Dashboard Modal */
-        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
+        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .dash-modal.show { display: flex; }
-        .dash-content { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.25s ease; transition: background-color 0.15s ease, border-color 0.15s ease; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
-        .dash-header h2 { margin: 0; font-size: 1.2rem; }
-        .dash-close { background: #ff4d4d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
-        .dash-body { padding: 20px 24px; }
-        .dash-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; transition: background-color 0.15s ease, border-color 0.15s ease; }
-        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
-        .stat-card .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
-        .stat-card .stat-label { font-size: 0.72rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .dash-section-title { font-size: 0.85rem; font-weight: 700; margin: 16px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-content { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); width: 92%; max-width: 720px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s ease, border-color 0.15s ease; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
+        .dash-header h2 { margin: 0; font-size: 1.25rem; font-weight: 800; }
+        .dash-close { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: transform 0.15s ease; }
+        .dash-close:hover { transform: scale(1.1); }
+        .dash-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 28px; gap: 4px; overflow-x: auto; }
+        .dash-tab { padding: 12px 18px; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; border: none; background: none; border-bottom: 2.5px solid transparent; transition: color 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+        .dash-tab:hover { color: var(--dark); }
+        .dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .dash-body { padding: 22px 28px; }
+        .dash-tab-content { display: none; }
+        .dash-tab-content.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px 12px; text-align: center; transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .stat-card .stat-icon { font-size: 1.4rem; margin-bottom: 6px; }
+        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+        .stat-card .stat-label { font-size: 0.68rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-section-title { font-size: 0.82rem; font-weight: 700; margin: 18px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
         .stat-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .stat-bar-label { font-size: 0.8rem; min-width: 100px; font-weight: 600; }
         .stat-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-        .stat-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
-        .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; }
+        .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff6b8a); border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+        .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; font-weight: 600; }
         .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse-dot 1.5s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        .dash-exam-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.15s ease; }
+        .dash-exam-card:hover { border-color: var(--accent); }
+        .dash-exam-info h4 { margin: 0 0 4px; font-size: 0.9rem; font-weight: 700; }
+        .dash-exam-info p { margin: 0; font-size: 0.75rem; color: var(--text); }
+        .dash-exam-stats { display: flex; gap: 14px; align-items: center; }
+        .dash-exam-stat { text-align: center; }
+        .dash-exam-stat .val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .dash-exam-stat .lbl { font-size: 0.62rem; color: var(--text); text-transform: uppercase; font-weight: 600; }
+        .dash-recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); margin-bottom: 8px; font-size: 0.82rem; }
+        .dash-recent-item .dash-recent-icon { font-size: 1.3rem; }
+        .dash-recent-item .dash-recent-text { flex: 1; }
+        .dash-recent-item .dash-recent-text strong { display: block; font-size: 0.82rem; }
+        .dash-recent-item .dash-recent-text span { font-size: 0.72rem; color: var(--text); }
+        .dash-empty { text-align: center; padding: 30px; color: var(--text); font-size: 0.85rem; }
 
         @media (max-width: 768px) {
-            .dash-content { width: 95%; border-radius: 16px; }
+            .dash-content { width: 96%; border-radius: 18px; max-height: 92vh; }
             .dash-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .stat-card { padding: 12px; }
             .stat-card .stat-value { font-size: 1.3rem; }
+            .dash-tabs { padding: 0 16px; }
+            .dash-tab { padding: 10px 14px; font-size: 0.78rem; }
+            .dash-body { padding: 16px; }
+            .dash-exam-card { flex-direction: column; gap: 10px; align-items: flex-start; }
         }
 
         .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; min-width: 280px; }
@@ -937,8 +965,17 @@
             <h2>📊 Admin Dashboard</h2>
             <button class="dash-close" onclick="closeDashboard()">✕</button>
         </div>
+        <div class="dash-tabs">
+            <button class="dash-tab active" onclick="switchDashTab('overview', this)">📋 Overview</button>
+            <button class="dash-tab" onclick="switchDashTab('exams', this)">📝 Exams</button>
+            <button class="dash-tab" onclick="switchDashTab('students', this)">👥 Students</button>
+            <button class="dash-tab" onclick="switchDashTab('activity', this)">🕐 Activity</button>
+        </div>
         <div class="dash-body" id="dashBody">
-            <p style="text-align:center;color:var(--text);">Loading stats...</p>
+            <div id="dashTabOverview" class="dash-tab-content active"></div>
+            <div id="dashTabExams" class="dash-tab-content"></div>
+            <div id="dashTabStudents" class="dash-tab-content"></div>
+            <div id="dashTabActivity" class="dash-tab-content"></div>
         </div>
     </div>
 </div>
@@ -2487,7 +2524,8 @@ let _onlineCount = 0;
 function openDashboard() {
     if (!isAdmin) return;
     document.getElementById('dashModal').classList.add('show');
-    loadDashboardStats();
+    _dashData = {};
+    loadAllDashboardData();
     trackOnlinePresence();
 }
 
@@ -2495,89 +2533,206 @@ function closeDashboard() {
     document.getElementById('dashModal').classList.remove('show');
 }
 
-async function loadDashboardStats() {
-    const body = document.getElementById('dashBody');
-    body.innerHTML = '<p style="text-align:center;color:var(--text);">⏳ Loading...</p>';
+function switchDashTab(tab, el) {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.dash-tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('dashTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+let _dashData = {};
+
+async function loadAllDashboardData() {
+    // Show loading in overview
+    document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
+    document.getElementById('dashTabExams').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
+    document.getElementById('dashTabStudents').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
+    document.getElementById('dashTabActivity').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
 
     try {
-        const items = await StorageManager.getAllData();
-        const totalFiles = items.length;
-        const totalSize = items.reduce((sum, i) => sum + (i.fileSize || 0), 0);
-        const localFiles = items.filter(i => i.type === 'Local File').length;
-        const webLinks = items.filter(i => i.type === 'Web Link').length;
-        const totalSubjects = subjectData.length;
+        // Fetch all data in parallel
+        const [items, examsRes, subsRes] = await Promise.all([
+            StorageManager.getAllData(),
+            fetch(SUPABASE_URL + '/rest/v1/exams?select=*,exam_questions(id)&order=created_at.desc', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } }),
+            fetch(SUPABASE_URL + '/rest/v1/exam_submissions?select=*&order=submitted_at.desc', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } })
+        ]);
 
-        // Files per grade
-        const gradeCount = { G10: 0, G11: 0, G12: 0 };
-        items.forEach(i => { if (gradeCount[i.grade] !== undefined) gradeCount[i.grade]++; });
+        const exams = await examsRes.json();
+        const submissions = await subsRes.json();
+        _dashData = { items, exams: Array.isArray(exams) ? exams : [], submissions: Array.isArray(submissions) ? submissions : [] };
 
-        // Files per subject (top 8)
-        const subCount = {};
-        items.forEach(i => { subCount[i.subject] = (subCount[i.subject] || 0) + 1; });
-        const topSubjects = Object.entries(subCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
-
-        // Recent uploads (last 7 days)
-        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const recentCount = items.filter(i => new Date(i.createdAt).getTime() > weekAgo).length;
-
-        // File types breakdown
-        const typeCount = {};
-        items.forEach(i => {
-            const ext = (i.fileName || '').split('.').pop()?.toLowerCase() || 'other';
-            typeCount[ext] = (typeCount[ext] || 0) + 1;
-        });
-        const topTypes = Object.entries(typeCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-        const maxGrade = Math.max(gradeCount.G10, gradeCount.G11, gradeCount.G12, 1);
-        const maxSub = topSubjects.length > 0 ? topSubjects[0][1] : 1;
-
-        body.innerHTML =
-            '<div class="dash-stat-grid">' +
-                '<div class="stat-card"><div class="stat-icon"><span class="online-dot"></span>🟢</div><div class="stat-value" id="onlineCountVal">' + _onlineCount + '</div><div class="stat-label">Online Now</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value">' + totalFiles + '</div><div class="stat-label">Total Files</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">💾</div><div class="stat-value">' + formatSize(totalSize) + '</div><div class="stat-label">Total Size</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">📚</div><div class="stat-value">' + totalSubjects + '</div><div class="stat-label">Subjects</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">🆕</div><div class="stat-value">' + recentCount + '</div><div class="stat-label">This Week</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">📂</div><div class="stat-value">' + localFiles + '</div><div class="stat-label">Local Files</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-value">' + webLinks + '</div><div class="stat-label">Web Links</div></div>' +
-                '<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">' + (totalFiles > 0 ? formatSize(totalSize / totalFiles) : '0') + '</div><div class="stat-label">Avg File Size</div></div>' +
-            '</div>' +
-
-            '<div class="dash-section-title">📈 Files per Grade</div>' +
-            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 10</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G10/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G10 + '</span></div>' +
-            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 11</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G11/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G11 + '</span></div>' +
-            '<div class="stat-bar-row"><span class="stat-bar-label">Grade 12</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount.G12/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount.G12 + '</span></div>' +
-
-            '<div class="dash-section-title">🏆 Top Subjects</div>' +
-            topSubjects.map(([name, count]) =>
-                '<div class="stat-bar-row"><span class="stat-bar-label">' + (subjectMap[name]?.icon || '📁') + ' ' + name + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/maxSub*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
-            ).join('') +
-
-            '<div class="dash-section-title">📄 Top File Types</div>' +
-            topTypes.map(([ext, count]) =>
-                '<div class="stat-bar-row"><span class="stat-bar-label">.' + ext + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/totalFiles*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
-            ).join('');
-
+        renderOverviewTab();
+        renderExamsTab();
+        renderStudentsTab();
+        renderActivityTab();
     } catch (err) {
         console.error('Dashboard error:', err);
-        body.innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
+        document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
     }
+}
+
+function renderOverviewTab() {
+    const { items, exams, submissions } = _dashData;
+    const totalFiles = items.length;
+    const totalSize = items.reduce((sum, i) => sum + (i.fileSize || 0), 0);
+    const totalSubjects = subjectData.length;
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recentCount = items.filter(i => new Date(i.createdAt).getTime() > weekAgo).length;
+    const totalExams = exams.length;
+    const publishedExams = exams.filter(e => e.is_published).length;
+    const totalSubmissions = submissions.length;
+    const avgScore = submissions.length > 0 ? Math.round(submissions.reduce((s, sub) => s + (sub.total_points > 0 ? (sub.score / sub.total_points) * 100 : 0), 0) / submissions.length) : 0;
+
+    const gradeCount = { G10: 0, G11: 0, G12: 0 };
+    items.forEach(i => { if (gradeCount[i.grade] !== undefined) gradeCount[i.grade]++; });
+    const maxGrade = Math.max(gradeCount.G10, gradeCount.G11, gradeCount.G12, 1);
+
+    const subCount = {};
+    items.forEach(i => { subCount[i.subject] = (subCount[i.subject] || 0) + 1; });
+    const topSubjects = Object.entries(subCount).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const maxSub = topSubjects.length > 0 ? topSubjects[0][1] : 1;
+
+    document.getElementById('dashTabOverview').innerHTML =
+        '<div class="dash-stat-grid">' +
+            '<div class="stat-card"><div class="stat-icon"><span class="online-dot"></span>🟢</div><div class="stat-value" id="onlineCountVal">' + _onlineCount + '</div><div class="stat-label">Online</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value">' + totalFiles + '</div><div class="stat-label">Files</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">💾</div><div class="stat-value">' + formatSize(totalSize) + '</div><div class="stat-label">Storage</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">📚</div><div class="stat-value">' + totalSubjects + '</div><div class="stat-label">Subjects</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value">' + totalExams + '</div><div class="stat-label">Exams</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">' + publishedExams + '</div><div class="stat-label">Published</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">' + totalSubmissions + '</div><div class="stat-label">Submissions</div></div>' +
+            '<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">' + avgScore + '%</div><div class="stat-label">Avg Score</div></div>' +
+        '</div>' +
+        '<div class="dash-section-title">📈 Files per Grade</div>' +
+        ['G10','G11','G12'].map(g =>
+            '<div class="stat-bar-row"><span class="stat-bar-label">Grade ' + g.slice(1) + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (gradeCount[g]/maxGrade*100) + '%"></div></div><span class="stat-bar-count">' + gradeCount[g] + '</span></div>'
+        ).join('') +
+        '<div class="dash-section-title">🏆 Top Subjects</div>' +
+        topSubjects.map(([name, count]) =>
+            '<div class="stat-bar-row"><span class="stat-bar-label">' + (subjectMap[name]?.icon || '📁') + ' ' + name + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + (count/maxSub*100) + '%"></div></div><span class="stat-bar-count">' + count + '</span></div>'
+        ).join('');
+}
+
+function renderExamsTab() {
+    const { exams, submissions } = _dashData;
+    if (!exams.length) {
+        document.getElementById('dashTabExams').innerHTML = '<div class="dash-empty">📝 No exams created yet</div>';
+        return;
+    }
+
+    let html = '';
+    exams.forEach(exam => {
+        const examSubs = submissions.filter(s => s.exam_id === exam.id);
+        const totalSubs = examSubs.length;
+        const avgPct = totalSubs > 0 ? Math.round(examSubs.reduce((s, sub) => s + (sub.total_points > 0 ? (sub.score / sub.total_points) * 100 : 0), 0) / totalSubs) : 0;
+        const highScore = totalSubs > 0 ? Math.max(...examSubs.map(s => s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0)) : 0;
+        const qCount = exam.exam_questions ? exam.exam_questions.length : 0;
+        const statusDot = exam.is_published ? '🟢' : '🔴';
+
+        html += '<div class="dash-exam-card">' +
+            '<div class="dash-exam-info"><h4>' + statusDot + ' ' + exam.title + '</h4><p>' + exam.grade + ' · ' + exam.subject + ' · ' + qCount + ' questions' + (exam.time_limit_minutes ? ' · ' + exam.time_limit_minutes + ' min' : '') + '</p></div>' +
+            '<div class="dash-exam-stats">' +
+                '<div class="dash-exam-stat"><div class="val">' + totalSubs + '</div><div class="lbl">Students</div></div>' +
+                '<div class="dash-exam-stat"><div class="val">' + avgPct + '%</div><div class="lbl">Avg</div></div>' +
+                '<div class="dash-exam-stat"><div class="val">' + highScore + '%</div><div class="lbl">Top</div></div>' +
+            '</div>' +
+        '</div>';
+    });
+
+    document.getElementById('dashTabExams').innerHTML = html;
+}
+
+function renderStudentsTab() {
+    const { submissions } = _dashData;
+    if (!submissions.length) {
+        document.getElementById('dashTabStudents').innerHTML = '<div class="dash-empty">👥 No student submissions yet</div>';
+        return;
+    }
+
+    // Unique students by email
+    const studentMap = {};
+    submissions.forEach(s => {
+        if (!studentMap[s.student_email]) {
+            studentMap[s.student_email] = { name: s.student_name, email: s.student_email, count: 0, totalPct: 0 };
+        }
+        studentMap[s.student_email].count++;
+        studentMap[s.student_email].totalPct += s.total_points > 0 ? (s.score / s.total_points) * 100 : 0;
+    });
+    const students = Object.values(studentMap).sort((a, b) => b.count - a.count);
+    const maxCount = students[0]?.count || 1;
+
+    let html = '<div class="dash-stat-grid" style="margin-bottom:16px;">' +
+        '<div class="stat-card" style="grid-column:span 2;"><div class="stat-icon">👥</div><div class="stat-value">' + students.length + '</div><div class="stat-label">Unique Students</div></div>' +
+        '<div class="stat-card" style="grid-column:span 2;"><div class="stat-icon">📝</div><div class="stat-value">' + submissions.length + '</div><div class="stat-label">Total Submissions</div></div>' +
+    '</div>';
+
+    html += '<div class="dash-section-title">🏆 Most Active Students</div>';
+    students.slice(0, 10).forEach(st => {
+        const avgPct = Math.round(st.totalPct / st.count);
+        html += '<div class="dash-exam-card">' +
+            '<div class="dash-exam-info"><h4>👤 ' + st.name + '</h4><p>' + st.email + '</p></div>' +
+            '<div class="dash-exam-stats">' +
+                '<div class="dash-exam-stat"><div class="val">' + st.count + '</div><div class="lbl">Exams</div></div>' +
+                '<div class="dash-exam-stat"><div class="val">' + avgPct + '%</div><div class="lbl">Avg</div></div>' +
+            '</div>' +
+        '</div>';
+    });
+
+    document.getElementById('dashTabStudents').innerHTML = html;
+}
+
+function renderActivityTab() {
+    const { items, submissions } = _dashData;
+
+    // Combine recent files + submissions into a timeline
+    const activities = [];
+
+    items.slice(0, 15).forEach(i => {
+        activities.push({ type: 'file', title: i.title, detail: i.subject + ' · ' + i.grade, time: new Date(i.createdAt).getTime(), icon: '📄' });
+    });
+
+    submissions.slice(0, 15).forEach(s => {
+        const pct = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
+        activities.push({ type: 'exam', title: s.student_name + ' submitted exam', detail: pct + '% score', time: new Date(s.submitted_at).getTime(), icon: '📝' });
+    });
+
+    activities.sort((a, b) => b.time - a.time);
+
+    if (!activities.length) {
+        document.getElementById('dashTabActivity').innerHTML = '<div class="dash-empty">🕐 No recent activity</div>';
+        return;
+    }
+
+    let html = '<div class="dash-section-title">🕐 Recent Activity</div>';
+    activities.slice(0, 20).forEach(a => {
+        const ago = getTimeAgo(a.time);
+        html += '<div class="dash-recent-item">' +
+            '<div class="dash-recent-icon">' + a.icon + '</div>' +
+            '<div class="dash-recent-text"><strong>' + a.title + '</strong><span>' + a.detail + '</span></div>' +
+            '<span style="font-size:0.7rem;color:var(--text);white-space:nowrap;">' + ago + '</span>' +
+        '</div>';
+    });
+
+    document.getElementById('dashTabActivity').innerHTML = html;
+}
+
+function getTimeAgo(timestamp) {
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return days + 'd ago';
+    return Math.floor(days / 7) + 'w ago';
 }
 
 function trackOnlinePresence() {
     try {
-        const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_ANON_KEY + '&vsn=1.0.0';
-        
-        // Use a simple fetch-based presence count via Supabase channel
-        // For simplicity, we'll estimate based on a heartbeat approach
-        // Each visitor stores a timestamp, we count recent ones
         const visitorId = sessionStorage.getItem('_vid') || (sessionStorage.setItem('_vid', Math.random().toString(36).slice(2)), sessionStorage.getItem('_vid'));
         const key = 'sidera_online_' + visitorId;
-        
-        // Store heartbeat in localStorage for cross-tab awareness
         localStorage.setItem(key, Date.now().toString());
-        
-        // Count active visitors (heartbeat within last 60s)
         let count = 0;
         const now = Date.now();
         for (let i = 0; i < localStorage.length; i++) {
