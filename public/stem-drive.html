@@ -1872,6 +1872,14 @@ function checkStudentAuth() {
     const isGuest = localStorage.getItem('sideraGuest');
     const isAdminSession = localStorage.getItem('sideraAuthSession');
     if (token || isGuest || isAdminSession) {
+        const username = localStorage.getItem('sideraUsername');
+        if (token && username) {
+            showWelcome(username);
+        } else if (isAdminSession) {
+            showWelcome('Admin');
+        } else if (isGuest) {
+            showWelcome('Guest');
+        }
         hideAuthOverlay();
     }
     if (token) {
