@@ -775,7 +775,10 @@
     <h1 ondblclick="showLogin()" title="Double click for admin login">SIDERA</h1>
 </header>
 
-<input type="text" id="searchBar" placeholder="Search for files, subjects, or notes...">
+<div style="position:relative;width:90%;max-width:550px;margin:0 auto;z-index:10;margin-top:-35px;">
+<input type="text" id="searchBar" placeholder="Search for files, subjects, or notes..." style="margin-top:0;position:static;">
+<div class="ai-search-results" id="aiSearchResults"></div>
+</div>
 
 <div class="filter-container">
     <nav id="gradeNav">
