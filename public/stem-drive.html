@@ -764,7 +764,7 @@
         .capstone-preview .cap-meta { font-size: 0.75rem; color: #666; margin-bottom: 12px; }
 
         /* XP & Gamification */
-        .xp-bar-container { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9997; background: var(--header-bg); border-top: 1px solid var(--border); padding: 6px 16px; display: none; transition: transform 0.3s; }
+        .xp-bar-container { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9997; background: var(--header-bg); border-top: 1px solid var(--border); padding: 6px 16px; display: none; }
         .xp-bar-inner { max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
         .xp-level-badge { font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
         .xp-level-badge.junior { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
@@ -774,9 +774,9 @@
         .xp-progress { flex: 1; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
         .xp-progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7); transition: width 0.5s ease; }
         .xp-text { font-size: 0.7rem; font-weight: 700; color: var(--text); white-space: nowrap; }
-        .xp-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 99999; background: var(--card-bg); border: 2px solid #a855f7; border-radius: 20px; padding: 30px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); transition: transform 0.4s cubic-bezier(.68,-.55,.27,1.55); }
-        .xp-popup.show { transform: translate(-50%, -50%) scale(1); }
-        .xp-popup .xp-amount { font-size: 2rem; font-weight: 900; color: #a855f7; }
+        .xp-popup { position: fixed; top: 20px; right: 20px; transform: translateX(120%); z-index: 99999; background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px 18px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.3s ease; }
+        .xp-popup.show { transform: translateX(0); }
+        .xp-popup .xp-amount { font-size: 0.95rem; font-weight: 800; color: #a855f7; }
 
         /* Radar Chart */
         .radar-container { margin: 20px auto; max-width: 300px; }
