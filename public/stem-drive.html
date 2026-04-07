@@ -2842,6 +2842,10 @@ async function loadAllDashboardData() {
         renderExamsTab();
         renderStudentsTab();
         renderActivityTab();
+        renderVlabsTab();
+        renderRadioTab();
+        renderAlumniTab();
+        renderGamificationTab();
     } catch (err) {
         console.error('Dashboard error:', err);
         document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
