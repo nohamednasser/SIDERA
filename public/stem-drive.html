@@ -4463,6 +4463,245 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// === CAPSTONE PDF BUILDER ===
+let _capStep = 1;
+
+function openCapstoneBuilder() {
+    _capStep = 1;
+    updateCapstoneStep();
+    document.getElementById('capstoneModal').style.display = 'flex';
+    // Pre-fill date
+    if (!document.getElementById('capDate').value) {
+        const now = new Date();
+        document.getElementById('capDate').value = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    // Pre-fill student info
+    if (_studentInfo.name && !document.getElementById('capTeam').value) {
+        document.getElementById('capTeam').value = _studentInfo.name;
+    }
+}
+
+function closeCapstoneBuilder() {
+    document.getElementById('capstoneModal').style.display = 'none';
+}
+
+function updateCapstoneStep() {
+    for (let i = 1; i <= 5; i++) {
+        const page = document.getElementById('capPage' + i);
+        const step = document.querySelector('.capstone-step[data-step="' + i + '"]');
+        page.style.display = i === _capStep ? '' : 'none';
+        step.classList.toggle('active', i === _capStep);
+        step.classList.toggle('done', i < _capStep);
+    }
+    document.getElementById('capPrevBtn').style.display = _capStep > 1 ? '' : 'none';
+    document.getElementById('capNextBtn').textContent = _capStep === 4 ? '👁 Preview' : _capStep === 5 ? '' : 'Next ▶';
+    document.getElementById('capNextBtn').style.display = _capStep === 5 ? 'none' : '';
+    document.getElementById('capstoneNav').style.display = _capStep === 5 ? 'none' : '';
+    if (_capStep === 5) buildCapstonePreview();
+}
+
+function capstoneNav(dir) {
+    if (dir === 1 && _capStep === 1) {
+        if (!document.getElementById('capTitle').value.trim() || !document.getElementById('capTeam').value.trim()) {
+            showToast('Please fill in the project title and team members', 'error'); return;
+        }
+    }
+    if (dir === 1 && _capStep === 2) {
+        if (!document.getElementById('capAbstract').value.trim()) {
+            showToast('Please write an abstract', 'error'); return;
+        }
+    }
+    if (dir === 1 && _capStep === 3) {
+        if (!document.getElementById('capDesign').value.trim()) {
+            showToast('Please describe your design', 'error'); return;
+        }
+    }
+    if (dir === 1 && _capStep === 4) {
+        if (!document.getElementById('capTesting').value.trim()) {
+            showToast('Please describe testing results', 'error'); return;
+        }
+    }
+    _capStep = Math.max(1, Math.min(5, _capStep + dir));
+    updateCapstoneStep();
+}
+
+function buildCapstonePreview() {
+    const d = getCapstoneData();
+    let html = '<div style="text-align:center;margin-bottom:18px;"><div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:3px;color:#8b5cf6;font-weight:800;margin-bottom:6px;">SIDERA STEM SCHOOL</div><h3 style="font-size:1.1rem;margin-bottom:4px;border:none;">' + esc(d.title) + '</h3><div class="cap-meta">' + esc(d.team) + ' | ' + esc(d.grade) + ' | ' + esc(d.date) + (d.supervisor ? ' | Supervisor: ' + esc(d.supervisor) : '') + '</div></div>';
+    html += '<div class="cap-section"><h3>1. Abstract</h3><p>' + esc(d.abstract) + '</p></div>';
+    if (d.problem) html += '<div class="cap-section"><h3>2. Problem Statement</h3><p>' + esc(d.problem) + '</p></div>';
+    if (d.objectives) html += '<div class="cap-section"><h3>3. Objectives</h3><ul>' + d.objectives.split('\n').filter(Boolean).map(function(o) { return '<li>' + esc(o.trim()) + '</li>'; }).join('') + '</ul></div>';
+    html += '<div class="cap-section"><h3>4. Design & Methodology</h3><p>' + esc(d.design) + '</p></div>';
+    if (d.tools) html += '<div class="cap-section"><h3>5. Tools & Technologies</h3><p>' + esc(d.tools) + '</p></div>';
+    if (d.steps) html += '<div class="cap-section"><h3>6. Implementation Steps</h3><ol>' + d.steps.split('\n').filter(Boolean).map(function(s) { return '<li>' + esc(s.trim()) + '</li>'; }).join('') + '</ol></div>';
+    html += '<div class="cap-section"><h3>7. Testing & Results</h3><p>' + esc(d.testing) + '</p></div>';
+    if (d.findings) html += '<div class="cap-section"><h3>8. Key Findings</h3><p>' + esc(d.findings) + '</p></div>';
+    if (d.future) html += '<div class="cap-section"><h3>9. Future Work</h3><p>' + esc(d.future) + '</p></div>';
+    if (d.references) html += '<div class="cap-section"><h3>10. References</h3><p>' + esc(d.references) + '</p></div>';
+    document.getElementById('capstonePreview').innerHTML = html;
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function getCapstoneData() {
+    return {
+        title: document.getElementById('capTitle').value.trim(),
+        team: document.getElementById('capTeam').value.trim(),
+        grade: document.getElementById('capGrade').value,
+        date: document.getElementById('capDate').value.trim(),
+        supervisor: document.getElementById('capSupervisor').value.trim(),
+        abstract: document.getElementById('capAbstract').value.trim(),
+        problem: document.getElementById('capProblem').value.trim(),
+        objectives: document.getElementById('capObjectives').value.trim(),
+        design: document.getElementById('capDesign').value.trim(),
+        tools: document.getElementById('capTools').value.trim(),
+        steps: document.getElementById('capSteps').value.trim(),
+        testing: document.getElementById('capTesting').value.trim(),
+        findings: document.getElementById('capFindings').value.trim(),
+        future: document.getElementById('capFuture').value.trim(),
+        references: document.getElementById('capReferences').value.trim(),
+    };
+}
+
+async function generateCapstonePDF() {
+    showToast('Generating PDF...', 'info');
+    // Load jsPDF dynamically
+    if (!window.jspdf) {
+        await new Promise(function(resolve, reject) {
+            var s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const d = getCapstoneData();
+    const W = 210, H = 297, M = 20;
+    const contentW = W - 2 * M;
+    let y = 0;
+
+    // --- COVER PAGE ---
+    // Background gradient effect
+    doc.setFillColor(26, 25, 49);
+    doc.rect(0, 0, W, H, 'F');
+    // Accent bar
+    doc.setFillColor(139, 92, 246);
+    doc.rect(0, 0, W, 6, 'F');
+    // Bottom accent
+    doc.setFillColor(139, 92, 246);
+    doc.rect(0, H - 6, W, 6, 'F');
+
+    // School name
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(139, 92, 246);
+    doc.text('SIDERA STEM SCHOOL', W / 2, 60, { align: 'center' });
+
+    // Decorative line
+    doc.setDrawColor(139, 92, 246);
+    doc.setLineWidth(0.5);
+    doc.line(W / 2 - 30, 66, W / 2 + 30, 66);
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(26);
+    doc.setTextColor(255, 255, 255);
+    var titleLines = doc.splitTextToSize(d.title.toUpperCase(), contentW);
+    doc.text(titleLines, W / 2, 90, { align: 'center' });
+
+    // Subtitle
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(13);
+    doc.setTextColor(180, 180, 220);
+    doc.text('CAPSTONE PROJECT REPORT', W / 2, 90 + titleLines.length * 12 + 10, { align: 'center' });
+
+    // Info box
+    var infoY = 170;
+    doc.setFillColor(35, 33, 60);
+    doc.roundedRect(M + 10, infoY, contentW - 20, 60, 4, 4, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(200, 200, 230);
+    var labels = ['Team Members:', 'Grade:', 'Date:'];
+    var values = [d.team, d.grade, d.date];
+    if (d.supervisor) { labels.push('Supervisor:'); values.push(d.supervisor); }
+    for (var i = 0; i < labels.length; i++) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(139, 92, 246);
+        doc.text(labels[i], M + 20, infoY + 16 + i * 12);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(220, 220, 240);
+        doc.text(values[i], M + 60, infoY + 16 + i * 12);
+    }
+
+    // Footer on cover
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 140);
+    doc.text('Generated by SIDERA STEM DRIVE', W / 2, H - 15, { align: 'center' });
+
+    // --- CONTENT PAGES ---
+    function addSection(title, content, isList) {
+        doc.addPage();
+        y = M;
+        // Header bar
+        doc.setFillColor(139, 92, 246);
+        doc.rect(0, 0, W, 3, 'F');
+        // Section title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(26, 25, 49);
+        doc.text(title, M, y + 10);
+        // Underline
+        doc.setDrawColor(139, 92, 246);
+        doc.setLineWidth(0.8);
+        doc.line(M, y + 14, M + doc.getTextWidth(title), y + 14);
+        y += 24;
+        // Content
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        if (isList && content) {
+            var items = content.split('\n').filter(Boolean);
+            items.forEach(function(item, idx) {
+                var prefix = isList === 'ol' ? (idx + 1) + '. ' : '\u2022 ';
+                var lines = doc.splitTextToSize(prefix + item.trim(), contentW - 10);
+                if (y + lines.length * 6 > H - M) { doc.addPage(); y = M + 10; doc.setFillColor(139,92,246); doc.rect(0,0,W,3,'F'); }
+                doc.text(lines, M + 5, y);
+                y += lines.length * 6 + 2;
+            });
+        } else if (content) {
+            var lines = doc.splitTextToSize(content, contentW);
+            for (var li = 0; li < lines.length; li++) {
+                if (y > H - M) { doc.addPage(); y = M + 10; doc.setFillColor(139,92,246); doc.rect(0,0,W,3,'F'); }
+                doc.text(lines[li], M, y);
+                y += 6;
+            }
+        }
+        // Footer
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        doc.text(d.title + ' | SIDERA', W / 2, H - 8, { align: 'center' });
+    }
+
+    // Add sections
+    addSection('1. Abstract', d.abstract);
+    if (d.problem) addSection('2. Problem Statement', d.problem);
+    if (d.objectives) addSection('3. Objectives', d.objectives, 'ol');
+    addSection('4. Design & Methodology', d.design);
+    if (d.tools) addSection('5. Tools & Technologies', d.tools);
+    if (d.steps) addSection('6. Implementation Steps', d.steps, 'ol');
+    addSection('7. Testing & Results', d.testing);
+    if (d.findings) addSection('8. Key Findings', d.findings);
+    if (d.future) addSection('9. Future Work', d.future);
+    if (d.references) addSection('10. References', d.references);
+
+    // Save
+    var fileName = d.title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 40) + '_Capstone.pdf';
+    doc.save(fileName);
+    showToast('PDF downloaded! 🎉', 'success');
+}
+
 </script>
 
 <!-- Chatbot Widget -->
