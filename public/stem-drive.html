@@ -723,11 +723,39 @@
         .ai-search-item .ai-s-text strong { display: block; font-size: 0.82rem; }
         .ai-search-item .ai-s-text span { font-size: 0.72rem; color: var(--text); }
 
+        /* Capstone PDF Builder */
+        .capstone-builder-btn { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; border: none; padding: 12px 24px; border-radius: 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(139,92,246,0.3); }
+        .capstone-builder-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+        .capstone-section-cta { width: 90%; max-width: 1400px; margin: 0 auto; padding: 20px 0; display: flex; justify-content: center; }
+        .capstone-form-group { margin-bottom: 18px; }
+        .capstone-form-group label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: var(--dark); }
+        .capstone-form-group label .req { color: #ef4444; }
+        .capstone-form-group input, .capstone-form-group textarea, .capstone-form-group select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg); color: var(--dark); font-size: 0.85rem; font-family: inherit; resize: vertical; transition: border-color 0.2s; }
+        .capstone-form-group input:focus, .capstone-form-group textarea:focus { border-color: #8b5cf6; outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+        .capstone-form-group textarea { min-height: 80px; }
+        .capstone-form-group .hint { font-size: 0.72rem; color: var(--text); margin-top: 4px; }
+        .capstone-steps { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+        .capstone-step { flex: 1; min-width: 60px; text-align: center; padding: 8px 4px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; background: var(--input-bg); border: 2px solid var(--border); color: var(--text); transition: all 0.2s; }
+        .capstone-step.active { background: rgba(139,92,246,0.1); border-color: #8b5cf6; color: #8b5cf6; }
+        .capstone-step.done { background: rgba(34,197,94,0.1); border-color: #22c55e; color: #22c55e; }
+        .capstone-step-num { font-size: 0.9rem; display: block; margin-bottom: 2px; }
+        .capstone-nav { display: flex; justify-content: space-between; margin-top: 18px; }
+        .capstone-nav button { padding: 10px 22px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; transition: all 0.2s; }
+        .capstone-nav .cap-prev { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border); }
+        .capstone-nav .cap-next { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
+        .capstone-nav .cap-next:hover { transform: translateY(-1px); }
+        .capstone-preview { background: white; color: #1a1a2e; border-radius: 12px; padding: 28px; margin-top: 14px; font-size: 0.82rem; line-height: 1.7; max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; }
+        .capstone-preview h3 { color: #1a1a2e; font-size: 1rem; margin-bottom: 8px; border-bottom: 2px solid #8b5cf6; padding-bottom: 4px; }
+        .capstone-preview .cap-section { margin-bottom: 16px; }
+        .capstone-preview .cap-meta { font-size: 0.75rem; color: #666; margin-bottom: 12px; }
+
         @media (max-width: 768px) {
             .auth-container { margin: 16px; padding: 28px 24px; }
             .welcome-text { font-size: 1.4rem; }
             .alumni-grid { grid-template-columns: 1fr; }
             .welcome-emoji { font-size: 3rem; }
+            .capstone-steps { gap: 4px; }
+            .capstone-step { font-size: 0.6rem; padding: 6px 2px; }
         }
     </style>
 </head>
