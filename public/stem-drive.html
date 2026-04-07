@@ -412,6 +412,20 @@
         .exam-timer { background: linear-gradient(135deg, rgba(163,64,84,0.08), rgba(163,64,84,0.04)); color: var(--accent); padding: 8px 18px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; border: 1px solid rgba(163,64,84,0.15); }
         .exam-timer.warning { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08)); color: #ef4444; border-color: rgba(239,68,68,0.3); animation: timerPulse 0.8s infinite; }
         @keyframes timerPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.7; transform:scale(1.05); } }
+        
+        /* Exam Security Styles */
+        .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; }
+        .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; }
+        .exam-secure-badge { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; animation: securePulse 2s infinite; }
+        @keyframes securePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
+        
+        .tab-warning-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; gap: 16px; backdrop-filter: blur(12px); }
+        .tab-warning-overlay .warn-icon { font-size: 4rem; animation: warnShake 0.4s infinite; }
+        @keyframes warnShake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+        .tab-warning-overlay h2 { color: #ff4d4d; font-size: 1.6rem; font-weight: 800; text-align: center; }
+        .tab-warning-overlay .countdown { font-size: 4rem; font-weight: 900; color: #ff4d4d; background: rgba(255,77,77,0.15); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #ff4d4d; animation: countdownPulse 1s infinite; }
+        @keyframes countdownPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .tab-warning-overlay p { color: #ccc; font-size: 0.95rem; text-align: center; max-width: 320px; }
 
         /* Progress bar */
         .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.02); }
@@ -841,6 +855,7 @@
         <div class="exam-modal-header">
             <h2 id="examTakingTitle">Exam</h2>
             <div style="display:flex;align-items:center;gap:10px;">
+                <span class="exam-secure-badge" id="examSecureBadge" style="display:none;">🔒 Secure</span>
                 <span class="exam-timer" id="examTimerDisplay" style="display:none;">⏱ 00:00</span>
                 <button class="dash-close" onclick="confirmExitExam()">✕</button>
             </div>
@@ -2710,6 +2725,158 @@ let _currentExamQuestions = [];
 let _studentInfo = { name: '', email: '' };
 let _examTimer = null;
 let _examTimeLeft = 0;
+let _examSecurityActive = false;
+let _tabSwitchTimer = null;
+let _tabSwitchCountdown = 5;
+let _tabSwitchWarnings = 0;
+
+// === EXAM SECURITY SYSTEM ===
+function enableExamSecurity() {
+    _examSecurityActive = true;
+    _tabSwitchWarnings = 0;
+
+    // 1. Prevent screenshots (CSS-based + key blocking)
+    document.body.classList.add('exam-secure-mode');
+
+    // 2. Block PrintScreen, Ctrl+Shift+S, etc.
+    document.addEventListener('keydown', _blockScreenshotKeys, true);
+    document.addEventListener('keyup', _blockScreenshotKeys, true);
+
+    // 3. Block right-click during exam
+    document.addEventListener('contextmenu', _blockContextMenu, true);
+
+    // 4. Request fullscreen
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (rfs) rfs.call(el).catch(() => {});
+
+    // 5. Detect tab switch / visibility change
+    document.addEventListener('visibilitychange', _onVisibilityChange);
+    window.addEventListener('blur', _onWindowBlur);
+    document.addEventListener('fullscreenchange', _onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', _onFullscreenChange);
+
+    // Show security badge
+    document.getElementById('examSecureBadge').style.display = 'inline-flex';
+}
+
+function disableExamSecurity() {
+    _examSecurityActive = false;
+    document.body.classList.remove('exam-secure-mode');
+    document.removeEventListener('keydown', _blockScreenshotKeys, true);
+    document.removeEventListener('keyup', _blockScreenshotKeys, true);
+    document.removeEventListener('contextmenu', _blockContextMenu, true);
+    document.removeEventListener('visibilitychange', _onVisibilityChange);
+    window.removeEventListener('blur', _onWindowBlur);
+    document.removeEventListener('fullscreenchange', _onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', _onFullscreenChange);
+
+    if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
+    hideTabWarning();
+
+    // Exit fullscreen
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+    document.getElementById('examSecureBadge').style.display = 'none';
+}
+
+function _blockScreenshotKeys(e) {
+    if (!_examSecurityActive) return;
+    // Block: PrintScreen, Ctrl+Shift+S, Ctrl+Shift+I, Ctrl+P, Cmd+Shift+3/4/5 (Mac)
+    if (e.key === 'PrintScreen' || e.key === 'Snapshot') { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    // Block F12 dev tools
+    if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
+}
+
+function _blockContextMenu(e) {
+    if (_examSecurityActive) { e.preventDefault(); e.stopPropagation(); }
+}
+
+function _onVisibilityChange() {
+    if (!_examSecurityActive) return;
+    if (document.hidden) {
+        _startTabSwitchCountdown();
+    } else {
+        _cancelTabSwitchCountdown();
+    }
+}
+
+function _onWindowBlur() {
+    if (!_examSecurityActive) return;
+    _startTabSwitchCountdown();
+}
+
+function _onFullscreenChange() {
+    if (!_examSecurityActive) return;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // User exited fullscreen — start countdown
+        _startTabSwitchCountdown();
+        showToast('⚠️ ارجع للامتحان فوراً! عندك 5 ثواني', 'error');
+    }
+}
+
+function _startTabSwitchCountdown() {
+    if (_tabSwitchTimer) return; // already counting
+    _tabSwitchWarnings++;
+    _tabSwitchCountdown = 5;
+    showTabWarning();
+
+    _tabSwitchTimer = setInterval(() => {
+        _tabSwitchCountdown--;
+        updateTabWarning();
+        if (_tabSwitchCountdown <= 0) {
+            clearInterval(_tabSwitchTimer);
+            _tabSwitchTimer = null;
+            // Auto-submit the exam
+            hideTabWarning();
+            showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة', 'error');
+            _forceSubmitExam();
+        }
+    }, 1000);
+}
+
+function _cancelTabSwitchCountdown() {
+    if (_tabSwitchTimer) {
+        clearInterval(_tabSwitchTimer);
+        _tabSwitchTimer = null;
+    }
+    hideTabWarning();
+
+    // Re-request fullscreen
+    if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement;
+        const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (rfs) rfs.call(el).catch(() => {});
+    }
+
+    if (_tabSwitchWarnings >= 1) {
+        showToast('⚠️ تحذير ' + _tabSwitchWarnings + ' - لو خرجت تاني الامتحان هيتقفل!', 'warning');
+    }
+}
+
+function _forceSubmitExam() {
+    if (_examTimer) clearInterval(_examTimer);
+    submitExam();
+}
+
+function showTabWarning() {
+    const overlay = document.getElementById('tabWarningOverlay');
+    overlay.style.display = 'flex';
+    updateTabWarning();
+}
+
+function updateTabWarning() {
+    document.getElementById('tabWarningCount').textContent = _tabSwitchCountdown;
+}
+
+function hideTabWarning() {
+    document.getElementById('tabWarningOverlay').style.display = 'none';
+}
+
 
 let _allExams = [];
 let _examFilter = 'all';
@@ -2902,6 +3069,9 @@ async function loadAndStartExam(examId) {
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
         
+        // Enable exam security: fullscreen + screenshot prevention + tab switch detection
+        enableExamSecurity();
+        
         // Start timer if needed
         if (_currentExamData.time_limit_minutes > 0) {
             _examTimeLeft = _currentExamData.time_limit_minutes * 60;
@@ -3072,6 +3242,7 @@ function selectTF(el) {
 function confirmExitExam() {
     if (confirm('Are you sure you want to leave? Your progress will be lost.')) {
         if (_examTimer) clearInterval(_examTimer);
+        disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
@@ -3152,6 +3323,7 @@ async function submitExam() {
         });
 
         // Close exam modal and show results
+        disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
@@ -3891,7 +4063,13 @@ setTimeout(() => {
 </div>
 
 
-
+<!-- Tab Switch Warning Overlay -->
+<div class="tab-warning-overlay" id="tabWarningOverlay">
+    <div class="warn-icon">⚠️</div>
+    <h2>ارجع للامتحان فوراً!</h2>
+    <div class="countdown" id="tabWarningCount">5</div>
+    <p>لو مرجعتش خلال الوقت ده، الامتحان هيتسلم تلقائياً</p>
+</div>
 
 </body>
 </html>
