@@ -2902,6 +2902,9 @@ async function loadAndStartExam(examId) {
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
         
+        // Enable exam security: fullscreen + screenshot prevention + tab switch detection
+        enableExamSecurity();
+        
         // Start timer if needed
         if (_currentExamData.time_limit_minutes > 0) {
             _examTimeLeft = _currentExamData.time_limit_minutes * 60;
