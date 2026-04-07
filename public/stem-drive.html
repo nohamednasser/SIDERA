@@ -212,8 +212,12 @@
             50% { opacity: 0.3; }
             100% { opacity: 0.6; }
         }
+        @keyframes skeletonShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton-line { background: linear-gradient(90deg, var(--border) 25%, rgba(150,150,150,0.15) 50%, var(--border) 75%); background-size: 200% 100%; border-radius: 6px; animation: skeletonShimmer 1.5s ease-in-out infinite; }
         .skeleton-card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); min-height: 220px; display: flex; flex-direction: column; }
-        .skeleton-line { background: var(--border); border-radius: 6px; animation: skeletonPulse 1.2s ease-in-out infinite; }
         .skeleton-header { display: flex; gap: 8px; margin-bottom: 14px; }
         .skeleton-tag { width: 70px; height: 22px; }
         .skeleton-tag-sm { width: 55px; height: 22px; }
@@ -221,6 +225,16 @@
         .skeleton-text { height: 14px; width: 60%; margin-bottom: 18px; flex-grow: 1; }
         .skeleton-btns { display: flex; gap: 8px; }
         .skeleton-btn { height: 38px; flex: 1; border-radius: 10px; }
+        /* Exam skeleton */
+        .skeleton-exam { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; min-height: 260px; display: flex; flex-direction: column; }
+        .skeleton-exam-header { padding: 18px; flex: 1; }
+        .skeleton-exam-footer { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        .skeleton-circle { border-radius: 50%; }
+        /* Dashboard skeleton */
+        .skeleton-dash { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; padding: 10px 0; }
+        .skeleton-dash-card { background: var(--input-bg); border-radius: 16px; padding: 18px; }
+        /* Virtual lab skeleton */
+        .skeleton-vlab { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; min-height: 140px; }
 
         /* ZIP Preview Styles */
         .zip-contents { margin-top: 12px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); }
@@ -985,7 +999,7 @@
         <span class="exam-filter-btn" data-filter="G12" onclick="filterExams('G12',this)">Grade 12</span>
     </div>
     <div class="exam-grid" id="examsGrid">
-        <p class="no-resources" style="grid-column:1/-1;">Loading exams...</p>
+        <p class="no-resources" style="grid-column:1/-1;" id="examsLoading"></p>
     </div>
 </div>
 
@@ -1124,7 +1138,11 @@
             <button class="close-preview" onclick="closePreview()">✕</button>
         </div>
         <div class="preview-body" id="previewBody">
-            <p>Loading...</p>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:40px;">
+                <div class="skeleton-line" style="width:80%;height:20px;"></div>
+                <div class="skeleton-line" style="width:60%;height:14px;"></div>
+                <div class="skeleton-line" style="width:90%;height:300px;border-radius:12px;"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -1602,9 +1620,9 @@ async function openPreview(itemId) {
         const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
 
         if (isZip) {
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP viewer...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:60%;margin-bottom:12px;"></div><div class="skeleton-line" style="height:14px;width:80%;margin-bottom:8px;"></div><div class="skeleton-line" style="height:14px;width:40%;margin-bottom:16px;"></div><div class="skeleton-line" style="height:200px;width:100%;border-radius:12px;"></div></div>';
             await ensureJSZip();
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:50%;margin-bottom:12px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;margin-bottom:8px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;margin-bottom:8px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;"></div></div>';
             _currentZipItemId = itemId;
             
             getZipCached(item.storagePath).then(zip => {
@@ -1637,7 +1655,7 @@ async function openPreview(itemId) {
 
         if (ft.startsWith('image/')) {
             // Show spinner then swap to image instantly
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading image...</span></div>';
+            previewBody.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><div class="skeleton-line" style="width:70%;height:60%;border-radius:12px;"></div></div>';
             const img = new Image();
             img.onload = () => { previewBody.innerHTML = ''; previewBody.appendChild(img); };
             img.onerror = () => { previewBody.innerHTML = '<p>Failed to load image. <a href="' + publicUrl + '" download style="color:var(--accent);">Download</a></p>'; };
@@ -1645,7 +1663,7 @@ async function openPreview(itemId) {
             img.alt = 'preview';
             img.src = publicUrl;
         } else if (ft === 'application/pdf') {
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading PDF viewer...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:40%;margin-bottom:14px;"></div><div class="skeleton-line" style="height:400px;width:100%;border-radius:12px;"></div></div>';
             await ensurePdfJs();
             renderPdfViewer(publicUrl, item.fileName || 'PDF File', previewBody);
         } else {
@@ -2339,10 +2357,11 @@ async function saveToHub() {
     }
 }
 
-function showSkeletonCards(count = 6) {
-    const cont = document.getElementById('container');
-    let html = '';
-    for (let i = 0; i < count; i++) {
+function showSkeletonCards(count) {
+    count = count || 6;
+    var cont = document.getElementById('container');
+    var html = '';
+    for (var i = 0; i < count; i++) {
         html += '<div class="skeleton-card">' +
             '<div class="skeleton-header"><div class="skeleton-line skeleton-tag"></div><div class="skeleton-line skeleton-tag-sm"></div></div>' +
             '<div class="skeleton-line skeleton-title"></div>' +
@@ -2351,6 +2370,60 @@ function showSkeletonCards(count = 6) {
         '</div>';
     }
     cont.innerHTML = html;
+}
+
+function showExamSkeletons(count) {
+    count = count || 4;
+    var grid = document.getElementById('examsGrid');
+    var html = '';
+    for (var i = 0; i < count; i++) {
+        html += '<div class="skeleton-exam">' +
+            '<div class="skeleton-exam-header">' +
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+                    '<div class="skeleton-line skeleton-circle" style="width:36px;height:36px;flex-shrink:0;"></div>' +
+                    '<div style="flex:1;"><div class="skeleton-line" style="height:12px;width:50%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:30%;"></div></div>' +
+                '</div>' +
+                '<div class="skeleton-line" style="height:18px;width:75%;margin-bottom:10px;"></div>' +
+                '<div class="skeleton-line" style="height:12px;width:90%;margin-bottom:6px;"></div>' +
+                '<div class="skeleton-line" style="height:12px;width:60%;margin-bottom:16px;"></div>' +
+                '<div style="display:flex;gap:6px;"><div class="skeleton-line" style="width:60px;height:20px;border-radius:10px;"></div><div class="skeleton-line" style="width:80px;height:20px;border-radius:10px;"></div></div>' +
+            '</div>' +
+            '<div class="skeleton-exam-footer">' +
+                '<div class="skeleton-line skeleton-btn"></div>' +
+                '<div class="skeleton-line skeleton-btn"></div>' +
+            '</div>' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function showVlabSkeletons(count) {
+    count = count || 4;
+    var grid = document.getElementById('vlabGrid');
+    if (!grid) return;
+    var html = '';
+    for (var i = 0; i < count; i++) {
+        html += '<div class="skeleton-vlab">' +
+            '<div class="skeleton-line" style="width:40px;height:40px;border-radius:10px;margin-bottom:10px;"></div>' +
+            '<div class="skeleton-line" style="height:16px;width:70%;margin-bottom:8px;"></div>' +
+            '<div class="skeleton-line" style="height:12px;width:90%;margin-bottom:4px;"></div>' +
+            '<div class="skeleton-line" style="height:12px;width:60%;margin-bottom:10px;"></div>' +
+            '<div class="skeleton-line" style="height:14px;width:40%;"></div>' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function showDashSkeleton() {
+    return '<div class="skeleton-dash">' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+    '</div>' +
+    '<div style="margin-top:16px;"><div class="skeleton-line" style="height:16px;width:30%;margin-bottom:12px;"></div>' +
+    '<div class="skeleton-line" style="height:60px;width:100%;border-radius:12px;margin-bottom:8px;"></div>' +
+    '<div class="skeleton-line" style="height:60px;width:100%;border-radius:12px;"></div></div>';
 }
 
 let _renderPending = false;
@@ -2740,10 +2813,10 @@ let _dashData = {};
 
 async function loadAllDashboardData() {
     // Show loading in overview
-    document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabExams').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabStudents').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
-    document.getElementById('dashTabActivity').innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">⏳ Loading...</p>';
+    document.getElementById('dashTabOverview').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabExams').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabStudents').innerHTML = showDashSkeleton();
+    document.getElementById('dashTabActivity').innerHTML = showDashSkeleton();
 
     try {
         // Fetch all data in parallel
@@ -3013,7 +3086,7 @@ function backToZipBrowser() {
 async function previewZipEntry(storagePath, entryPath, fileName) {
     const previewBody = document.getElementById('previewBody');
     const previewTitle = document.getElementById('previewTitle');
-    previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Opening...</span></div>';
+    previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:50%;margin-bottom:14px;"></div><div class="skeleton-line" style="height:400px;width:100%;border-radius:12px;"></div></div>';
     previewTitle.textContent = fileName;
 
     try {
@@ -3237,6 +3310,7 @@ let _examFilter = 'all';
 
 // Load and render exams
 async function loadExams() {
+    showExamSkeletons(4);
     try {
         const res = await fetch(SUPABASE_URL + '/rest/v1/exams?select=*,exam_questions(id)&is_published=eq.true&order=created_at.desc', {
             headers: getSbHeaders()
@@ -5312,8 +5386,9 @@ function initFeatures() {
     // XP
     awardXP(XP_CONFIG.actions.login, 'Welcome back!');
     updateXPBar();
-    // Virtual Labs
-    renderVirtualLabs();
+    // Virtual Labs - show skeleton then render
+    showVlabSkeletons(4);
+    setTimeout(function() { renderVirtualLabs(); }, 300);
     // Radio
     renderRadioTracks();
     // OCR
