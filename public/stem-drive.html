@@ -212,8 +212,12 @@
             50% { opacity: 0.3; }
             100% { opacity: 0.6; }
         }
+        @keyframes skeletonShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton-line { background: linear-gradient(90deg, var(--border) 25%, rgba(150,150,150,0.15) 50%, var(--border) 75%); background-size: 200% 100%; border-radius: 6px; animation: skeletonShimmer 1.5s ease-in-out infinite; }
         .skeleton-card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border); min-height: 220px; display: flex; flex-direction: column; }
-        .skeleton-line { background: var(--border); border-radius: 6px; animation: skeletonPulse 1.2s ease-in-out infinite; }
         .skeleton-header { display: flex; gap: 8px; margin-bottom: 14px; }
         .skeleton-tag { width: 70px; height: 22px; }
         .skeleton-tag-sm { width: 55px; height: 22px; }
@@ -221,6 +225,16 @@
         .skeleton-text { height: 14px; width: 60%; margin-bottom: 18px; flex-grow: 1; }
         .skeleton-btns { display: flex; gap: 8px; }
         .skeleton-btn { height: 38px; flex: 1; border-radius: 10px; }
+        /* Exam skeleton */
+        .skeleton-exam { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; min-height: 260px; display: flex; flex-direction: column; }
+        .skeleton-exam-header { padding: 18px; flex: 1; }
+        .skeleton-exam-footer { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        .skeleton-circle { border-radius: 50%; }
+        /* Dashboard skeleton */
+        .skeleton-dash { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; padding: 10px 0; }
+        .skeleton-dash-card { background: var(--input-bg); border-radius: 16px; padding: 18px; }
+        /* Virtual lab skeleton */
+        .skeleton-vlab { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; min-height: 140px; }
 
         /* ZIP Preview Styles */
         .zip-contents { margin-top: 12px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); }
