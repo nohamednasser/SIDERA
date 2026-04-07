@@ -140,32 +140,60 @@
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
         /* Admin Dashboard Modal */
-        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
+        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .dash-modal.show { display: flex; }
-        .dash-content { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.25s ease; transition: background-color 0.15s ease, border-color 0.15s ease; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
-        .dash-header h2 { margin: 0; font-size: 1.2rem; }
-        .dash-close { background: #ff4d4d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
-        .dash-body { padding: 20px 24px; }
-        .dash-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; transition: background-color 0.15s ease, border-color 0.15s ease; }
-        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
-        .stat-card .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
-        .stat-card .stat-label { font-size: 0.72rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .dash-section-title { font-size: 0.85rem; font-weight: 700; margin: 16px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-content { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); width: 92%; max-width: 720px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s ease, border-color 0.15s ease; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
+        .dash-header h2 { margin: 0; font-size: 1.25rem; font-weight: 800; }
+        .dash-close { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: transform 0.15s ease; }
+        .dash-close:hover { transform: scale(1.1); }
+        .dash-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 28px; gap: 4px; overflow-x: auto; }
+        .dash-tab { padding: 12px 18px; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; border: none; background: none; border-bottom: 2.5px solid transparent; transition: color 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+        .dash-tab:hover { color: var(--dark); }
+        .dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .dash-body { padding: 22px 28px; }
+        .dash-tab-content { display: none; }
+        .dash-tab-content.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px 12px; text-align: center; transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .stat-card .stat-icon { font-size: 1.4rem; margin-bottom: 6px; }
+        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+        .stat-card .stat-label { font-size: 0.68rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-section-title { font-size: 0.82rem; font-weight: 700; margin: 18px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
         .stat-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .stat-bar-label { font-size: 0.8rem; min-width: 100px; font-weight: 600; }
         .stat-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-        .stat-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
-        .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; }
+        .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff6b8a); border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+        .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; font-weight: 600; }
         .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse-dot 1.5s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        .dash-exam-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.15s ease; }
+        .dash-exam-card:hover { border-color: var(--accent); }
+        .dash-exam-info h4 { margin: 0 0 4px; font-size: 0.9rem; font-weight: 700; }
+        .dash-exam-info p { margin: 0; font-size: 0.75rem; color: var(--text); }
+        .dash-exam-stats { display: flex; gap: 14px; align-items: center; }
+        .dash-exam-stat { text-align: center; }
+        .dash-exam-stat .val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .dash-exam-stat .lbl { font-size: 0.62rem; color: var(--text); text-transform: uppercase; font-weight: 600; }
+        .dash-recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); margin-bottom: 8px; font-size: 0.82rem; }
+        .dash-recent-item .dash-recent-icon { font-size: 1.3rem; }
+        .dash-recent-item .dash-recent-text { flex: 1; }
+        .dash-recent-item .dash-recent-text strong { display: block; font-size: 0.82rem; }
+        .dash-recent-item .dash-recent-text span { font-size: 0.72rem; color: var(--text); }
+        .dash-empty { text-align: center; padding: 30px; color: var(--text); font-size: 0.85rem; }
 
         @media (max-width: 768px) {
-            .dash-content { width: 95%; border-radius: 16px; }
+            .dash-content { width: 96%; border-radius: 18px; max-height: 92vh; }
             .dash-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .stat-card { padding: 12px; }
             .stat-card .stat-value { font-size: 1.3rem; }
+            .dash-tabs { padding: 0 16px; }
+            .dash-tab { padding: 10px 14px; font-size: 0.78rem; }
+            .dash-body { padding: 16px; }
+            .dash-exam-card { flex-direction: column; gap: 10px; align-items: flex-start; }
         }
 
         .progress-container { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; min-width: 280px; }
