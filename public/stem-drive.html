@@ -3310,6 +3310,7 @@ let _examFilter = 'all';
 
 // Load and render exams
 async function loadExams() {
+    showExamSkeletons(4);
     try {
         const res = await fetch(SUPABASE_URL + '/rest/v1/exams?select=*,exam_questions(id)&is_published=eq.true&order=created_at.desc', {
             headers: getSbHeaders()
