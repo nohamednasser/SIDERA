@@ -2970,6 +2970,7 @@ function enableExamSecurity() {
 function disableExamSecurity() {
     _examSecurityActive = false;
     document.body.classList.remove('exam-secure-mode');
+    hideExamWatermark();
     document.removeEventListener('keydown', _blockScreenshotKeys, true);
     document.removeEventListener('keyup', _blockScreenshotKeys, true);
     document.removeEventListener('contextmenu', _blockContextMenu, true);
