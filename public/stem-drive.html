@@ -3075,6 +3075,7 @@ function selectTF(el) {
 function confirmExitExam() {
     if (confirm('Are you sure you want to leave? Your progress will be lost.')) {
         if (_examTimer) clearInterval(_examTimer);
+        disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
