@@ -2357,10 +2357,11 @@ async function saveToHub() {
     }
 }
 
-function showSkeletonCards(count = 6) {
-    const cont = document.getElementById('container');
-    let html = '';
-    for (let i = 0; i < count; i++) {
+function showSkeletonCards(count) {
+    count = count || 6;
+    var cont = document.getElementById('container');
+    var html = '';
+    for (var i = 0; i < count; i++) {
         html += '<div class="skeleton-card">' +
             '<div class="skeleton-header"><div class="skeleton-line skeleton-tag"></div><div class="skeleton-line skeleton-tag-sm"></div></div>' +
             '<div class="skeleton-line skeleton-title"></div>' +
@@ -2369,6 +2370,60 @@ function showSkeletonCards(count = 6) {
         '</div>';
     }
     cont.innerHTML = html;
+}
+
+function showExamSkeletons(count) {
+    count = count || 4;
+    var grid = document.getElementById('examsGrid');
+    var html = '';
+    for (var i = 0; i < count; i++) {
+        html += '<div class="skeleton-exam">' +
+            '<div class="skeleton-exam-header">' +
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+                    '<div class="skeleton-line skeleton-circle" style="width:36px;height:36px;flex-shrink:0;"></div>' +
+                    '<div style="flex:1;"><div class="skeleton-line" style="height:12px;width:50%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:30%;"></div></div>' +
+                '</div>' +
+                '<div class="skeleton-line" style="height:18px;width:75%;margin-bottom:10px;"></div>' +
+                '<div class="skeleton-line" style="height:12px;width:90%;margin-bottom:6px;"></div>' +
+                '<div class="skeleton-line" style="height:12px;width:60%;margin-bottom:16px;"></div>' +
+                '<div style="display:flex;gap:6px;"><div class="skeleton-line" style="width:60px;height:20px;border-radius:10px;"></div><div class="skeleton-line" style="width:80px;height:20px;border-radius:10px;"></div></div>' +
+            '</div>' +
+            '<div class="skeleton-exam-footer">' +
+                '<div class="skeleton-line skeleton-btn"></div>' +
+                '<div class="skeleton-line skeleton-btn"></div>' +
+            '</div>' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function showVlabSkeletons(count) {
+    count = count || 4;
+    var grid = document.getElementById('vlabGrid');
+    if (!grid) return;
+    var html = '';
+    for (var i = 0; i < count; i++) {
+        html += '<div class="skeleton-vlab">' +
+            '<div class="skeleton-line" style="width:40px;height:40px;border-radius:10px;margin-bottom:10px;"></div>' +
+            '<div class="skeleton-line" style="height:16px;width:70%;margin-bottom:8px;"></div>' +
+            '<div class="skeleton-line" style="height:12px;width:90%;margin-bottom:4px;"></div>' +
+            '<div class="skeleton-line" style="height:12px;width:60%;margin-bottom:10px;"></div>' +
+            '<div class="skeleton-line" style="height:14px;width:40%;"></div>' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function showDashSkeleton() {
+    return '<div class="skeleton-dash">' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+        '<div class="skeleton-dash-card"><div class="skeleton-line" style="height:14px;width:50%;margin-bottom:10px;"></div><div class="skeleton-line" style="height:28px;width:40%;margin-bottom:6px;"></div><div class="skeleton-line" style="height:10px;width:70%;"></div></div>' +
+    '</div>' +
+    '<div style="margin-top:16px;"><div class="skeleton-line" style="height:16px;width:30%;margin-bottom:12px;"></div>' +
+    '<div class="skeleton-line" style="height:60px;width:100%;border-radius:12px;margin-bottom:8px;"></div>' +
+    '<div class="skeleton-line" style="height:60px;width:100%;border-radius:12px;"></div></div>';
 }
 
 let _renderPending = false;
