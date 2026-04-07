@@ -1620,9 +1620,9 @@ async function openPreview(itemId) {
         const isZip = fn.endsWith('.zip') || ft === 'application/zip' || ft === 'application/x-zip-compressed';
 
         if (isZip) {
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP viewer...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:60%;margin-bottom:12px;"></div><div class="skeleton-line" style="height:14px;width:80%;margin-bottom:8px;"></div><div class="skeleton-line" style="height:14px;width:40%;margin-bottom:16px;"></div><div class="skeleton-line" style="height:200px;width:100%;border-radius:12px;"></div></div>';
             await ensureJSZip();
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading ZIP contents...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:50%;margin-bottom:12px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;margin-bottom:8px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;margin-bottom:8px;"></div><div class="skeleton-line" style="height:40px;width:100%;border-radius:10px;"></div></div>';
             _currentZipItemId = itemId;
             
             getZipCached(item.storagePath).then(zip => {
