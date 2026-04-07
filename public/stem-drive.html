@@ -3086,7 +3086,7 @@ function backToZipBrowser() {
 async function previewZipEntry(storagePath, entryPath, fileName) {
     const previewBody = document.getElementById('previewBody');
     const previewTitle = document.getElementById('previewTitle');
-    previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Opening...</span></div>';
+    previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:50%;margin-bottom:14px;"></div><div class="skeleton-line" style="height:400px;width:100%;border-radius:12px;"></div></div>';
     previewTitle.textContent = fileName;
 
     try {
