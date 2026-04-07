@@ -4493,8 +4493,114 @@ document.addEventListener('click', function(e) {
     <p>لو مرجعتش خلال الوقت ده، الامتحان هيتسلم تلقائياً</p>
 </div>
 
-<!-- Exam Watermark -->
-<div class="exam-watermark" id="examWatermark"><div class="exam-watermark-inner" id="examWatermarkInner"></div></div>
+<!-- Capstone PDF Builder Modal -->
+<div id="capstoneModal" class="exam-modal" onclick="if(event.target===this)closeCapstoneBuilder()">
+    <div class="exam-modal-content" style="max-width:680px;">
+        <div class="exam-modal-header">
+            <h2>📄 Capstone Project Builder</h2>
+            <button class="dash-close" onclick="closeCapstoneBuilder()">✕</button>
+        </div>
+        <div class="exam-modal-body">
+            <div class="capstone-steps" id="capstoneSteps">
+                <div class="capstone-step active" data-step="1"><span class="capstone-step-num">1</span>Info</div>
+                <div class="capstone-step" data-step="2"><span class="capstone-step-num">2</span>Abstract</div>
+                <div class="capstone-step" data-step="3"><span class="capstone-step-num">3</span>Design</div>
+                <div class="capstone-step" data-step="4"><span class="capstone-step-num">4</span>Testing</div>
+                <div class="capstone-step" data-step="5"><span class="capstone-step-num">5</span>Preview</div>
+            </div>
+            <!-- Step 1: Basic Info -->
+            <div class="capstone-page" id="capPage1">
+                <div class="capstone-form-group">
+                    <label>📌 Project Title <span class="req">*</span></label>
+                    <input type="text" id="capTitle" placeholder="e.g. Smart Irrigation System Using IoT">
+                </div>
+                <div class="capstone-form-group">
+                    <label>👥 Team Members <span class="req">*</span></label>
+                    <input type="text" id="capTeam" placeholder="e.g. Ahmed, Sara, Omar">
+                </div>
+                <div class="capstone-form-group">
+                    <label>🎓 Grade</label>
+                    <select id="capGrade"><option>G10</option><option>G11</option><option selected>G12</option></select>
+                </div>
+                <div class="capstone-form-group">
+                    <label>📅 Date</label>
+                    <input type="text" id="capDate" placeholder="e.g. June 2025">
+                </div>
+                <div class="capstone-form-group">
+                    <label>👨‍🏫 Supervisor (Optional)</label>
+                    <input type="text" id="capSupervisor" placeholder="e.g. Dr. Mohamed">
+                </div>
+            </div>
+            <!-- Step 2: Abstract -->
+            <div class="capstone-page" id="capPage2" style="display:none;">
+                <div class="capstone-form-group">
+                    <label>📝 Abstract / Introduction <span class="req">*</span></label>
+                    <textarea id="capAbstract" rows="5" placeholder="Write a brief summary of your project — what problem it solves, approach, and key findings..."></textarea>
+                    <div class="hint">200-400 words recommended. Explain the problem, your approach, and main results.</div>
+                </div>
+                <div class="capstone-form-group">
+                    <label>🎯 Problem Statement</label>
+                    <textarea id="capProblem" rows="3" placeholder="What specific problem does your project solve?"></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>📋 Objectives</label>
+                    <textarea id="capObjectives" rows="3" placeholder="List your main objectives (one per line)"></textarea>
+                    <div class="hint">Enter each objective on a new line.</div>
+                </div>
+            </div>
+            <!-- Step 3: Design -->
+            <div class="capstone-page" id="capPage3" style="display:none;">
+                <div class="capstone-form-group">
+                    <label>🔧 Design & Methodology <span class="req">*</span></label>
+                    <textarea id="capDesign" rows="5" placeholder="Describe your project design, architecture, tools used, and methodology..."></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>🛠️ Tools & Technologies</label>
+                    <textarea id="capTools" rows="2" placeholder="e.g. Arduino, Python, React, Figma..."></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>📊 Implementation Steps</label>
+                    <textarea id="capSteps" rows="3" placeholder="Describe the key implementation steps (one per line)"></textarea>
+                </div>
+            </div>
+            <!-- Step 4: Testing -->
+            <div class="capstone-page" id="capPage4" style="display:none;">
+                <div class="capstone-form-group">
+                    <label>🧪 Testing & Results <span class="req">*</span></label>
+                    <textarea id="capTesting" rows="5" placeholder="Describe how you tested your project and what results you got..."></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>📈 Key Findings</label>
+                    <textarea id="capFindings" rows="3" placeholder="Summarize your main findings and results..."></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>🔮 Future Work (Optional)</label>
+                    <textarea id="capFuture" rows="2" placeholder="What improvements or extensions could be made?"></textarea>
+                </div>
+                <div class="capstone-form-group">
+                    <label>📚 References (Optional)</label>
+                    <textarea id="capReferences" rows="2" placeholder="List any references or sources used..."></textarea>
+                </div>
+            </div>
+            <!-- Step 5: Preview -->
+            <div class="capstone-page" id="capPage5" style="display:none;">
+                <div style="text-align:center;margin-bottom:14px;">
+                    <span style="font-size:2rem;">🎉</span>
+                    <h3 style="font-size:1rem;margin-top:6px;">Your Capstone Report is Ready!</h3>
+                    <p style="font-size:0.8rem;color:var(--text);">Review the preview below, then download your professional PDF.</p>
+                </div>
+                <div class="capstone-preview" id="capstonePreview"></div>
+                <div style="text-align:center;margin-top:16px;">
+                    <button class="capstone-builder-btn" onclick="generateCapstonePDF()" style="font-size:1rem;padding:14px 32px;">⬇️ Download PDF</button>
+                </div>
+            </div>
+            <div class="capstone-nav" id="capstoneNav">
+                <button class="cap-prev" id="capPrevBtn" onclick="capstoneNav(-1)" style="display:none;">◀ Back</button>
+                <button class="cap-next" id="capNextBtn" onclick="capstoneNav(1)">Next ▶</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
