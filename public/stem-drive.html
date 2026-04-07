@@ -1663,7 +1663,7 @@ async function openPreview(itemId) {
             img.alt = 'preview';
             img.src = publicUrl;
         } else if (ft === 'application/pdf') {
-            previewBody.innerHTML = '<div class="zip-loading"><div class="spinner"></div><span>Loading PDF viewer...</span></div>';
+            previewBody.innerHTML = '<div style="padding:20px;"><div class="skeleton-line" style="height:20px;width:40%;margin-bottom:14px;"></div><div class="skeleton-line" style="height:400px;width:100%;border-radius:12px;"></div></div>';
             await ensurePdfJs();
             renderPdfViewer(publicUrl, item.fileName || 'PDF File', previewBody);
         } else {
