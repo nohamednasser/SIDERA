@@ -412,6 +412,20 @@
         .exam-timer { background: linear-gradient(135deg, rgba(163,64,84,0.08), rgba(163,64,84,0.04)); color: var(--accent); padding: 8px 18px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; border: 1px solid rgba(163,64,84,0.15); }
         .exam-timer.warning { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08)); color: #ef4444; border-color: rgba(239,68,68,0.3); animation: timerPulse 0.8s infinite; }
         @keyframes timerPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.7; transform:scale(1.05); } }
+        
+        /* Exam Security Styles */
+        .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; }
+        .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; }
+        .exam-secure-badge { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; animation: securePulse 2s infinite; }
+        @keyframes securePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
+        
+        .tab-warning-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; gap: 16px; backdrop-filter: blur(12px); }
+        .tab-warning-overlay .warn-icon { font-size: 4rem; animation: warnShake 0.4s infinite; }
+        @keyframes warnShake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+        .tab-warning-overlay h2 { color: #ff4d4d; font-size: 1.6rem; font-weight: 800; text-align: center; }
+        .tab-warning-overlay .countdown { font-size: 4rem; font-weight: 900; color: #ff4d4d; background: rgba(255,77,77,0.15); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #ff4d4d; animation: countdownPulse 1s infinite; }
+        @keyframes countdownPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .tab-warning-overlay p { color: #ccc; font-size: 0.95rem; text-align: center; max-width: 320px; }
 
         /* Progress bar */
         .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.02); }
