@@ -5386,8 +5386,9 @@ function initFeatures() {
     // XP
     awardXP(XP_CONFIG.actions.login, 'Welcome back!');
     updateXPBar();
-    // Virtual Labs
-    renderVirtualLabs();
+    // Virtual Labs - show skeleton then render
+    showVlabSkeletons(4);
+    setTimeout(function() { renderVirtualLabs(); }, 300);
     // Radio
     renderRadioTracks();
     // OCR
