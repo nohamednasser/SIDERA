@@ -3352,14 +3352,25 @@ async function viewUserChat(email) {
 
 async function clearUserChat(email) {
     if (!confirm('Delete all chat messages for ' + email.replace('@sidera.local', '') + '?')) return;
-    // Note: Need DELETE RLS policy on chat_messages for admin
-    showToast('Chat messages cleared for ' + email.replace('@sidera.local', ''), 'success');
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email), {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('Chat messages cleared for ' + email.replace('@sidera.local', ''), 'success');
+    } catch(e) { showToast('Failed to delete', 'error'); }
     renderChatmgmtTab();
 }
 
 async function clearAllChatMessages() {
     if (!confirm('Delete ALL chat messages? This cannot be undone.')) return;
-    showToast('All chat messages cleared', 'success');
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages?id=neq.00000000-0000-0000-0000-000000000000', {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('All chat messages cleared', 'success');
+    } catch(e) { showToast('Failed to delete', 'error'); }
     renderChatmgmtTab();
 }
 
