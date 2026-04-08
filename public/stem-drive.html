@@ -4361,7 +4361,7 @@ async function submitExam() {
     // Check unanswered
     const unanswered = _currentExamQuestions.filter(q => !_examAnswers[q.id]).length;
     if (unanswered > 0) {
-        if (!confirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : '') + '. Submit anyway?')) return;
+        if (!(await sideraConfirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : ''), {desc:'Submit anyway?', icon:'📝', confirmText:'Submit', danger:false}))) return;
     }
 
     if (_examTimer) clearInterval(_examTimer);
