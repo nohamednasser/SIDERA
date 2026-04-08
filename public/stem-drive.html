@@ -1406,6 +1406,31 @@ function showToast(message, type = 'error', duration = 4000) {
     }, duration);
 }
 
+// Custom confirm dialog (replaces browser confirm())
+function sideraConfirm(message, options = {}) {
+    return new Promise(function(resolve) {
+        var overlay = document.createElement('div');
+        overlay.className = 'sidera-confirm-overlay';
+        var icon = options.icon || '⚠️';
+        var confirmText = options.confirmText || 'Confirm';
+        var cancelText = options.cancelText || 'Cancel';
+        var btnClass = options.danger !== false ? 'danger' : 'primary';
+        var desc = options.desc || '';
+        overlay.innerHTML = '<div class="sidera-confirm-box">' +
+            '<div class="sidera-confirm-icon">' + icon + '</div>' +
+            '<div class="sidera-confirm-title">' + message + '</div>' +
+            (desc ? '<div class="sidera-confirm-desc">' + desc + '</div>' : '') +
+            '<div class="sidera-confirm-actions">' +
+                '<button class="sidera-confirm-btn cancel" id="confirmCancel">' + cancelText + '</button>' +
+                '<button class="sidera-confirm-btn ' + btnClass + '" id="confirmOk">' + confirmText + '</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmOk').onclick = function() { overlay.remove(); resolve(true); };
+        overlay.querySelector('#confirmCancel').onclick = function() { overlay.remove(); resolve(false); };
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+    });
+}
+
 // Admin credentials are now managed via Supabase Auth - no hardcoded passwords
 
 // Fallback subjects (used if DB fetch fails)
