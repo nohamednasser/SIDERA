@@ -2229,14 +2229,11 @@ function setupApp() {
     sel.innerHTML = '';
     sel.appendChild(selFrag);
 
-    // Show logout for any logged-in user (admin or student)
-    if (isAdmin || _studentUser) {
-        document.getElementById('loginBtn').innerText = '🚪 Logout';
-        document.getElementById('loginBtn').onclick = logout;
-        document.getElementById('loginBtn').style.display = 'flex';
-    }
     if (isAdmin) {
         document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('loginBtn').innerText = 'Logout';
+        document.getElementById('loginBtn').onclick = logout;
+        document.getElementById('loginBtn').style.display = 'flex';
         document.getElementById('dashBtn').style.display = 'flex';
     }
 
