@@ -2085,6 +2085,9 @@ async function handleAuth() {
                 localStorage.setItem('sideraUsername', username);
                 showWelcome(username);
                 hideAuthOverlay();
+                _featuresInitialized = false;
+                initFeatures();
+                renderAlumniSection();
             } else {
                 document.getElementById('authSuccess').style.display = 'block';
                 toggleAuthMode();
