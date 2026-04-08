@@ -2052,6 +2052,9 @@ async function handleAuth() {
                 setupApp();
                 render();
                 loadExams();
+                _featuresInitialized = false;
+                initFeatures();
+                renderAlumniSection();
             } else {
                 // Student login
                 _studentUser = data.user;
