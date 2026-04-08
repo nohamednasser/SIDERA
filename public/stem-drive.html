@@ -3349,7 +3349,7 @@ function renderGamificationTab() {
     html += '<div style="padding:16px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:14px;">' +
         '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:8px;color:#ef4444;">⚠️ Danger Zone</h4>' +
         '<p style="font-size:0.78rem;color:var(--text);margin-bottom:10px;">Reset XP data for all students. This cannot be undone.</p>' +
-        '<button onclick="if(confirm(\'Are you sure you want to reset all XP data?\')) { localStorage.removeItem(\'sideraXP\'); showToast(\'All XP data reset\', \'success\'); }" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Reset All XP</button>' +
+        '<button onclick="sideraConfirm(\'Reset all XP data?\', {desc:\'This cannot be undone.\', icon:\'⚠️\', confirmText:\'Reset\'}).then(function(ok){if(ok){localStorage.removeItem(\'sideraXP\');showToast(\'All XP data reset\',\'success\');}})" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Reset All XP</button>' +
     '</div>';
 
     document.getElementById('dashTabGamification').innerHTML = html;
