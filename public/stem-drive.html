@@ -2819,7 +2819,7 @@ async function addSubject() {
 }
 
 async function deleteSubject(name) {
-    if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
+    if (!(await sideraConfirm('Delete subject "' + name + '"?', {desc:'Files using it will keep their subject tag.', icon:'🗑️', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
             method: 'DELETE', headers: getSbHeaders()
