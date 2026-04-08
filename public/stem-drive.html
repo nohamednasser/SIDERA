@@ -1496,9 +1496,29 @@ let _cachedItems = null;
 let _cacheTime = 0;
 const CACHE_TTL = 15000; // 15s cache for snappier feel
 
-// Get the current auth token (use admin JWT if logged in, else anon key)
+// Get the current auth token (admin session first, then student session, else anon key)
 function getAuthToken() {
-    return authAccessToken || SUPABASE_ANON_KEY;
+    return authAccessToken || localStorage.getItem('sideraStudentToken') || SUPABASE_ANON_KEY;
+}
+
+function hasStudentSession() {
+    return !!localStorage.getItem('sideraStudentToken');
+}
+
+function getCurrentStudentEmail() {
+    if (_studentUser && _studentUser.email) return _studentUser.email;
+    const username = localStorage.getItem('sideraUsername');
+    return username ? username + '@sidera.local' : '';
+}
+
+function requestExamFullscreen() {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (!rfs) return;
+    try {
+        const result = rfs.call(el);
+        if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (e) {}
 }
 
 // Supabase REST helpers - dynamic headers
@@ -2172,10 +2192,12 @@ async function handleAuth() {
                 renderAlumniSection();
             } else {
                 // Student login
+                authAccessToken = data.access_token;
                 _studentUser = data.user;
                 localStorage.setItem('sideraStudentToken', data.access_token);
                 localStorage.setItem('sideraStudentRefresh', data.refresh_token);
                 localStorage.setItem('sideraUsername', username);
+                localStorage.removeItem('sideraGuest');
                 showWelcome(username);
                 hideAuthOverlay();
                 _featuresInitialized = false;
@@ -2194,10 +2216,12 @@ async function handleAuth() {
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Signup failed');
             // Auto-login after signup (auto-confirm is enabled)
             if (data.access_token) {
+                authAccessToken = data.access_token;
                 _studentUser = data.user;
                 localStorage.setItem('sideraStudentToken', data.access_token);
                 localStorage.setItem('sideraStudentRefresh', data.refresh_token);
                 localStorage.setItem('sideraUsername', username);
+                localStorage.removeItem('sideraGuest');
                 showWelcome(username);
                 hideAuthOverlay();
                 _featuresInitialized = false;
@@ -2283,9 +2307,10 @@ function checkStudentAuth() {
     const isAdminSession = localStorage.getItem('sideraAuthSession');
     if (token || isGuest || isAdminSession) {
         const username = localStorage.getItem('sideraUsername');
-        if (token && username) {
-            _studentUser = { email: username + '@sidera.local' };
-            showWelcome(username);
+        if (token) {
+            authAccessToken = token;
+            _studentUser = { email: username ? username + '@sidera.local' : '' };
+            showWelcome(username || 'Student');
         } else if (isAdminSession) {
             showWelcome('Admin');
         } else if (isGuest) {
@@ -2302,10 +2327,12 @@ function checkStudentAuth() {
 
 function studentLogout() {
     _studentUser = null;
+    authAccessToken = localStorage.getItem('isSideraAdmin') === 'true' ? authAccessToken : null;
     localStorage.removeItem('sideraStudentToken');
     localStorage.removeItem('sideraStudentRefresh');
     localStorage.removeItem('sideraUsername');
     localStorage.removeItem('sideraGuest');
+    localStorage.removeItem('sideraStudent');
     // Show auth overlay again without reload
     const overlay = document.getElementById('authOverlay');
     overlay.style.display = 'flex';
@@ -3850,9 +3877,7 @@ function enableExamSecurity() {
     document.addEventListener('contextmenu', _blockContextMenu, true);
 
     // 4. Request fullscreen
-    const el = document.documentElement;
-    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-    if (rfs) rfs.call(el).catch(() => {});
+    requestExamFullscreen();
 
     // 5. Detect tab switch / visibility change
     document.addEventListener('visibilitychange', _onVisibilityChange);
@@ -3953,9 +3978,7 @@ function _cancelTabSwitchCountdown() {
 
     // Re-request fullscreen
     if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        const el = document.documentElement;
-        const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-        if (rfs) rfs.call(el).catch(() => {});
+        requestExamFullscreen();
     }
 
     if (_tabSwitchWarnings >= 1) {
@@ -3965,7 +3988,7 @@ function _cancelTabSwitchCountdown() {
 
 function _forceSubmitExam() {
     if (_examTimer) clearInterval(_examTimer);
-    submitExam();
+    submitExam(true);
 }
 
 function showTabWarning() {
@@ -4071,27 +4094,45 @@ function renderExams(exams) {
 // Student Registration
 async function openStudentReg(examId) {
     _currentExamId = examId;
+    if (!hasStudentSession()) {
+        showToast('سجّل دخولك كطالب قبل بدء الامتحان.', 'warning');
+        showAuthForGuest();
+        return;
+    }
+
+    const email = getCurrentStudentEmail();
+    const nameField = document.getElementById('studentName');
+    const emailField = document.getElementById('studentEmail');
     const saved = localStorage.getItem('sideraStudent');
+
     if (saved) {
         try {
             const s = JSON.parse(saved);
-            document.getElementById('studentName').value = s.name || '';
-            document.getElementById('studentEmail').value = s.email || '';
-            // Check for previous submission
-            const email = s.email;
-            if (email) {
-                try {
-                    const prevRes = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&student_email=eq.' + encodeURIComponent(email) + '&select=*&order=submitted_at.desc&limit=1', { headers: getSbHeaders() });
-                    const prevSubs = await prevRes.json();
-                    if (prevSubs.length > 0) {
-                        const sub = prevSubs[0];
-                        await showPreviousResult(examId, sub);
-                        return;
-                    }
-                } catch(e) { console.error('Check prev submission:', e); }
-            }
-        } catch(e) {}
+            nameField.value = s.name || localStorage.getItem('sideraUsername') || '';
+        } catch (e) {
+            nameField.value = localStorage.getItem('sideraUsername') || '';
+        }
+    } else {
+        nameField.value = localStorage.getItem('sideraUsername') || '';
     }
+
+    emailField.value = email;
+    emailField.readOnly = true;
+    emailField.disabled = true;
+
+    if (email) {
+        try {
+            const prevRes = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions?exam_id=eq.' + examId + '&student_email=eq.' + encodeURIComponent(email) + '&select=*&order=submitted_at.desc&limit=1', { headers: getSbHeaders() });
+            const prevSubs = await prevRes.json();
+            if (prevSubs.length > 0) {
+                await showPreviousResult(examId, prevSubs[0]);
+                return;
+            }
+        } catch (e) {
+            console.error('Check prev submission:', e);
+        }
+    }
+
     document.getElementById('studentRegModal').classList.add('show');
 }
 
@@ -4147,10 +4188,15 @@ async function retakeExam(examId) {
 function closeStudentReg() { document.getElementById('studentRegModal').classList.remove('show'); }
 
 async function startExamAfterReg() {
+    if (!hasStudentSession()) {
+        showToast('سجّل دخولك كطالب الأول.', 'warning');
+        showAuthForGuest();
+        return;
+    }
     const name = document.getElementById('studentName').value.trim();
-    const email = document.getElementById('studentEmail').value.trim();
-    if (!name || !email) { showToast('Please enter your name and email.', 'warning'); return; }
-    if (!email.includes('@')) { showToast('Please enter a valid email.', 'warning'); return; }
+    const email = getCurrentStudentEmail();
+    if (!name) { showToast('Please enter your name.', 'warning'); return; }
+    if (!email) { showToast('Student email not found. Please login again.', 'error'); return; }
     _studentInfo = { name, email };
     localStorage.setItem('sideraStudent', JSON.stringify(_studentInfo));
     closeStudentReg();
@@ -4189,7 +4235,7 @@ async function loadAndStartExam(examId) {
                 if (_examTimeLeft <= 0) {
                     clearInterval(_examTimer);
                     showToast('⏰ Time is up! Submitting your exam...', 'warning');
-                    submitExam();
+                    submitExam(true);
                 }
             }, 1000);
         }
@@ -4355,12 +4401,27 @@ async function confirmExitExam() {
     }
 }
 
-async function submitExam() {
+async function submitExam(forceSubmit = false) {
     saveCurrentAnswer();
+
+    if (!hasStudentSession()) {
+        showToast('سجّل دخولك كطالب ثم حاول مرة تانية.', 'error');
+        showAuthForGuest();
+        return;
+    }
+
+    const currentEmail = getCurrentStudentEmail();
+    const currentName = (_studentInfo.name || document.getElementById('studentName')?.value || localStorage.getItem('sideraUsername') || 'Student').trim();
+    if (!currentEmail) {
+        showToast('Student session expired. Please login again.', 'error');
+        return;
+    }
+    _studentInfo = { name: currentName, email: currentEmail };
+    localStorage.setItem('sideraStudent', JSON.stringify(_studentInfo));
     
     // Check unanswered
     const unanswered = _currentExamQuestions.filter(q => !_examAnswers[q.id]).length;
-    if (unanswered > 0) {
+    if (unanswered > 0 && !forceSubmit) {
         if (!(await sideraConfirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : ''), {desc:'Submit anyway?', icon:'📝', confirmText:'Submit', danger:false}))) return;
     }
 
@@ -4403,7 +4464,6 @@ async function submitExam() {
             }
         });
 
-        // Save submission
         const subRes = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions', {
             method: 'POST',
             headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
@@ -4416,19 +4476,18 @@ async function submitExam() {
                 submitted_at: new Date().toISOString()
             })
         });
-        if (!subRes.ok) throw new Error('Submit failed');
+        if (!subRes.ok) throw new Error('Submit failed: ' + await subRes.text());
         const subData = await subRes.json();
         const submissionId = subData[0].id;
 
-        // Save answers
         const answersData = answers.map(a => ({ ...a, submission_id: submissionId }));
-        await fetch(SUPABASE_URL + '/rest/v1/exam_answers', {
+        const answersRes = await fetch(SUPABASE_URL + '/rest/v1/exam_answers', {
             method: 'POST',
             headers: getSbHeaders(),
             body: JSON.stringify(answersData)
         });
+        if (!answersRes.ok) throw new Error('Answers save failed: ' + await answersRes.text());
 
-        // Close exam modal and show results
         disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
@@ -4436,7 +4495,8 @@ async function submitExam() {
         showExamResults(score, totalPoints, answers);
     } catch (err) {
         console.error('submitExam error:', err);
-        showToast('Failed to submit exam. Try again.', 'error');
+        const msg = String(err && err.message ? err.message : err);
+        showToast(/jwt|permission|row-level|401|403/i.test(msg) ? 'سجّل دخولك من جديد ثم أعد المحاولة.' : 'Failed to submit exam. Try again.', 'error');
         btn.disabled = false;
         btn.textContent = '✅ Submit Exam';
     }
