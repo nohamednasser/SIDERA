@@ -19,7 +19,8 @@
             --text: #b0b0b0; --header-bg: #16131f; --border: #2a2740; --input-bg: #1f1c2e;
         }
 
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        * { -webkit-tap-highlight-color: transparent; }
         /* FIX: Only transition color properties, not "all" which triggers expensive layout recalcs */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: background-color 0.15s ease, color 0.15s ease; }
         
@@ -140,45 +141,49 @@
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
         /* Admin Dashboard Modal */
-        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1002; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .dash-modal.show { display: flex; }
-        .dash-content { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); width: 92%; max-width: 720px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s ease, border-color 0.15s ease; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
-        .dash-header h2 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-        .dash-close { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: transform 0.15s ease; }
-        .dash-close:hover { transform: scale(1.1); }
-        .dash-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 28px; gap: 4px; overflow-x: auto; }
-        .dash-tab { padding: 12px 18px; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; border: none; background: none; border-bottom: 2.5px solid transparent; transition: color 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
-        .dash-tab:hover { color: var(--dark); }
-        .dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .dash-content { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); width: 92%; max-width: 800px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s ease, border-color 0.15s ease; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, var(--accent), #ff6b8a); border-radius: 24px 24px 0 0; }
+        .dash-header h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: white; }
+        .dash-close { background: rgba(255,255,255,0.2); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: all 0.15s ease; backdrop-filter: blur(4px); }
+        .dash-close:hover { transform: scale(1.1); background: rgba(255,255,255,0.3); }
+        .dash-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 20px; gap: 2px; overflow-x: auto; background: var(--input-bg); scrollbar-width: none; -ms-overflow-style: none; }
+        .dash-tabs::-webkit-scrollbar { display: none; }
+        .dash-tab { padding: 11px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text); cursor: pointer; border: none; background: none; border-bottom: 2.5px solid transparent; transition: all 0.15s ease; white-space: nowrap; position: relative; }
+        .dash-tab:hover { color: var(--dark); background: rgba(163,64,84,0.04); }
+        .dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--card-bg); }
         .dash-body { padding: 22px 28px; }
         .dash-tab-content { display: none; }
-        .dash-tab-content.active { display: block; animation: fadeIn 0.25s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px 12px; text-align: center; transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
-        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
-        .stat-card .stat-icon { font-size: 1.4rem; margin-bottom: 6px; }
-        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
-        .stat-card .stat-label { font-size: 0.68rem; color: var(--text); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dash-tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; padding: 14px 10px; text-align: center; transition: all 0.15s ease; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), #ff6b8a); opacity: 0; transition: opacity 0.15s; }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 16px rgba(163,64,84,0.1); }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card .stat-icon { font-size: 1.3rem; margin-bottom: 4px; }
+        .stat-card .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+        .stat-card .stat-label { font-size: 0.65rem; color: var(--text); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .dash-section-title { font-size: 0.82rem; font-weight: 700; margin: 18px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
         .stat-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .stat-bar-label { font-size: 0.8rem; min-width: 100px; font-weight: 600; }
         .stat-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-        .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff6b8a); border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+        .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff6b8a); border-radius: 4px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
         .stat-bar-count { font-size: 0.75rem; color: var(--text); min-width: 30px; text-align: right; font-weight: 600; }
         .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse-dot 1.5s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         
-        .dash-exam-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.15s ease; }
-        .dash-exam-card:hover { border-color: var(--accent); }
-        .dash-exam-info h4 { margin: 0 0 4px; font-size: 0.9rem; font-weight: 700; }
-        .dash-exam-info p { margin: 0; font-size: 0.75rem; color: var(--text); }
+        .dash-exam-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: all 0.15s ease; }
+        .dash-exam-card:hover { border-color: var(--accent); transform: translateX(3px); }
+        .dash-exam-info h4 { margin: 0 0 4px; font-size: 0.88rem; font-weight: 700; }
+        .dash-exam-info p { margin: 0; font-size: 0.73rem; color: var(--text); }
         .dash-exam-stats { display: flex; gap: 14px; align-items: center; }
         .dash-exam-stat { text-align: center; }
         .dash-exam-stat .val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
         .dash-exam-stat .lbl { font-size: 0.62rem; color: var(--text); text-transform: uppercase; font-weight: 600; }
-        .dash-recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); margin-bottom: 8px; font-size: 0.82rem; }
+        .dash-recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--border); margin-bottom: 6px; font-size: 0.82rem; transition: all 0.12s ease; }
+        .dash-recent-item:hover { border-color: var(--accent); }
         .dash-recent-item .dash-recent-icon { font-size: 1.3rem; }
         .dash-recent-item .dash-recent-text { flex: 1; }
         .dash-recent-item .dash-recent-text strong { display: block; font-size: 0.82rem; }
@@ -187,11 +192,11 @@
 
         @media (max-width: 768px) {
             .dash-content { width: 96%; border-radius: 18px; max-height: 92vh; }
-            .dash-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card { padding: 12px; }
-            .stat-card .stat-value { font-size: 1.3rem; }
-            .dash-tabs { padding: 0 16px; }
-            .dash-tab { padding: 10px 14px; font-size: 0.78rem; }
+            .dash-stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-card { padding: 10px; }
+            .stat-card .stat-value { font-size: 1.2rem; }
+            .dash-tabs { padding: 0 12px; }
+            .dash-tab { padding: 10px 12px; font-size: 0.74rem; }
             .dash-body { padding: 16px; }
             .dash-exam-card { flex-direction: column; gap: 10px; align-items: flex-start; }
         }
@@ -1066,10 +1071,19 @@
 <div class="exam-divider" id="vlabDivider"></div>
 <div class="exam-section-title">
     <h2>🧪 Virtual Labs & Simulations</h2>
-    <p>Interactive simulations to explore science concepts hands-on</p>
+    <p>Interactive PhET simulations — Physics, Chemistry, Biology, Math & Earth Science</p>
+</div>
+<div style="width:90%;max-width:1400px;margin:0 auto 10px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="filter-chip active" onclick="filterVlabSubject('all',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--accent);color:white;font-size:0.75rem;font-weight:700;cursor:pointer;">All</button>
+    <button class="filter-chip" onclick="filterVlabSubject('physics',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">⚡ Physics</button>
+    <button class="filter-chip" onclick="filterVlabSubject('chemistry',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">⚗️ Chemistry</button>
+    <button class="filter-chip" onclick="filterVlabSubject('biology',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">🧬 Biology</button>
+    <button class="filter-chip" onclick="filterVlabSubject('math',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">📐 Math</button>
+    <button class="filter-chip" onclick="filterVlabSubject('geology',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">🌍 Earth</button>
 </div>
 <div class="vlab-section" id="vlabSection">
     <div class="vlab-grid" id="vlabGrid"></div>
+    <div style="text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text);">Powered by <a href="https://phet.colorado.edu" target="_blank" style="color:var(--accent);font-weight:700;">PhET Interactive Simulations</a> · University of Colorado Boulder</div>
 </div>
 
 <!-- Student Reviews Section -->
@@ -5581,18 +5595,36 @@ function checkDeadlineNotifications() {
 
 // === 3. VIRTUAL LABS ===
 var virtualLabs = [
-    { subject: 'physics', icon: '⚡', title: 'Circuit Construction Kit', desc: 'Build circuits with batteries, resistors, and light bulbs. Experiment with Ohm\'s Law.', url: 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html' },
-    { subject: 'physics', icon: '🎯', title: 'Forces and Motion', desc: 'Explore forces, friction, and Newton\'s laws with interactive simulations.', url: 'https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_all.html' },
-    { subject: 'physics', icon: '🌊', title: 'Wave Interference', desc: 'Visualize wave properties including interference, diffraction, and superposition.', url: 'https://phet.colorado.edu/sims/html/wave-interference/latest/wave-interference_all.html' },
-    { subject: 'chemistry', icon: '⚗️', title: 'Balancing Chemical Equations', desc: 'Practice balancing equations with an interactive scale and molecule visualization.', url: 'https://phet.colorado.edu/sims/html/balancing-chemical-equations/latest/balancing-chemical-equations_all.html' },
-    { subject: 'chemistry', icon: '🧪', title: 'Acid-Base Solutions', desc: 'Explore acids, bases, and pH with virtual litmus tests and indicators.', url: 'https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html' },
-    { subject: 'chemistry', icon: '⚛️', title: 'Build an Atom', desc: 'Build atoms from protons, neutrons, and electrons. Learn about isotopes and ions.', url: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_all.html' },
-    { subject: 'biology', icon: '🧬', title: 'Natural Selection', desc: 'Simulate evolution by natural selection with bunnies and environmental pressures.', url: 'https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_all.html' },
-    { subject: 'biology', icon: '🔬', title: 'Gene Expression', desc: 'Explore how DNA is transcribed and translated into proteins.', url: 'https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_all.html' },
-    { subject: 'math', icon: '📐', title: 'Graphing Quadratics', desc: 'Graph quadratic equations and explore vertex form, standard form, and roots.', url: 'https://phet.colorado.edu/sims/html/graphing-quadratics/latest/graphing-quadratics_all.html' },
-    { subject: 'math', icon: '📊', title: 'Area Model Algebra', desc: 'Use area models to multiply polynomials and factor expressions visually.', url: 'https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_all.html' },
-    { subject: 'geology', icon: '🌋', title: 'Plate Tectonics', desc: 'Explore plate boundaries, continental drift, and geological formations.', url: 'https://phet.colorado.edu/sims/html/plate-tectonics/latest/plate-tectonics_all.html' },
-    { subject: 'physics', icon: '🔭', title: 'Gravity and Orbits', desc: 'Explore gravitational forces between planets, stars, and moons.', url: 'https://phet.colorado.edu/sims/html/gravity-and-orbits/latest/gravity-and-orbits_all.html' },
+    // Physics
+    { subject: 'physics', icon: '⚡', title: 'Circuit Construction Kit', desc: 'Build circuits with batteries, resistors, and light bulbs. Experiment with Ohm\'s Law.', url: 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'physics', icon: '🎯', title: 'Forces and Motion', desc: 'Explore forces, friction, and Newton\'s laws with interactive simulations.', url: 'https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'physics', icon: '🌊', title: 'Wave Interference', desc: 'Visualize wave properties including interference, diffraction, and superposition.', url: 'https://phet.colorado.edu/sims/html/wave-interference/latest/wave-interference_all.html', difficulty: 'Advanced', duration: '25 min' },
+    { subject: 'physics', icon: '🔭', title: 'Gravity and Orbits', desc: 'Explore gravitational forces between planets, stars, and moons.', url: 'https://phet.colorado.edu/sims/html/gravity-and-orbits/latest/gravity-and-orbits_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'physics', icon: '🔋', title: 'Energy Skate Park', desc: 'Learn about conservation of energy with a skater on different tracks.', url: 'https://phet.colorado.edu/sims/html/energy-skate-park-basics/latest/energy-skate-park-basics_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'physics', icon: '💡', title: 'Bending Light', desc: 'Explore refraction, reflection, and how light bends between different media.', url: 'https://phet.colorado.edu/sims/html/bending-light/latest/bending-light_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'physics', icon: '🧲', title: 'Faraday\'s Law', desc: 'Discover how a changing magnetic field creates an electric current.', url: 'https://phet.colorado.edu/sims/html/faradays-law/latest/faradays-law_all.html', difficulty: 'Advanced', duration: '25 min' },
+    { subject: 'physics', icon: '🎢', title: 'Projectile Motion', desc: 'Launch objects and explore the physics of projectile trajectories.', url: 'https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    // Chemistry
+    { subject: 'chemistry', icon: '⚗️', title: 'Balancing Chemical Equations', desc: 'Practice balancing equations with an interactive scale and molecule visualization.', url: 'https://phet.colorado.edu/sims/html/balancing-chemical-equations/latest/balancing-chemical-equations_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'chemistry', icon: '🧪', title: 'Acid-Base Solutions', desc: 'Explore acids, bases, and pH with virtual litmus tests and indicators.', url: 'https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'chemistry', icon: '⚛️', title: 'Build an Atom', desc: 'Build atoms from protons, neutrons, and electrons. Learn about isotopes and ions.', url: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'chemistry', icon: '🔥', title: 'Reactants & Products', desc: 'Explore how reactants combine to form products in chemical reactions.', url: 'https://phet.colorado.edu/sims/html/reactants-products-and-leftovers/latest/reactants-products-and-leftovers_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'chemistry', icon: '💧', title: 'Concentration', desc: 'Explore molarity by adjusting solute amount and solution volume.', url: 'https://phet.colorado.edu/sims/html/concentration/latest/concentration_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'chemistry', icon: '🌡️', title: 'States of Matter', desc: 'Heat, cool, and compress atoms to explore solid, liquid, and gas states.', url: 'https://phet.colorado.edu/sims/html/states-of-matter/latest/states-of-matter_all.html', difficulty: 'Beginner', duration: '15 min' },
+    // Biology
+    { subject: 'biology', icon: '🧬', title: 'Natural Selection', desc: 'Simulate evolution by natural selection with bunnies and environmental pressures.', url: 'https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_all.html', difficulty: 'Intermediate', duration: '25 min' },
+    { subject: 'biology', icon: '🔬', title: 'Gene Expression', desc: 'Explore how DNA is transcribed and translated into proteins.', url: 'https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_all.html', difficulty: 'Advanced', duration: '30 min' },
+    { subject: 'biology', icon: '🌿', title: 'Color Vision', desc: 'Explore how color perception works with RGB light mixing and filters.', url: 'https://phet.colorado.edu/sims/html/color-vision/latest/color-vision_all.html', difficulty: 'Beginner', duration: '10 min' },
+    { subject: 'biology', icon: '🦠', title: 'Neuron Simulation', desc: 'Explore how neurons fire and transmit electrical signals in the brain.', url: 'https://phet.colorado.edu/sims/html/neuron/latest/neuron_all.html', difficulty: 'Advanced', duration: '25 min' },
+    // Math
+    { subject: 'math', icon: '📐', title: 'Graphing Quadratics', desc: 'Graph quadratic equations and explore vertex form, standard form, and roots.', url: 'https://phet.colorado.edu/sims/html/graphing-quadratics/latest/graphing-quadratics_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'math', icon: '📊', title: 'Area Model Algebra', desc: 'Use area models to multiply polynomials and factor expressions visually.', url: 'https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'math', icon: '📈', title: 'Graphing Lines', desc: 'Explore slope-intercept form and point-slope form by graphing lines.', url: 'https://phet.colorado.edu/sims/html/graphing-slope-intercept/latest/graphing-slope-intercept_all.html', difficulty: 'Beginner', duration: '15 min' },
+    { subject: 'math', icon: '🔢', title: 'Fractions Intro', desc: 'Build fractions from shapes and learn about equivalence and mixed numbers.', url: 'https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_all.html', difficulty: 'Beginner', duration: '10 min' },
+    { subject: 'math', icon: '🎲', title: 'Probability', desc: 'Explore probability through coin flips, dice rolls, and Plinko boards.', url: 'https://phet.colorado.edu/sims/html/plinko-probability/latest/plinko-probability_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    // Geology / Earth Science
+    { subject: 'geology', icon: '🌋', title: 'Plate Tectonics', desc: 'Explore plate boundaries, continental drift, and geological formations.', url: 'https://phet.colorado.edu/sims/html/plate-tectonics/latest/plate-tectonics_all.html', difficulty: 'Intermediate', duration: '20 min' },
+    { subject: 'geology', icon: '🌍', title: 'Greenhouse Effect', desc: 'Explore how greenhouse gases affect Earth\'s temperature and climate.', url: 'https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_all.html', difficulty: 'Beginner', duration: '15 min' },
 ];
 
 function renderVirtualLabs() {
@@ -5607,16 +5639,70 @@ function renderVirtualLabs() {
         return;
     }
     grid.innerHTML = filtered.map(function(lab) {
+        var diffColor = lab.difficulty === 'Beginner' ? '#22c55e' : lab.difficulty === 'Intermediate' ? '#f59e0b' : '#ef4444';
+        var diffBg = lab.difficulty === 'Beginner' ? 'rgba(34,197,94,0.1)' : lab.difficulty === 'Intermediate' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
         return '<div class="vlab-card" onclick="window.open(\'' + lab.url + '\', \'_blank\')">' +
-            '<div class="vlab-icon">' + lab.icon + '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+                '<div class="vlab-icon" style="margin-bottom:0;">' + lab.icon + '</div>' +
+                '<div style="display:flex;gap:6px;">' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:' + diffBg + ';color:' + diffColor + ';font-weight:700;">' + lab.difficulty + '</span>' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:var(--input-bg);color:var(--text);font-weight:600;">⏱ ' + (lab.duration || '') + '</span>' +
+                '</div>' +
+            '</div>' +
             '<div class="vlab-title">' + lab.title + '</div>' +
             '<div class="vlab-desc">' + lab.desc + '</div>' +
-            '<div class="vlab-btn">🚀 Open Simulation →</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">' +
+                '<span style="font-size:0.68rem;color:var(--text);font-weight:600;text-transform:capitalize;">📂 ' + lab.subject + '</span>' +
+                '<div class="vlab-btn" style="margin-top:0;">🚀 Open Simulation →</div>' +
+            '</div>' +
         '</div>';
     }).join('');
 }
 
-// === 4. XP & LEVELS GAMIFICATION ===
+var _vlabFilter = 'all';
+function filterVlabSubject(subject, btn) {
+    _vlabFilter = subject;
+    document.querySelectorAll('.filter-chip').forEach(function(c) {
+        c.classList.remove('active');
+        c.style.background = 'var(--input-bg)';
+        c.style.color = 'var(--dark)';
+    });
+    btn.classList.add('active');
+    btn.style.background = 'var(--accent)';
+    btn.style.color = 'white';
+    renderVirtualLabsFiltered();
+}
+
+function renderVirtualLabsFiltered() {
+    var grid = document.getElementById('vlabGrid');
+    if (!grid) return;
+    var filtered = _vlabFilter === 'all' ? virtualLabs : virtualLabs.filter(function(l) { return l.subject.toLowerCase() === _vlabFilter; });
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text);grid-column:1/-1;">No labs available for this subject.</div>';
+        return;
+    }
+    grid.innerHTML = filtered.map(function(lab) {
+        var diffColor = lab.difficulty === 'Beginner' ? '#22c55e' : lab.difficulty === 'Intermediate' ? '#f59e0b' : '#ef4444';
+        var diffBg = lab.difficulty === 'Beginner' ? 'rgba(34,197,94,0.1)' : lab.difficulty === 'Intermediate' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
+        return '<div class="vlab-card" onclick="window.open(\'' + lab.url + '\', \'_blank\')">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+                '<div class="vlab-icon" style="margin-bottom:0;">' + lab.icon + '</div>' +
+                '<div style="display:flex;gap:6px;">' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:' + diffBg + ';color:' + diffColor + ';font-weight:700;">' + lab.difficulty + '</span>' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:var(--input-bg);color:var(--text);font-weight:600;">⏱ ' + (lab.duration || '') + '</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="vlab-title">' + lab.title + '</div>' +
+            '<div class="vlab-desc">' + lab.desc + '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">' +
+                '<span style="font-size:0.68rem;color:var(--text);font-weight:600;text-transform:capitalize;">📂 ' + lab.subject + '</span>' +
+                '<div class="vlab-btn" style="margin-top:0;">🚀 Open Simulation →</div>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+
 var XP_CONFIG = {
     levels: [
         { name: 'Junior', min: 0, icon: '🌱', class: 'junior' },
