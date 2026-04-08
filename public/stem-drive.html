@@ -2105,6 +2105,9 @@ function enterAsGuest() {
     showWelcome('Guest');
     hideAuthOverlay();
     document.getElementById('guestSignInBtn').style.display = 'flex';
+    _featuresInitialized = false;
+    initFeatures();
+    renderAlumniSection();
 }
 
 function showAuthForGuest() {
