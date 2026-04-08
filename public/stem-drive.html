@@ -836,21 +836,7 @@
         .snippet-item .snippet-del { position: absolute; top: 6px; right: 8px; cursor: pointer; opacity: 0.4; font-size: 0.7rem; }
         .snippet-item .snippet-del:hover { opacity: 1; }
 
-        /* Study Radio */
-        .radio-section { width: 90%; max-width: 1400px; margin: 0 auto; padding: 20px 0; }
-        .radio-player { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; }
-        .radio-now-playing { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-        .radio-visualizer { display: flex; gap: 3px; align-items: flex-end; height: 30px; }
-        .radio-visualizer .bar { width: 4px; background: var(--accent); border-radius: 2px; animation: radioBar 0.8s ease infinite alternate; }
-        .radio-visualizer .bar:nth-child(2) { animation-delay: 0.2s; }
-        .radio-visualizer .bar:nth-child(3) { animation-delay: 0.4s; }
-        .radio-visualizer .bar:nth-child(4) { animation-delay: 0.1s; }
-        .radio-visualizer .bar:nth-child(5) { animation-delay: 0.3s; }
-        @keyframes radioBar { from { height: 5px; } to { height: 28px; } }
-        .radio-tracks { max-height: 200px; overflow-y: auto; }
-        .radio-track { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 0.82rem; transition: background 0.1s; }
-        .radio-track:hover { background: rgba(163,64,84,0.06); }
-        .radio-track.playing { background: rgba(163,64,84,0.1); font-weight: 700; }
+        /* AI Recommender - was Study Radio */
 
         /* AI Recommender */
         .ai-rec-banner { background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(59,130,246,0.1)); border: 1px solid rgba(139,92,246,0.2); border-radius: 16px; padding: 16px 20px; margin-top: 16px; }
@@ -950,9 +936,8 @@
     <a href="#container" onclick="smoothNav(event,'container')">📚 Materials</a>
     <a href="#capstoneArea" onclick="smoothNav(event,'capstoneArea')">📄 Capstone</a>
     <a href="#alumniSection" onclick="smoothNav(event,'alumniSection')">🎓 Alumni</a>
-    <a href="#reviewsSection" onclick="smoothNav(event,'reviewsSection')">⭐ Reviews</a>
     <a href="#vlabSection" onclick="smoothNav(event,'vlabSection')">🧪 Labs</a>
-    <a href="#radioArea" onclick="smoothNav(event,'radioArea')">🎶 Radio</a>
+    <a href="#reviewsSection" onclick="smoothNav(event,'reviewsSection')">⭐ Reviews</a>
 </nav>
 
 <div id="adminPanel">
@@ -1113,26 +1098,6 @@
     </div>
 </div>
 
-<!-- Study Radio -->
-<div class="exam-divider" id="radioArea"></div>
-<div class="exam-section-title">
-    <h2>🎶 Study Radio</h2>
-    <p>Focus music to help you concentrate while studying</p>
-</div>
-<div class="radio-section">
-    <div class="radio-player">
-        <div class="radio-now-playing">
-            <div class="radio-visualizer" id="radioVisualizer" style="display:none;">
-                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            </div>
-            <div>
-                <div style="font-weight:700;font-size:0.85rem;" id="radioNowTitle">🎵 Select a track to start</div>
-                <div style="font-size:0.72rem;color:var(--text);" id="radioNowArtist">Lofi & instrumental music for studying</div>
-            </div>
-        </div>
-        <div class="radio-tracks" id="radioTracks"></div>
-    </div>
-</div>
 
 
 <!-- Student Registration Modal -->
@@ -1252,7 +1217,7 @@
             <button class="dash-tab" onclick="switchDashTab('students', this)">👥 Students</button>
             <button class="dash-tab" onclick="switchDashTab('activity', this)">🕐 Activity</button>
             <button class="dash-tab" onclick="switchDashTab('vlabs', this)">🧪 Labs</button>
-            <button class="dash-tab" onclick="switchDashTab('radio', this)">🎶 Radio</button>
+            
             <button class="dash-tab" onclick="switchDashTab('alumni', this)">🎓 Alumni</button>
             <button class="dash-tab" onclick="switchDashTab('gamification', this)">🎮 XP</button>
             <button class="dash-tab" onclick="switchDashTab('capstone', this)">📄 Capstone</button>
@@ -1265,7 +1230,7 @@
             <div id="dashTabStudents" class="dash-tab-content"></div>
             <div id="dashTabActivity" class="dash-tab-content"></div>
             <div id="dashTabVlabs" class="dash-tab-content"></div>
-            <div id="dashTabRadio" class="dash-tab-content"></div>
+            
             <div id="dashTabAlumni" class="dash-tab-content"></div>
             <div id="dashTabGamification" class="dash-tab-content"></div>
             <div id="dashTabCapstone" class="dash-tab-content"></div>
@@ -2945,7 +2910,6 @@ async function loadAllDashboardData() {
         renderStudentsTab();
         renderActivityTab();
         renderVlabsTab();
-        renderRadioTab();
         renderAlumniTab();
         renderGamificationTab();
         renderCapstoneTab();
@@ -3605,7 +3569,7 @@ function checkSectionNav() {
         if (_sectionNavShown) { nav.classList.remove('visible'); _sectionNavShown = false; }
     }
     // Highlight active section
-    var sections = ['examsSection', 'container', 'capstoneArea', 'alumniSection', 'reviewsSection', 'vlabSection', 'radioArea'];
+    var sections = ['examsSection', 'container', 'capstoneArea', 'alumniSection', 'vlabSection', 'reviewsSection'];
     var current = '';
     for (var i = 0; i < sections.length; i++) {
         var el = document.getElementById(sections[i]);
@@ -5871,6 +5835,7 @@ var _radioIframe = null;
 
 function renderRadioTracks() {
     var container = document.getElementById('radioTracks');
+    if (!container) return;
     container.innerHTML = radioPlaylist.map(function(track, i) {
         return '<div class="radio-track' + (i === _currentRadioIdx ? ' playing' : '') + '" onclick="playRadioTrack(' + i + ')">' +
             '<span>' + (i === _currentRadioIdx ? '🔊' : '▶️') + '</span>' +
@@ -6016,7 +5981,7 @@ function initFeatures() {
     _featuresInitialized = true;
     // Load admin-customized data
     loadCustomVlabs();
-    loadCustomRadio();
+    
     loadCustomAlumni();
     loadXPConfig();
     // Show notification + snippets buttons
@@ -6028,8 +5993,6 @@ function initFeatures() {
     // Virtual Labs - show skeleton then render
     showVlabSkeletons(4);
     setTimeout(function() { renderVirtualLabs(); }, 300);
-    // Radio
-    renderRadioTracks();
     // OCR
     addOCRButton();
     // Notifications
