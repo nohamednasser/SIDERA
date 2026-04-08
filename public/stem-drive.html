@@ -3480,7 +3480,7 @@ async function viewUserChat(email) {
 }
 
 async function clearUserChat(email) {
-    if (!confirm('Delete all chat messages for ' + email.replace('@sidera.local', '') + '?')) return;
+    if (!(await sideraConfirm('Delete chat messages for ' + email.replace('@sidera.local', '') + '?', {icon:'💬', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email), {
             method: 'DELETE',
