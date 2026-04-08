@@ -5835,6 +5835,7 @@ var _radioIframe = null;
 
 function renderRadioTracks() {
     var container = document.getElementById('radioTracks');
+    if (!container) return;
     container.innerHTML = radioPlaylist.map(function(track, i) {
         return '<div class="radio-track' + (i === _currentRadioIdx ? ' playing' : '') + '" onclick="playRadioTrack(' + i + ')">' +
             '<span>' + (i === _currentRadioIdx ? '🔊' : '▶️') + '</span>' +
