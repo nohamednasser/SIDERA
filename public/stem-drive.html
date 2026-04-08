@@ -3403,7 +3403,7 @@ async function renderCapstoneTab() {
 }
 
 async function deleteCapstoneProject(id) {
-    if (!confirm('Delete this capstone project?')) return;
+    if (!(await sideraConfirm('Delete this capstone project?', {icon:'🗑️', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?id=eq.' + id, {
             method: 'DELETE',
