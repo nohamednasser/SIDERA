@@ -4345,8 +4345,8 @@ function selectTF(el) {
     saveCurrentAnswer();
 }
 
-function confirmExitExam() {
-    if (confirm('Are you sure you want to leave? Your progress will be lost.')) {
+async function confirmExitExam() {
+    if (await sideraConfirm('Are you sure you want to leave?', {desc:'Your progress will be lost.', icon:'🚪', confirmText:'Leave', danger:true})) {
         if (_examTimer) clearInterval(_examTimer);
         disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
