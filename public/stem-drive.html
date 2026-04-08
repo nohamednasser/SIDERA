@@ -3617,6 +3617,7 @@ function checkSectionNav() {
 window.addEventListener('scroll', checkSectionNav, { passive: true });
 
 
+function formatTimeAgo(timestamp) {
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Just now';
