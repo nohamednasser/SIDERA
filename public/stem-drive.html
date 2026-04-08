@@ -3609,7 +3609,7 @@ async function renderReviewsTab() {
 }
 
 async function clearAllReviews() {
-    if (!confirm('Delete ALL student reviews? This cannot be undone.')) return;
+    if (!(await sideraConfirm('Delete ALL student reviews?', {desc:'This cannot be undone.', icon:'⭐', confirmText:'Delete All'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/student_reviews?id=neq.00000000-0000-0000-0000-000000000000', {
             method: 'DELETE',
