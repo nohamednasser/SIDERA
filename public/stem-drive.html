@@ -1505,7 +1505,78 @@ function hasStudentSession() {
     return !!localStorage.getItem('sideraStudentToken');
 }
 
+function decodeJwtPayload(token) {
+    try {
+        const payload = token.split('.')[1];
+        if (!payload) return null;
+        const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
+        return JSON.parse(decoded);
+    } catch (e) {
+        return null;
+    }
+}
+
+function isJwtExpiring(token, withinSeconds = 90) {
+    const payload = decodeJwtPayload(token);
+    if (!payload || !payload.exp) return true;
+    return payload.exp <= Math.floor(Date.now() / 1000) + withinSeconds;
+}
+
+async function ensureStudentSession(options = {}) {
+    const forceRefresh = !!options.forceRefresh;
+    const token = localStorage.getItem('sideraStudentToken');
+    const refreshToken = localStorage.getItem('sideraStudentRefresh');
+
+    if (!token && !refreshToken) return false;
+    if (token) authAccessToken = token;
+
+    if (!_studentUser) {
+        const username = localStorage.getItem('sideraUsername');
+        if (username) _studentUser = { email: username + '@sidera.local' };
+    }
+
+    if (!forceRefresh && token && !isJwtExpiring(token, 90)) {
+        return true;
+    }
+
+    if (!refreshToken) {
+        return !!(token && !isJwtExpiring(token, 0));
+    }
+
+    try {
+        const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+            body: JSON.stringify({ refresh_token: refreshToken })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.access_token) throw new Error(data.error_description || data.msg || 'Student session refresh failed');
+
+        authAccessToken = data.access_token;
+        localStorage.setItem('sideraStudentToken', data.access_token);
+        if (data.refresh_token) localStorage.setItem('sideraStudentRefresh', data.refresh_token);
+
+        if (data.user) {
+            _studentUser = data.user;
+        } else {
+            const username = localStorage.getItem('sideraUsername');
+            _studentUser = { email: username ? username + '@sidera.local' : '' };
+        }
+
+        return true;
+    } catch (err) {
+        console.error('Student session refresh failed:', err);
+        if (token && !isJwtExpiring(token, 0)) {
+            authAccessToken = token;
+            return true;
+        }
+        return false;
+    }
+}
+
 function getCurrentStudentEmail() {
+    if (_studentInfo && _studentInfo.email) return _studentInfo.email;
     if (_studentUser && _studentUser.email) return _studentUser.email;
     const username = localStorage.getItem('sideraUsername');
     return username ? username + '@sidera.local' : '';
@@ -3884,6 +3955,7 @@ function enableExamSecurity() {
     window.addEventListener('blur', _onWindowBlur);
     document.addEventListener('fullscreenchange', _onFullscreenChange);
     document.addEventListener('webkitfullscreenchange', _onFullscreenChange);
+    document.getElementById('examTakingModal').addEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     // Show security badge
     document.getElementById('examSecureBadge').style.display = 'inline-flex';
@@ -3900,6 +3972,7 @@ function disableExamSecurity() {
     window.removeEventListener('blur', _onWindowBlur);
     document.removeEventListener('fullscreenchange', _onFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', _onFullscreenChange);
+    document.getElementById('examTakingModal').removeEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
     hideTabWarning();
@@ -3924,6 +3997,13 @@ function _blockScreenshotKeys(e) {
 
 function _blockContextMenu(e) {
     if (_examSecurityActive) { e.preventDefault(); e.stopPropagation(); }
+}
+
+function _retryFullscreenOnInteraction() {
+    if (!_examSecurityActive) return;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        requestExamFullscreen();
+    }
 }
 
 function _onVisibilityChange() {
@@ -4094,7 +4174,7 @@ function renderExams(exams) {
 // Student Registration
 async function openStudentReg(examId) {
     _currentExamId = examId;
-    if (!hasStudentSession()) {
+    if (!hasStudentSession() || !(await ensureStudentSession())) {
         showToast('سجّل دخولك كطالب قبل بدء الامتحان.', 'warning');
         showAuthForGuest();
         return;
@@ -4178,6 +4258,12 @@ async function showPreviousResult(examId, submission) {
 
 async function retakeExam(examId) {
     _currentExamId = examId;
+    requestExamFullscreen();
+    if (!(await ensureStudentSession())) {
+        showToast('سجّل دخولك كطالب ثم أعد المحاولة.', 'warning');
+        showAuthForGuest();
+        return;
+    }
     const saved = localStorage.getItem('sideraStudent');
     if (saved) {
         _studentInfo = JSON.parse(saved);
@@ -4200,11 +4286,22 @@ async function startExamAfterReg() {
     _studentInfo = { name, email };
     localStorage.setItem('sideraStudent', JSON.stringify(_studentInfo));
     closeStudentReg();
+    requestExamFullscreen();
+    if (!(await ensureStudentSession())) {
+        showToast('الجلسة انتهت، سجّل دخولك تاني.', 'error');
+        showAuthForGuest();
+        return;
+    }
     await loadAndStartExam(_currentExamId);
 }
 
 async function loadAndStartExam(examId) {
     try {
+        if (!(await ensureStudentSession())) {
+            showToast('سجّل دخولك كطالب قبل بدء الامتحان.', 'warning');
+            showAuthForGuest();
+            return;
+        }
         // Load exam + questions
         const [examRes, qRes] = await Promise.all([
             fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId + '&select=*', { headers: getSbHeaders() }),
@@ -4404,7 +4501,7 @@ async function confirmExitExam() {
 async function submitExam(forceSubmit = false) {
     saveCurrentAnswer();
 
-    if (!hasStudentSession()) {
+    if (!hasStudentSession() || !(await ensureStudentSession({ forceRefresh: true }))) {
         showToast('سجّل دخولك كطالب ثم حاول مرة تانية.', 'error');
         showAuthForGuest();
         return;
