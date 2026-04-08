@@ -3461,7 +3461,162 @@ async function clearAllChatMessages() {
     renderChatmgmtTab();
 }
 
-function timeAgo(timestamp) {
+// === STUDENT REVIEWS ===
+var _reviewRating = 5;
+var _reviewsData = [];
+
+function setReviewRating(n) {
+    _reviewRating = n;
+    var stars = document.querySelectorAll('#reviewStarsInput span');
+    stars.forEach(function(s, i) { s.textContent = i < n ? '⭐' : '☆'; });
+}
+
+async function loadReviews() {
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/student_reviews?select=*&order=created_at.desc&limit=50', { headers: getSbHeaders() });
+        var data = await res.json();
+        _reviewsData = Array.isArray(data) ? data : [];
+    } catch(e) { _reviewsData = []; }
+    renderReviews();
+}
+
+function renderReviews() {
+    var grid = document.getElementById('reviewsGrid');
+    // Show form if logged in
+    var formArea = document.getElementById('reviewFormArea');
+    if (formArea) {
+        formArea.style.display = (_studentUser || isAdmin) ? '' : 'none';
+    }
+    if (_reviewsData.length === 0) {
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text);padding:30px;">🌟 No reviews yet. Be the first to share your experience!</p>';
+        return;
+    }
+    grid.innerHTML = _reviewsData.map(function(r) {
+        var initials = (r.student_name || 'U').substring(0,2).toUpperCase();
+        var stars = '';
+        for (var i = 0; i < 5; i++) stars += i < r.rating ? '⭐' : '☆';
+        var ago = timeAgo(new Date(r.created_at).getTime());
+        var delBtn = isAdmin ? '<button class="review-del" style="display:block;" onclick="deleteReview(\'' + r.id + '\')">✕</button>' : '';
+        return '<div class="review-card">' + delBtn +
+            '<div class="review-header"><div class="review-avatar">' + initials + '</div><div><div class="review-name">' + esc(r.student_name) + '</div><div class="review-meta">' + (r.grade || '') + ' · ' + ago + '</div></div></div>' +
+            '<div class="review-stars">' + stars + '</div>' +
+            '<div class="review-text">' + esc(r.review_text) + '</div>' +
+        '</div>';
+    }).join('');
+}
+
+async function submitReview() {
+    var text = document.getElementById('reviewTextInput').value.trim();
+    if (!text) { showToast('Please write a review', 'error'); return; }
+    var username = localStorage.getItem('sideraUsername') || 'Guest';
+    var email = username + '@sidera.local';
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/student_reviews', {
+            method: 'POST',
+            headers: { ...getSbHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ student_name: username, student_email: email, rating: _reviewRating, review_text: text, grade: currentGrade || null })
+        });
+        document.getElementById('reviewTextInput').value = '';
+        setReviewRating(5);
+        showToast('Review submitted! 🌟', 'success');
+        awardXP(5, 'Left a review!');
+        loadReviews();
+    } catch(e) { showToast('Failed to submit review', 'error'); }
+}
+
+async function deleteReview(id) {
+    if (!confirm('Delete this review?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/student_reviews?id=eq.' + id, {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('Review deleted', 'success');
+        loadReviews();
+    } catch(e) { showToast('Failed to delete', 'error'); }
+}
+
+// Dashboard: Reviews Tab
+async function renderReviewsTab() {
+    var html = '<div class="dash-section-title">⭐ Student Reviews Management</div>';
+    html += '<div style="text-align:center;padding:12px;"><span class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;"></span></div>';
+    document.getElementById('dashTabReviews').innerHTML = html;
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/student_reviews?select=*&order=created_at.desc&limit=100', { headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken } });
+        var reviews = await res.json();
+        if (!Array.isArray(reviews)) reviews = [];
+        html = '<div class="dash-section-title">⭐ Student Reviews (' + reviews.length + ' total)</div>';
+        html += '<button onclick="clearAllReviews()" style="margin-bottom:14px;padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Clear All Reviews</button>';
+        if (reviews.length === 0) {
+            html += '<div class="dash-empty">⭐ No reviews yet</div>';
+        } else {
+            reviews.forEach(function(r) {
+                var stars = '';
+                for (var i = 0; i < 5; i++) stars += i < r.rating ? '⭐' : '☆';
+                html += '<div class="dash-exam-card" style="display:flex;align-items:center;justify-content:space-between;">' +
+                    '<div class="dash-exam-info"><h4>' + stars + ' ' + esc(r.student_name) + '</h4><p>' + esc(r.review_text.substring(0,80)) + (r.review_text.length > 80 ? '...' : '') + ' · ' + new Date(r.created_at).toLocaleDateString() + '</p></div>' +
+                    '<button onclick="deleteReview(\'' + r.id + '\').then(function(){renderReviewsTab();})" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;">🗑️</button>' +
+                '</div>';
+            });
+        }
+        document.getElementById('dashTabReviews').innerHTML = html;
+    } catch(e) {
+        document.getElementById('dashTabReviews').innerHTML = '<div class="dash-empty">❌ Failed to load reviews</div>';
+    }
+}
+
+async function clearAllReviews() {
+    if (!confirm('Delete ALL student reviews? This cannot be undone.')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/student_reviews?id=neq.00000000-0000-0000-0000-000000000000', {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('All reviews cleared', 'success');
+        loadReviews();
+    } catch(e) { showToast('Failed to delete', 'error'); }
+    renderReviewsTab();
+}
+
+// === SECTION NAV ===
+function smoothNav(e, id) {
+    e.preventDefault();
+    var el = document.getElementById(id);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Update active state
+        document.querySelectorAll('.section-nav a').forEach(function(a) { a.classList.remove('active'); });
+        e.target.classList.add('active');
+    }
+}
+
+// Show section nav after scroll past header
+var _sectionNavShown = false;
+function checkSectionNav() {
+    var nav = document.getElementById('sectionNav');
+    if (!nav) return;
+    var headerH = document.querySelector('header') ? document.querySelector('header').offsetHeight + 200 : 300;
+    if (window.scrollY > headerH) {
+        if (!_sectionNavShown) { nav.classList.add('visible'); _sectionNavShown = true; }
+    } else {
+        if (_sectionNavShown) { nav.classList.remove('visible'); _sectionNavShown = false; }
+    }
+    // Highlight active section
+    var sections = ['examsSection', 'container', 'capstoneArea', 'alumniSection', 'reviewsSection', 'vlabSection', 'radioArea'];
+    var current = '';
+    for (var i = 0; i < sections.length; i++) {
+        var el = document.getElementById(sections[i]);
+        if (el && el.getBoundingClientRect().top < 200) current = sections[i];
+    }
+    if (current) {
+        document.querySelectorAll('.section-nav a').forEach(function(a) {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+    }
+}
+window.addEventListener('scroll', checkSectionNav, { passive: true });
+
+
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Just now';
