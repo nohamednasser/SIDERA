@@ -1087,8 +1087,34 @@
     <div class="vlab-grid" id="vlabGrid"></div>
 </div>
 
-<!-- Study Radio -->
+<!-- Student Reviews Section -->
 <div class="exam-divider"></div>
+<div class="exam-section-title">
+    <h2>⭐ Student Reviews</h2>
+    <p>See what students are saying about SIDERA</p>
+</div>
+<div class="reviews-section" id="reviewsSection">
+    <div class="review-form-inline" id="reviewFormArea" style="display:none;">
+        <h4>✍️ Share Your Experience</h4>
+        <div class="review-stars-input" id="reviewStarsInput">
+            <span onclick="setReviewRating(1)">⭐</span>
+            <span onclick="setReviewRating(2)">⭐</span>
+            <span onclick="setReviewRating(3)">⭐</span>
+            <span onclick="setReviewRating(4)">⭐</span>
+            <span onclick="setReviewRating(5)">⭐</span>
+        </div>
+        <div class="review-form-row">
+            <textarea id="reviewTextInput" placeholder="Write your review here..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--dark);font-size:0.85rem;font-family:inherit;"></textarea>
+        </div>
+        <button class="btn-pub" onclick="submitReview()" style="max-width:200px;">📤 Submit Review</button>
+    </div>
+    <div class="reviews-grid" id="reviewsGrid">
+        <p style="grid-column:1/-1;text-align:center;color:var(--text);padding:20px;">Loading reviews...</p>
+    </div>
+</div>
+
+<!-- Study Radio -->
+<div class="exam-divider" id="radioArea"></div>
 <div class="exam-section-title">
     <h2>🎶 Study Radio</h2>
     <p>Focus music to help you concentrate while studying</p>
