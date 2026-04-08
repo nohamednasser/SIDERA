@@ -5625,11 +5625,22 @@ function renderVirtualLabs() {
         return;
     }
     grid.innerHTML = filtered.map(function(lab) {
+        var diffColor = lab.difficulty === 'Beginner' ? '#22c55e' : lab.difficulty === 'Intermediate' ? '#f59e0b' : '#ef4444';
+        var diffBg = lab.difficulty === 'Beginner' ? 'rgba(34,197,94,0.1)' : lab.difficulty === 'Intermediate' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
         return '<div class="vlab-card" onclick="window.open(\'' + lab.url + '\', \'_blank\')">' +
-            '<div class="vlab-icon">' + lab.icon + '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+                '<div class="vlab-icon" style="margin-bottom:0;">' + lab.icon + '</div>' +
+                '<div style="display:flex;gap:6px;">' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:' + diffBg + ';color:' + diffColor + ';font-weight:700;">' + lab.difficulty + '</span>' +
+                    '<span style="font-size:0.62rem;padding:3px 8px;border-radius:20px;background:var(--input-bg);color:var(--text);font-weight:600;">⏱ ' + (lab.duration || '') + '</span>' +
+                '</div>' +
+            '</div>' +
             '<div class="vlab-title">' + lab.title + '</div>' +
             '<div class="vlab-desc">' + lab.desc + '</div>' +
-            '<div class="vlab-btn">🚀 Open Simulation →</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">' +
+                '<span style="font-size:0.68rem;color:var(--text);font-weight:600;text-transform:capitalize;">📂 ' + lab.subject + '</span>' +
+                '<div class="vlab-btn" style="margin-top:0;">🚀 Open Simulation →</div>' +
+            '</div>' +
         '</div>';
     }).join('');
 }
