@@ -1325,6 +1325,43 @@
     from { opacity:0;transform:translateX(100%); }
     to { opacity:1;transform:translateX(0); }
 }
+
+/* Custom Confirm Modal */
+.sidera-confirm-overlay {
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);z-index:100000;
+    display:flex;align-items:center;justify-content:center;
+    animation:confirmFadeIn 0.25s ease;
+}
+.sidera-confirm-box {
+    background:var(--card);border:1px solid var(--border);border-radius:18px;
+    padding:28px 32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation:confirmSlideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+    text-align:center;
+}
+.sidera-confirm-icon { font-size:2.5rem;margin-bottom:12px; }
+.sidera-confirm-title { font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.4; }
+.sidera-confirm-desc { font-size:0.82rem;color:var(--text);opacity:0.65;margin-bottom:22px;line-height:1.5; }
+.sidera-confirm-actions { display:flex;gap:10px;justify-content:center; }
+.sidera-confirm-btn {
+    padding:10px 24px;border-radius:12px;font-weight:700;font-size:0.85rem;
+    border:none;cursor:pointer;transition:all 0.2s ease;min-width:100px;
+}
+.sidera-confirm-btn.cancel {
+    background:var(--hover);color:var(--text);
+}
+.sidera-confirm-btn.cancel:hover { opacity:0.8; }
+.sidera-confirm-btn.danger {
+    background:linear-gradient(135deg,#ef4444,#dc2626);color:white;
+    box-shadow:0 4px 15px rgba(239,68,68,0.3);
+}
+.sidera-confirm-btn.danger:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(239,68,68,0.4); }
+.sidera-confirm-btn.primary {
+    background:linear-gradient(135deg,var(--accent),var(--accent2,var(--accent)));color:white;
+    box-shadow:0 4px 15px rgba(99,102,241,0.3);
+}
+.sidera-confirm-btn.primary:hover { transform:translateY(-1px); }
+@keyframes confirmFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes confirmSlideUp { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
 </style>
 
 <!-- Lazy-loaded: JSZip and PDF.js are loaded on demand for faster initial page load -->
@@ -1367,6 +1404,31 @@ function showToast(message, type = 'error', duration = 4000) {
         toast.classList.add('toast-exit');
         setTimeout(() => toast.remove(), 300);
     }, duration);
+}
+
+// Custom confirm dialog (replaces browser confirm())
+function sideraConfirm(message, options = {}) {
+    return new Promise(function(resolve) {
+        var overlay = document.createElement('div');
+        overlay.className = 'sidera-confirm-overlay';
+        var icon = options.icon || '⚠️';
+        var confirmText = options.confirmText || 'Confirm';
+        var cancelText = options.cancelText || 'Cancel';
+        var btnClass = options.danger !== false ? 'danger' : 'primary';
+        var desc = options.desc || '';
+        overlay.innerHTML = '<div class="sidera-confirm-box">' +
+            '<div class="sidera-confirm-icon">' + icon + '</div>' +
+            '<div class="sidera-confirm-title">' + message + '</div>' +
+            (desc ? '<div class="sidera-confirm-desc">' + desc + '</div>' : '') +
+            '<div class="sidera-confirm-actions">' +
+                '<button class="sidera-confirm-btn cancel" id="confirmCancel">' + cancelText + '</button>' +
+                '<button class="sidera-confirm-btn ' + btnClass + '" id="confirmOk">' + confirmText + '</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmOk').onclick = function() { overlay.remove(); resolve(true); };
+        overlay.querySelector('#confirmCancel').onclick = function() { overlay.remove(); resolve(false); };
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+    });
 }
 
 // Admin credentials are now managed via Supabase Auth - no hardcoded passwords
@@ -2757,7 +2819,7 @@ async function addSubject() {
 }
 
 async function deleteSubject(name) {
-    if (!confirm('Delete subject "' + name + '"? Files using it will keep their subject tag.')) return;
+    if (!(await sideraConfirm('Delete subject "' + name + '"?', {desc:'Files using it will keep their subject tag.', icon:'🗑️', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/subjects?name=eq.' + encodeURIComponent(name), {
             method: 'DELETE', headers: getSbHeaders()
@@ -3287,7 +3349,7 @@ function renderGamificationTab() {
     html += '<div style="padding:16px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:14px;">' +
         '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:8px;color:#ef4444;">⚠️ Danger Zone</h4>' +
         '<p style="font-size:0.78rem;color:var(--text);margin-bottom:10px;">Reset XP data for all students. This cannot be undone.</p>' +
-        '<button onclick="if(confirm(\'Are you sure you want to reset all XP data?\')) { localStorage.removeItem(\'sideraXP\'); showToast(\'All XP data reset\', \'success\'); }" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Reset All XP</button>' +
+        '<button onclick="sideraConfirm(\'Reset all XP data?\', {desc:\'This cannot be undone.\', icon:\'⚠️\', confirmText:\'Reset\'}).then(function(ok){if(ok){localStorage.removeItem(\'sideraXP\');showToast(\'All XP data reset\',\'success\');}})" style="padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">🗑️ Reset All XP</button>' +
     '</div>';
 
     document.getElementById('dashTabGamification').innerHTML = html;
@@ -3341,7 +3403,7 @@ async function renderCapstoneTab() {
 }
 
 async function deleteCapstoneProject(id) {
-    if (!confirm('Delete this capstone project?')) return;
+    if (!(await sideraConfirm('Delete this capstone project?', {icon:'🗑️', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/capstone_projects?id=eq.' + id, {
             method: 'DELETE',
@@ -3418,7 +3480,7 @@ async function viewUserChat(email) {
 }
 
 async function clearUserChat(email) {
-    if (!confirm('Delete all chat messages for ' + email.replace('@sidera.local', '') + '?')) return;
+    if (!(await sideraConfirm('Delete chat messages for ' + email.replace('@sidera.local', '') + '?', {icon:'💬', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/chat_messages?user_email=eq.' + encodeURIComponent(email), {
             method: 'DELETE',
@@ -3430,7 +3492,7 @@ async function clearUserChat(email) {
 }
 
 async function clearAllChatMessages() {
-    if (!confirm('Delete ALL chat messages? This cannot be undone.')) return;
+    if (!(await sideraConfirm('Delete ALL chat messages?', {desc:'This cannot be undone.', icon:'💬', confirmText:'Delete All'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/chat_messages?id=neq.00000000-0000-0000-0000-000000000000', {
             method: 'DELETE',
@@ -3506,7 +3568,7 @@ async function submitReview() {
 }
 
 async function deleteReview(id) {
-    if (!confirm('Delete this review?')) return;
+    if (!(await sideraConfirm('Delete this review?', {icon:'⭐', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/student_reviews?id=eq.' + id, {
             method: 'DELETE',
@@ -3547,7 +3609,7 @@ async function renderReviewsTab() {
 }
 
 async function clearAllReviews() {
-    if (!confirm('Delete ALL student reviews? This cannot be undone.')) return;
+    if (!(await sideraConfirm('Delete ALL student reviews?', {desc:'This cannot be undone.', icon:'⭐', confirmText:'Delete All'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/student_reviews?id=neq.00000000-0000-0000-0000-000000000000', {
             method: 'DELETE',
@@ -4283,8 +4345,8 @@ function selectTF(el) {
     saveCurrentAnswer();
 }
 
-function confirmExitExam() {
-    if (confirm('Are you sure you want to leave? Your progress will be lost.')) {
+async function confirmExitExam() {
+    if (await sideraConfirm('Are you sure you want to leave?', {desc:'Your progress will be lost.', icon:'🚪', confirmText:'Leave', danger:true})) {
         if (_examTimer) clearInterval(_examTimer);
         disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
@@ -4299,7 +4361,7 @@ async function submitExam() {
     // Check unanswered
     const unanswered = _currentExamQuestions.filter(q => !_examAnswers[q.id]).length;
     if (unanswered > 0) {
-        if (!confirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : '') + '. Submit anyway?')) return;
+        if (!(await sideraConfirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : ''), {desc:'Submit anyway?', icon:'📝', confirmText:'Submit', danger:false}))) return;
     }
 
     if (_examTimer) clearInterval(_examTimer);
@@ -4751,7 +4813,7 @@ async function publishExam() {
 }
 
 async function deleteExam(examId) {
-    if (!confirm('Delete this exam? This cannot be undone.')) return;
+    if (!(await sideraConfirm('Delete this exam?', {desc:'This cannot be undone.', icon:'📝', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId, {
             method: 'DELETE', headers: getSbHeaders()
