@@ -377,6 +377,36 @@ export type Database = {
         }
         Relationships: []
       }
+      student_reviews: {
+        Row: {
+          created_at: string
+          grade: string | null
+          id: string
+          rating: number
+          review_text: string
+          student_email: string
+          student_name: string
+        }
+        Insert: {
+          created_at?: string
+          grade?: string | null
+          id?: string
+          rating?: number
+          review_text: string
+          student_email: string
+          student_name: string
+        }
+        Update: {
+          created_at?: string
+          grade?: string | null
+          id?: string
+          rating?: number
+          review_text?: string
+          student_email?: string
+          student_name?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           created_at: string
