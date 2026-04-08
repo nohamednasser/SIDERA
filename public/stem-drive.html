@@ -2243,6 +2243,7 @@ function checkStudentAuth() {
     if (token || isGuest || isAdminSession) {
         const username = localStorage.getItem('sideraUsername');
         if (token && username) {
+            _studentUser = { email: username + '@sidera.local' };
             showWelcome(username);
         } else if (isAdminSession) {
             showWelcome('Admin');
@@ -2259,6 +2260,7 @@ function checkStudentAuth() {
 }
 
 function studentLogout() {
+    _studentUser = null;
     localStorage.removeItem('sideraStudentToken');
     localStorage.removeItem('sideraStudentRefresh');
     localStorage.removeItem('sideraUsername');
@@ -3485,7 +3487,8 @@ function renderReviews() {
     // Show form if logged in
     var formArea = document.getElementById('reviewFormArea');
     if (formArea) {
-        formArea.style.display = (_studentUser || isAdmin) ? '' : 'none';
+        var isLoggedIn = _studentUser || isAdmin || localStorage.getItem('sideraStudentToken') || localStorage.getItem('sideraGuest');
+        formArea.style.display = isLoggedIn ? '' : 'none';
     }
     if (_reviewsData.length === 0) {
         grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text);padding:30px;">🌟 No reviews yet. Be the first to share your experience!</p>';
@@ -3495,7 +3498,7 @@ function renderReviews() {
         var initials = (r.student_name || 'U').substring(0,2).toUpperCase();
         var stars = '';
         for (var i = 0; i < 5; i++) stars += i < r.rating ? '⭐' : '☆';
-        var ago = timeAgo(new Date(r.created_at).getTime());
+        var ago = formatTimeAgo(new Date(r.created_at).getTime());
         var delBtn = isAdmin ? '<button class="review-del" style="display:block;" onclick="deleteReview(\'' + r.id + '\')">✕</button>' : '';
         return '<div class="review-card">' + delBtn +
             '<div class="review-header"><div class="review-avatar">' + initials + '</div><div><div class="review-name">' + esc(r.student_name) + '</div><div class="review-meta">' + (r.grade || '') + ' · ' + ago + '</div></div></div>' +
@@ -3614,9 +3617,12 @@ function checkSectionNav() {
         });
     }
 }
-window.addEventListener('scroll', checkSectionNav, { passive: true });
+var _scrollThrottle = false;
+window.addEventListener('scroll', function() { if (_scrollThrottle) return; _scrollThrottle = true; requestAnimationFrame(function() { checkSectionNav(); _scrollThrottle = false; }); }, { passive: true });
 
 
+function getTimeAgo(ts) { return formatTimeAgo(ts); }
+function timeAgo(ts) { return formatTimeAgo(ts); }
 function formatTimeAgo(timestamp) {
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
@@ -5130,17 +5136,13 @@ const alumniData = [
 ];
 
 function renderAlumniSection() {
-    const isG12 = currentGrade === 'G12';
-    const show = isG12 || isAdmin;
+    const show = true;
     document.getElementById('alumniDivider').style.display = show ? '' : 'none';
     document.getElementById('alumniTitle').style.display = show ? '' : 'none';
     document.getElementById('alumniSection').style.display = show ? '' : 'none';
     if (!show) return;
     const grid = document.getElementById('alumniGrid');
-    if (!isG12 && !isAdmin) {
-        grid.innerHTML = '<div class="alumni-locked"><div class="lock-icon">\uD83D\uDD12</div><h3>G12 Students Only</h3><p>This section is exclusively for Grade 12 students. Select G12 from the grade filter to access alumni tips.</p></div>';
-        return;
-    }
+
     grid.innerHTML = alumniData.map(function(a) {
         return '<div class="alumni-card">' +
             '<div class="alumni-author"><div class="alumni-avatar">' + a.avatar + '</div><div><div class="alumni-name">' + a.name + '</div><div class="alumni-year">Class of ' + a.year + '</div></div></div>' +
