@@ -1066,10 +1066,19 @@
 <div class="exam-divider" id="vlabDivider"></div>
 <div class="exam-section-title">
     <h2>🧪 Virtual Labs & Simulations</h2>
-    <p>Interactive simulations to explore science concepts hands-on</p>
+    <p>Interactive PhET simulations — Physics, Chemistry, Biology, Math & Earth Science</p>
+</div>
+<div style="width:90%;max-width:1400px;margin:0 auto 10px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="filter-chip active" onclick="filterVlabSubject('all',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--accent);color:white;font-size:0.75rem;font-weight:700;cursor:pointer;">All</button>
+    <button class="filter-chip" onclick="filterVlabSubject('physics',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">⚡ Physics</button>
+    <button class="filter-chip" onclick="filterVlabSubject('chemistry',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">⚗️ Chemistry</button>
+    <button class="filter-chip" onclick="filterVlabSubject('biology',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">🧬 Biology</button>
+    <button class="filter-chip" onclick="filterVlabSubject('math',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">📐 Math</button>
+    <button class="filter-chip" onclick="filterVlabSubject('geology',this)" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.75rem;font-weight:600;cursor:pointer;">🌍 Earth</button>
 </div>
 <div class="vlab-section" id="vlabSection">
     <div class="vlab-grid" id="vlabGrid"></div>
+    <div style="text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text);">Powered by <a href="https://phet.colorado.edu" target="_blank" style="color:var(--accent);font-weight:700;">PhET Interactive Simulations</a> · University of Colorado Boulder</div>
 </div>
 
 <!-- Student Reviews Section -->
