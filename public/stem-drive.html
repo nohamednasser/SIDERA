@@ -4813,7 +4813,7 @@ async function publishExam() {
 }
 
 async function deleteExam(examId) {
-    if (!confirm('Delete this exam? This cannot be undone.')) return;
+    if (!(await sideraConfirm('Delete this exam?', {desc:'This cannot be undone.', icon:'📝', confirmText:'Delete'}))) return;
     try {
         await fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId, {
             method: 'DELETE', headers: getSbHeaders()
