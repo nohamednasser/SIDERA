@@ -1505,7 +1505,11 @@ const CACHE_TTL = 15000; // 15s cache for snappier feel
 
 // Get the current auth token (admin session first, then student session, else anon key)
 function getAuthToken() {
-    return authAccessToken || localStorage.getItem('sideraStudentToken') || SUPABASE_ANON_KEY;
+    const adminTok = authAccessToken;
+    if (adminTok && !isJwtExpiring(adminTok, 10)) return adminTok;
+    const studentTok = localStorage.getItem('sideraStudentToken');
+    if (studentTok && !isJwtExpiring(studentTok, 10)) return studentTok;
+    return SUPABASE_ANON_KEY;
 }
 
 function hasStudentSession() {
@@ -4131,8 +4135,14 @@ let _examFilter = 'all';
 async function loadExams() {
     showExamSkeletons(4);
     try {
+        // Use anon key for public exam listing (no auth needed)
+        const publicHeaders = {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+        };
         const res = await fetch(SUPABASE_URL + '/rest/v1/exams?select=*,exam_questions(id)&is_published=eq.true&order=created_at.desc', {
-            headers: getSbHeaders()
+            headers: publicHeaders
         });
         if (!res.ok) throw new Error('Failed');
         _allExams = await res.json();
