@@ -65,6 +65,42 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          certificate_number: string
+          certificate_type: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          reference_title: string
+          score: number | null
+          student_email: string
+          student_name: string
+        }
+        Insert: {
+          certificate_number: string
+          certificate_type?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_title: string
+          score?: number | null
+          student_email: string
+          student_name: string
+        }
+        Update: {
+          certificate_number?: string
+          certificate_type?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          reference_title?: string
+          score?: number | null
+          student_email?: string
+          student_name?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
