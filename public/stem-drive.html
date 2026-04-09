@@ -3952,6 +3952,7 @@ let _examTimeLeft = 0;
 let _examSecurityActive = false;
 let _tabSwitchTimer = null;
 let _tabSwitchCountdown = 300;
+let _tabSwitchCountdown = 10;
 let _tabSwitchWarnings = 0;
 
 // === EXAM SECURITY SYSTEM ===
@@ -4065,14 +4066,14 @@ function _onFullscreenChange() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         // User exited fullscreen — start countdown
         _startTabSwitchCountdown();
-        showToast('⚠️ خرجت من الفول سكرين، عندك 5 دقايق ترجع', 'error');
+        showToast('⚠️ خرجت من الفول سكرين، عندك 10 ثواني ترجع!', 'error');
     }
 }
 
 function _startTabSwitchCountdown() {
     if (_tabSwitchTimer) return; // already counting
     _tabSwitchWarnings++;
-    _tabSwitchCountdown = 300;
+    _tabSwitchCountdown = 10;
     showTabWarning();
 
     _tabSwitchTimer = setInterval(() => {
@@ -4118,9 +4119,7 @@ function showTabWarning() {
 }
 
 function updateTabWarning() {
-    const mins = Math.floor(_tabSwitchCountdown / 60);
-    const secs = _tabSwitchCountdown % 60;
-    document.getElementById('tabWarningCount').textContent = mins > 0 ? (String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0')) : String(secs);
+    document.getElementById('tabWarningCount').textContent = _tabSwitchCountdown;
 }
 
 function hideTabWarning() {
@@ -6415,7 +6414,8 @@ if (typeof filterSub === 'function') {
     <div class="warn-icon">⚠️</div>
     <h2>ارجع للامتحان فوراً!</h2>
     <div class="countdown" id="tabWarningCount">05:00</div>
-    <p>لو خرجت من الفول سكرين أو بدّلت التبويب، عندك 5 دقايق ترجع وإلا الامتحان هيتسلم تلقائياً</p>
+    <p>لو خرجت من الفول سكرين أو بدّلت التبويب، عندك 10 ثواني ترجع وإلا الامتحان هيتسلم تلقائياً</p>
+    <button onclick="_cancelTabSwitchCountdown();requestExamFullscreen();" style="margin-top:12px;padding:14px 36px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;cursor:pointer;animation:securePulse 1.5s infinite;">🔙 ارجع للامتحان</button>
 </div>
 
 <!-- Capstone PDF Builder Modal -->
