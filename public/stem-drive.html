@@ -4064,12 +4064,30 @@ function _blockScreenshotKeys(e) {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
     if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
     if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    // Block F12 dev tools
-    if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
+    // Block Windows Snipping Tool (Win+Shift+S)
+    if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
+    // Block any key that might trigger screen capture
+    if (e.key === 'PrintScreen') {
+        // Try to overwrite clipboard
+        try { navigator.clipboard.writeText('Screenshot blocked by SIDERA Exam Security'); } catch(x) {}
+        showToast('🚫 التصوير محظور أثناء الامتحان!', 'error');
+        _tabSwitchWarnings++;
+        e.preventDefault(); e.stopPropagation();
+    }
 }
 
 function _blockContextMenu(e) {
     if (_examSecurityActive) { e.preventDefault(); e.stopPropagation(); }
+}
+
+// Screenshot prevention: blur content when not focused
+function _onScreenCaptureBlur() {
+    if (!_examSecurityActive) return;
+    document.body.classList.add('screen-capture-blocked');
+}
+function _onScreenCaptureFocus() {
+    if (!_examSecurityActive) return;
+    document.body.classList.remove('screen-capture-blocked');
 }
 
 function _retryFullscreenOnInteraction() {
