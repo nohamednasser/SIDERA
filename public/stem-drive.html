@@ -471,6 +471,20 @@
         /* Exam Security Styles */
         .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; }
         .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
+        /* Screenshot prevention: blur content when window loses focus */
+        .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(30px) !important; transition: filter 0.1s; }
+        .exam-secure-mode.screen-capture-blocked::after { content: '🔒 محتوى الامتحان محمي'; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 999999; font-size: 2rem; font-weight: 900; color: #ef4444; text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none; }
+        
+        /* Certificate styles */
+        .cert-modal { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(8px); }
+        .cert-modal.show { opacity: 1; pointer-events: all; }
+        .cert-container { background: white; border-radius: 20px; padding: 20px; max-width: 95vw; max-height: 95vh; overflow: auto; position: relative; }
+        .cert-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .cert-actions button { padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: transform 0.15s, box-shadow 0.15s; }
+        .cert-actions button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .cert-dl-btn { background: linear-gradient(135deg, #a34054, #c2556a); color: white; }
+        .cert-share-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .cert-close-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border) !important; }
         .exam-secure-badge { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; animation: securePulse 2s infinite; }
         @keyframes securePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
         .exam-watermark { position: fixed; inset: 0; pointer-events: none; z-index: 1004; opacity: 0; transition: opacity 0.2s ease; overflow: hidden; display: none; }
