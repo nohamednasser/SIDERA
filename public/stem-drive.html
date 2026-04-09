@@ -2922,8 +2922,8 @@ function toggleTheme() {
     saveUserPrefs();
 }
 
-function showLogin() { document.getElementById('loginModal').classList.add('show'); }
-function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
+function showLogin() { const m = document.getElementById('loginModal'); m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10); }
+function hideLogin() { const m = document.getElementById('loginModal'); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 200); }
 function openAdminLoginFromAuth() {
     document.getElementById('authOverlay').classList.add('hidden');
     setTimeout(() => {
@@ -4074,21 +4074,24 @@ function disableExamSecurity() {
 
 function _blockScreenshotKeys(e) {
     if (!_examSecurityActive) return;
-    // Block: PrintScreen, Ctrl+Shift+S, Ctrl+Shift+I, Ctrl+P, Cmd+Shift+3/4/5 (Mac)
-    if (e.key === 'PrintScreen' || e.key === 'Snapshot') { e.preventDefault(); e.stopPropagation(); return; }
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    // Block Windows Snipping Tool (Win+Shift+S)
-    if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
-    // Block any key that might trigger screen capture
-    if (e.key === 'PrintScreen') {
-        // Try to overwrite clipboard
-        try { navigator.clipboard.writeText('Screenshot blocked by SIDERA Exam Security'); } catch(x) {}
+    // Block: PrintScreen, Snapshot
+    if (e.key === 'PrintScreen' || e.key === 'Snapshot') {
+        e.preventDefault(); e.stopPropagation();
+        try { navigator.clipboard.writeText(''); } catch(x) {}
         showToast('🚫 التصوير محظور أثناء الامتحان!', 'error');
         _tabSwitchWarnings++;
-        e.preventDefault(); e.stopPropagation();
+        // Force blur effect
+        document.body.classList.add('screen-capture-blocked');
+        setTimeout(() => { if(_examSecurityActive && document.hasFocus()) document.body.classList.remove('screen-capture-blocked'); }, 3000);
+        return;
     }
+    // Block Ctrl+Shift+S/I, Ctrl+P, Win+Shift+S, Cmd+Shift+3/4/5
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); showToast('🚫 محظور أثناء الامتحان!', 'error'); return; }
+    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
+    // Block F12
+    if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
 }
 
 function _blockContextMenu(e) {
