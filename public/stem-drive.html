@@ -4695,6 +4695,7 @@ function showExamResults(score, totalPoints, answers) {
         '<div class="result-stat-box"><div class="stat-val" style="color:#22c55e;">✅ ' + correctCount + '</div><div class="stat-label">Correct</div></div>' +
         '<div class="result-stat-box"><div class="stat-val" style="color:#ef4444;">❌ ' + wrongCount + '</div><div class="stat-label">Wrong</div></div>' +
         '<div class="result-stat-box"><div class="stat-val" style="color:var(--accent);">' + score + '/' + totalPoints + '</div><div class="stat-label">Points</div></div>' +
+        (_tabSwitchWarnings > 0 ? '<div class="result-stat-box"><div class="stat-val" style="color:#f97316;">⚠️ ' + _tabSwitchWarnings + '</div><div class="stat-label">Violations</div></div>' : '') +
     '</div>';
 
     // Question review
