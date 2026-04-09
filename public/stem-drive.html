@@ -1138,6 +1138,9 @@
 
 <!-- Exam Taking Modal -->
 <div id="examTakingModal" class="exam-modal">
+    <div class="exam-watermark" id="examWatermark" aria-hidden="true">
+        <div class="exam-watermark-inner" id="examWatermarkInner"></div>
+    </div>
     <div class="exam-modal-content" style="max-width:750px;">
         <div class="exam-modal-header">
             <h2 id="examTakingTitle">Exam</h2>
@@ -6393,8 +6396,8 @@ if (typeof filterSub === 'function') {
 <div class="tab-warning-overlay" id="tabWarningOverlay">
     <div class="warn-icon">⚠️</div>
     <h2>ارجع للامتحان فوراً!</h2>
-    <div class="countdown" id="tabWarningCount">5</div>
-    <p>لو مرجعتش خلال الوقت ده، الامتحان هيتسلم تلقائياً</p>
+    <div class="countdown" id="tabWarningCount">05:00</div>
+    <p>لو خرجت من الفول سكرين أو بدّلت التبويب، عندك 5 دقايق ترجع وإلا الامتحان هيتسلم تلقائياً</p>
 </div>
 
 <!-- Capstone PDF Builder Modal -->
