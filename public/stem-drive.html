@@ -472,8 +472,11 @@
         .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; }
         .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
         /* Screenshot prevention: blur content when window loses focus */
-        .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(30px) !important; transition: filter 0.1s; }
-        .exam-secure-mode.screen-capture-blocked::after { content: '🔒 محتوى الامتحان محمي'; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 999999; font-size: 2rem; font-weight: 900; color: #ef4444; text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none; }
+        .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(50px) !important; transition: filter 0.05s; }
+        .exam-secure-mode.screen-capture-blocked::after { content: '🔒 محتوى الامتحان محمي - التصوير ممنوع'; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 999999; font-size: 2rem; font-weight: 900; color: #ef4444; text-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: none; background: rgba(0,0,0,0.8); padding: 30px 50px; border-radius: 20px; }
+        .exam-secure-mode.screen-capture-blocked * { visibility: hidden !important; }
+        .exam-secure-mode.screen-capture-blocked::after { visibility: visible !important; }
+        @media print { .exam-secure-mode { display: none !important; } body.exam-secure-mode * { display: none !important; } }
         
         /* Certificate styles */
         .cert-modal { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(8px); }
@@ -1213,13 +1216,20 @@
         </div>
     </div>
 </div>
-    <div class="modal-content">
-        <h2 style="margin-top:0; font-size: 1.3rem;">Admin Portal</h2>
-        <input type="text" id="adminUser" placeholder="Username or Email" style="margin-bottom:12px;">
-        <input type="password" id="adminPass" placeholder="Password" style="margin-bottom:20px;">
-        <div id="loginError" style="display:none;background:rgba(220,38,38,0.12);color:#ef4444;padding:8px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;text-align:center;border:1px solid rgba(220,38,38,0.25);">Invalid credentials</div>
-        <button onclick="checkAuth()" class="btn-pub" style="margin:0">Sign In</button>
-        <p onclick="hideLogin()" style="cursor:pointer; margin-top:16px; color:var(--text); font-size:0.8rem;">Close Window</p>
+
+<!-- Admin Login Modal (hidden) -->
+<div id="loginModal" class="exam-modal" onclick="if(event.target===this)hideLogin()" style="display:none;">
+    <div class="exam-modal-content" style="max-width:400px;">
+        <div class="exam-modal-header">
+            <h2>🔐 Admin Login</h2>
+            <button class="dash-close" onclick="hideLogin()">✕</button>
+        </div>
+        <div class="exam-modal-body">
+            <input type="text" id="adminUser" placeholder="Username or Email" style="margin-bottom:12px;">
+            <input type="password" id="adminPass" placeholder="Password" style="margin-bottom:20px;">
+            <div id="loginError" style="display:none;background:rgba(220,38,38,0.12);color:#ef4444;padding:8px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;text-align:center;border:1px solid rgba(220,38,38,0.25);">Invalid credentials</div>
+            <button onclick="checkAuth()" class="btn-pub" style="margin:0">Sign In</button>
+        </div>
     </div>
 </div>
 
@@ -2915,8 +2925,8 @@ function toggleTheme() {
     saveUserPrefs();
 }
 
-function showLogin() { document.getElementById('loginModal').classList.add('show'); }
-function hideLogin() { document.getElementById('loginModal').classList.remove('show'); }
+function showLogin() { const m = document.getElementById('loginModal'); m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10); }
+function hideLogin() { const m = document.getElementById('loginModal'); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 200); }
 function openAdminLoginFromAuth() {
     document.getElementById('authOverlay').classList.add('hidden');
     setTimeout(() => {
@@ -4067,21 +4077,24 @@ function disableExamSecurity() {
 
 function _blockScreenshotKeys(e) {
     if (!_examSecurityActive) return;
-    // Block: PrintScreen, Ctrl+Shift+S, Ctrl+Shift+I, Ctrl+P, Cmd+Shift+3/4/5 (Mac)
-    if (e.key === 'PrintScreen' || e.key === 'Snapshot') { e.preventDefault(); e.stopPropagation(); return; }
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
-    // Block Windows Snipping Tool (Win+Shift+S)
-    if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
-    // Block any key that might trigger screen capture
-    if (e.key === 'PrintScreen') {
-        // Try to overwrite clipboard
-        try { navigator.clipboard.writeText('Screenshot blocked by SIDERA Exam Security'); } catch(x) {}
+    // Block: PrintScreen, Snapshot
+    if (e.key === 'PrintScreen' || e.key === 'Snapshot') {
+        e.preventDefault(); e.stopPropagation();
+        try { navigator.clipboard.writeText(''); } catch(x) {}
         showToast('🚫 التصوير محظور أثناء الامتحان!', 'error');
         _tabSwitchWarnings++;
-        e.preventDefault(); e.stopPropagation();
+        // Force blur effect
+        document.body.classList.add('screen-capture-blocked');
+        setTimeout(() => { if(_examSecurityActive && document.hasFocus()) document.body.classList.remove('screen-capture-blocked'); }, 3000);
+        return;
     }
+    // Block Ctrl+Shift+S/I, Ctrl+P, Win+Shift+S, Cmd+Shift+3/4/5
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['s','S','i','I'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); showToast('🚫 محظور أثناء الامتحان!', 'error'); return; }
+    if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
+    // Block F12
+    if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
 }
 
 function _blockContextMenu(e) {
