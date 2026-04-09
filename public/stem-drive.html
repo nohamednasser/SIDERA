@@ -4022,6 +4022,10 @@ function enableExamSecurity() {
     const examTakingModal = document.getElementById('examTakingModal');
     if (examTakingModal) examTakingModal.addEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
+    // 6. Screenshot blur prevention
+    window.addEventListener('blur', _onScreenCaptureBlur);
+    window.addEventListener('focus', _onScreenCaptureFocus);
+
     // Show security badge
     const examSecureBadge = document.getElementById('examSecureBadge');
     if (examSecureBadge) examSecureBadge.style.display = 'inline-flex';
