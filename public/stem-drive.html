@@ -503,7 +503,42 @@
         @keyframes countdownPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
         .tab-warning-overlay p { color: #ccc; font-size: 0.95rem; text-align: center; max-width: 320px; }
 
-        /* Progress bar */
+        /* Smart Lab Log styles */
+        .lab-log-section { width: 90%; max-width: 1400px; margin: 0 auto 30px; }
+        .lab-log-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .lab-log-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 16px; transition: all 0.2s; }
+        .lab-log-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .lab-log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .lab-log-header h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin: 0; }
+        .lab-log-meta { font-size: 0.72rem; color: var(--text); }
+        .lab-data-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.82rem; }
+        .lab-data-table th { background: rgba(163,64,84,0.08); color: var(--accent); padding: 8px 12px; text-align: center; font-weight: 700; border: 1px solid var(--border); }
+        .lab-data-table td { padding: 6px 10px; text-align: center; border: 1px solid var(--border); color: var(--dark); }
+        .lab-data-table input { width: 80px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--dark); text-align: center; font-size: 0.8rem; }
+        .lab-stats-box { background: linear-gradient(135deg, rgba(163,64,84,0.05), rgba(168,85,247,0.05)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 12px; }
+        .lab-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+        .lab-stat-item { text-align: center; padding: 8px; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); }
+        .lab-stat-item .stat-label { font-size: 0.68rem; color: var(--text); font-weight: 600; }
+        .lab-stat-item .stat-value { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-top: 2px; }
+        .lab-graph-container { background: white; border-radius: 14px; border: 1px solid var(--border); padding: 12px; margin-top: 12px; position: relative; }
+        .lab-graph-container canvas { width: 100% !important; height: auto !important; }
+        .lab-log-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .lab-log-form .full-w { grid-column: span 2; }
+        .lab-log-form input, .lab-log-form textarea, .lab-log-form select { padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg); color: var(--dark); font-size: 0.85rem; font-family: inherit; }
+        .lab-log-form textarea { min-height: 60px; resize: vertical; }
+        .lab-add-row-btn { background: none; border: 1px dashed var(--accent); color: var(--accent); padding: 6px 14px; border-radius: 10px; cursor: pointer; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; }
+        .lab-add-row-btn:hover { background: rgba(163,64,84,0.08); }
+        .lab-log-empty { text-align: center; padding: 40px 20px; color: var(--text); }
+        .lab-log-empty .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        .lab-dataset-tabs { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .lab-dataset-tab { padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--input-bg); color: var(--dark); font-size: 0.72rem; font-weight: 600; cursor: pointer; }
+        .lab-dataset-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+        @media (max-width: 600px) {
+            .lab-log-form { grid-template-columns: 1fr; }
+            .lab-log-form .full-w { grid-column: span 1; }
+            .lab-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
         .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.02); }
         .exam-progress-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
         .exam-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a855f7); border-radius: 5px; transition: width 0.4s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 12px rgba(163,64,84,0.3); }
@@ -973,7 +1008,7 @@
     <a href="#alumniSection" onclick="smoothNav(event,'alumniSection')">🎓 Alumni</a>
     <a href="#vlabSection" onclick="smoothNav(event,'vlabSection')">🧪 Labs</a>
     <a href="#reviewsSection" onclick="smoothNav(event,'reviewsSection')">⭐ Reviews</a>
-</nav>
+    <a href="#labLogSection" onclick="smoothNav(event,'labLogSection')">📋 Lab Log</a>
 
 <div id="adminPanel">
     <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
@@ -1144,6 +1179,72 @@
 </div>
 
 
+
+<!-- Smart Lab Log Section -->
+<div class="exam-divider" id="labLogDivider"></div>
+<div class="exam-section-title">
+    <h2>📋 Smart Lab Log</h2>
+    <p>Digital lab journal — Record experiments, auto-generate graphs & statistical analysis</p>
+</div>
+<div class="lab-log-section" id="labLogSection">
+    <div class="lab-log-controls" id="labLogControls" style="display:none;">
+        <button class="btn-pub" onclick="showNewLabLogForm()" style="font-size:0.8rem;padding:8px 18px;">➕ New Experiment</button>
+    </div>
+
+    <!-- New Lab Log Form -->
+    <div id="newLabLogForm" class="lab-log-card" style="display:none;">
+        <h3 style="margin-top:0;font-size:1rem;font-weight:700;color:var(--dark);">🔬 New Experiment</h3>
+        <div class="lab-log-form">
+            <input type="text" id="labLogTitle" placeholder="Experiment Title" class="full-w">
+            <select id="labLogSubject">
+                <option value="">Select Subject</option>
+                <option value="Physics">⚡ Physics</option>
+                <option value="Chemistry">⚗️ Chemistry</option>
+                <option value="Biology">🧬 Biology</option>
+                <option value="Math">📐 Math</option>
+                <option value="Earth Science">🌍 Earth Science</option>
+            </select>
+            <select id="labLogGrade">
+                <option value="G10">Grade 10</option>
+                <option value="G11">Grade 11</option>
+                <option value="G12">Grade 12</option>
+            </select>
+            <textarea id="labLogHypothesis" class="full-w" placeholder="Hypothesis (What do you expect?)"></textarea>
+            <textarea id="labLogProcedure" class="full-w" placeholder="Procedure (Steps taken)"></textarea>
+            <div class="full-w">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                    <strong style="font-size:0.85rem;color:var(--dark);">📊 Data Points</strong>
+                    <div style="display:flex;gap:6px;">
+                        <input type="text" id="labXLabel" placeholder="X-axis label" value="Time (s)" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--dark);font-size:0.75rem;">
+                        <input type="text" id="labYLabel" placeholder="Y-axis label" value="Value" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--dark);font-size:0.75rem;">
+                    </div>
+                </div>
+                <table class="lab-data-table" id="labDataTable">
+                    <thead><tr><th>#</th><th id="labXHeader">X</th><th id="labYHeader">Y</th><th>⨉</th></tr></thead>
+                    <tbody id="labDataBody">
+                        <tr><td>1</td><td><input type="number" step="any" class="lab-x-input"></td><td><input type="number" step="any" class="lab-y-input"></td><td><button onclick="this.closest('tr').remove();updateLabRowNumbers()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;">✕</button></td></tr>
+                        <tr><td>2</td><td><input type="number" step="any" class="lab-x-input"></td><td><input type="number" step="any" class="lab-y-input"></td><td><button onclick="this.closest('tr').remove();updateLabRowNumbers()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;">✕</button></td></tr>
+                        <tr><td>3</td><td><input type="number" step="any" class="lab-x-input"></td><td><input type="number" step="any" class="lab-y-input"></td><td><button onclick="this.closest('tr').remove();updateLabRowNumbers()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;">✕</button></td></tr>
+                    </tbody>
+                </table>
+                <button class="lab-add-row-btn" onclick="addLabDataRow()">+ Add Row</button>
+            </div>
+            <textarea id="labLogConclusion" class="full-w" placeholder="Conclusion (What did you learn?)"></textarea>
+            <div class="full-w" style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="control-btn" onclick="hideNewLabLogForm()">Cancel</button>
+                <button class="btn-pub" onclick="saveLabLog()" style="margin:0;">💾 Save Experiment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Lab Logs -->
+    <div id="labLogsGrid">
+        <div class="lab-log-empty" id="labLogEmpty">
+            <div class="empty-icon">📋</div>
+            <p>Sign in to start your digital lab journal</p>
+        </div>
+    </div>
+</div>
 
 <!-- Student Registration Modal -->
 <div id="studentRegModal" class="exam-modal" onclick="if(event.target===this)closeStudentReg()">
@@ -6671,6 +6772,8 @@ function initFeatures() {
     renderSnippets();
     // Reviews
     loadReviews();
+    // Lab Logs
+    loadLabLogs();
 }
 
 // Hook into auth completion
@@ -6990,6 +7093,394 @@ async function generateAIQuestions() {
         btn.innerHTML = '🤖 Generate Questions with AI';
     }
 }
+
+// ==================== SMART LAB LOG ====================
+
+function showNewLabLogForm() {
+    document.getElementById('newLabLogForm').style.display = 'block';
+    document.getElementById('labLogTitle').focus();
+}
+function hideNewLabLogForm() {
+    document.getElementById('newLabLogForm').style.display = 'none';
+    document.getElementById('labLogTitle').value = '';
+    document.getElementById('labLogHypothesis').value = '';
+    document.getElementById('labLogProcedure').value = '';
+    document.getElementById('labLogConclusion').value = '';
+    document.getElementById('labXLabel').value = 'Time (s)';
+    document.getElementById('labYLabel').value = 'Value';
+    var tbody = document.getElementById('labDataBody');
+    tbody.innerHTML = '';
+    for (var i = 0; i < 3; i++) addLabDataRow();
+}
+
+function addLabDataRow() {
+    var tbody = document.getElementById('labDataBody');
+    var n = tbody.children.length + 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + n + '</td><td><input type="number" step="any" class="lab-x-input"></td><td><input type="number" step="any" class="lab-y-input"></td><td><button onclick="this.closest(\'tr\').remove();updateLabRowNumbers()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;">✕</button></td>';
+    tbody.appendChild(tr);
+}
+
+function updateLabRowNumbers() {
+    var rows = document.getElementById('labDataBody').children;
+    for (var i = 0; i < rows.length; i++) rows[i].children[0].textContent = i + 1;
+}
+
+function updateLabAxisHeaders() {
+    var xl = document.getElementById('labXLabel').value || 'X';
+    var yl = document.getElementById('labYLabel').value || 'Y';
+    document.getElementById('labXHeader').textContent = xl;
+    document.getElementById('labYHeader').textContent = yl;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var xlInput = document.getElementById('labXLabel');
+    var ylInput = document.getElementById('labYLabel');
+    if (xlInput) xlInput.addEventListener('input', updateLabAxisHeaders);
+    if (ylInput) ylInput.addEventListener('input', updateLabAxisHeaders);
+});
+
+async function saveLabLog() {
+    if (!authAccessToken || !_studentInfo) {
+        showToast('Please sign in first', 'error');
+        return;
+    }
+    var title = document.getElementById('labLogTitle').value.trim();
+    if (!title) { showToast('Enter an experiment title', 'error'); return; }
+
+    var subject = document.getElementById('labLogSubject').value;
+    var grade = document.getElementById('labLogGrade').value;
+    var hypothesis = document.getElementById('labLogHypothesis').value.trim();
+    var procedure = document.getElementById('labLogProcedure').value.trim();
+    var conclusion = document.getElementById('labLogConclusion').value.trim();
+    var xLabel = document.getElementById('labXLabel').value.trim() || 'X';
+    var yLabel = document.getElementById('labYLabel').value.trim() || 'Y';
+
+    // Collect data points
+    var rows = document.getElementById('labDataBody').children;
+    var dataPoints = [];
+    for (var i = 0; i < rows.length; i++) {
+        var xVal = parseFloat(rows[i].querySelector('.lab-x-input').value);
+        var yVal = parseFloat(rows[i].querySelector('.lab-y-input').value);
+        if (!isNaN(xVal) && !isNaN(yVal)) {
+            dataPoints.push({ x: xVal, y: yVal, sort_order: i });
+        }
+    }
+    if (dataPoints.length < 2) {
+        showToast('Enter at least 2 data points', 'error');
+        return;
+    }
+
+    showToast('Saving experiment...', 'info');
+
+    try {
+        // 1. Create lab log
+        var logRes = await fetch(SUPABASE_URL + '/rest/v1/lab_logs', {
+            method: 'POST',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+            body: JSON.stringify({
+                student_email: _studentInfo.email,
+                student_name: _studentInfo.name,
+                title: title,
+                subject: subject,
+                grade: grade,
+                hypothesis: hypothesis,
+                procedure_text: procedure,
+                conclusion: conclusion
+            })
+        });
+        var logData = await logRes.json();
+        if (!logRes.ok) throw new Error(JSON.stringify(logData));
+        var logId = Array.isArray(logData) ? logData[0].id : logData.id;
+
+        // 2. Insert data points
+        var pointsPayload = dataPoints.map(function(p) {
+            return {
+                log_id: logId,
+                x_value: p.x,
+                y_value: p.y,
+                x_label: xLabel,
+                y_label: yLabel,
+                sort_order: p.sort_order
+            };
+        });
+        var ptRes = await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points', {
+            method: 'POST',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify(pointsPayload)
+        });
+        if (!ptRes.ok) throw new Error('Failed to save data points');
+
+        showToast('✅ Experiment saved!', 'success');
+        hideNewLabLogForm();
+        loadLabLogs();
+    } catch (err) {
+        console.error('Save lab log error:', err);
+        showToast('Failed to save experiment', 'error');
+    }
+}
+
+async function loadLabLogs() {
+    var grid = document.getElementById('labLogsGrid');
+    var empty = document.getElementById('labLogEmpty');
+    var controls = document.getElementById('labLogControls');
+
+    if (!authAccessToken || !_studentInfo) {
+        controls.style.display = 'none';
+        empty.style.display = 'block';
+        empty.innerHTML = '<div class="empty-icon">📋</div><p>Sign in to start your digital lab journal</p>';
+        return;
+    }
+
+    controls.style.display = 'flex';
+    grid.innerHTML = '<div style="text-align:center;padding:20px;"><span class="spinner" style="display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;"></span></div>';
+
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs?select=*&order=created_at.desc&limit=50', {
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        var logs = await res.json();
+        if (!Array.isArray(logs) || logs.length === 0) {
+            grid.innerHTML = '<div class="lab-log-empty"><div class="empty-icon">🔬</div><p>No experiments yet. Start your first one!</p></div>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < logs.length; i++) {
+            var log = logs[i];
+            var date = new Date(log.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            html += '<div class="lab-log-card" id="labCard_' + log.id + '">' +
+                '<div class="lab-log-header">' +
+                    '<h3>🔬 ' + esc(log.title) + '</h3>' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' +
+                        '<span class="lab-log-meta">' + esc(log.subject || 'General') + ' · ' + esc(log.grade) + ' · ' + date + '</span>' +
+                        '<button onclick="deleteLabLog(\'' + log.id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.9rem;" title="Delete">🗑️</button>' +
+                    '</div>' +
+                '</div>';
+            if (log.hypothesis) html += '<p style="font-size:0.82rem;color:var(--text);margin:4px 0;"><strong>Hypothesis:</strong> ' + esc(log.hypothesis) + '</p>';
+            if (log.procedure_text) html += '<p style="font-size:0.82rem;color:var(--text);margin:4px 0;"><strong>Procedure:</strong> ' + esc(log.procedure_text) + '</p>';
+            if (log.conclusion) html += '<p style="font-size:0.82rem;color:var(--text);margin:4px 0;"><strong>Conclusion:</strong> ' + esc(log.conclusion) + '</p>';
+            html += '<div class="lab-graph-container"><canvas id="labChart_' + log.id + '" width="600" height="300"></canvas></div>';
+            html += '<div class="lab-stats-box" id="labStats_' + log.id + '"><div class="lab-stats-grid"><div class="lab-stat-item"><div class="stat-label">Loading...</div></div></div></div>';
+            html += '</div>';
+        }
+        grid.innerHTML = html;
+
+        // Load data points for each log
+        for (var j = 0; j < logs.length; j++) {
+            loadLabLogData(logs[j].id);
+        }
+    } catch (err) {
+        console.error('Load lab logs error:', err);
+        grid.innerHTML = '<div class="lab-log-empty"><div class="empty-icon">❌</div><p>Error loading experiments</p></div>';
+    }
+}
+
+async function loadLabLogData(logId) {
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points?log_id=eq.' + logId + '&order=sort_order.asc', {
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        var points = await res.json();
+        if (!Array.isArray(points) || points.length === 0) return;
+
+        var xLabel = points[0].x_label || 'X';
+        var yLabel = points[0].y_label || 'Y';
+        var xVals = points.map(function(p) { return p.x_value; });
+        var yVals = points.map(function(p) { return p.y_value; });
+
+        // Calculate statistics
+        var stats = calcLabStats(yVals);
+
+        // Render stats
+        var statsEl = document.getElementById('labStats_' + logId);
+        if (statsEl) {
+            statsEl.innerHTML = '<div style="font-size:0.78rem;font-weight:700;color:var(--dark);margin-bottom:8px;">📈 Statistical Analysis</div>' +
+                '<div class="lab-stats-grid">' +
+                '<div class="lab-stat-item"><div class="stat-label">N (Count)</div><div class="stat-value">' + stats.n + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Mean (ȳ)</div><div class="stat-value">' + stats.mean.toFixed(3) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Std Dev (σ)</div><div class="stat-value">' + stats.stdDev.toFixed(3) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Std Error</div><div class="stat-value">' + stats.stdError.toFixed(3) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Min</div><div class="stat-value">' + stats.min.toFixed(2) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Max</div><div class="stat-value">' + stats.max.toFixed(2) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">Range</div><div class="stat-value">' + stats.range.toFixed(2) + '</div></div>' +
+                '<div class="lab-stat-item"><div class="stat-label">R² (fit)</div><div class="stat-value">' + stats.r2.toFixed(4) + '</div></div>' +
+                '</div>';
+        }
+
+        // Draw graph
+        drawLabGraph(logId, xVals, yVals, xLabel, yLabel, stats);
+    } catch (err) {
+        console.error('Load lab data error:', err);
+    }
+}
+
+function calcLabStats(yVals) {
+    var n = yVals.length;
+    var sum = yVals.reduce(function(a, b) { return a + b; }, 0);
+    var mean = sum / n;
+    var sqDiffs = yVals.map(function(v) { return Math.pow(v - mean, 2); });
+    var variance = sqDiffs.reduce(function(a, b) { return a + b; }, 0) / (n > 1 ? n - 1 : 1);
+    var stdDev = Math.sqrt(variance);
+    var stdError = stdDev / Math.sqrt(n);
+    var min = Math.min.apply(null, yVals);
+    var max = Math.max.apply(null, yVals);
+
+    // Calculate R² (coefficient of determination) for linear fit
+    var xVals = [];
+    for (var i = 0; i < n; i++) xVals.push(i);
+    var xMean = (n - 1) / 2;
+    var ssReg = 0, ssTot = 0;
+    var slope = 0, num = 0, den = 0;
+    for (var j = 0; j < n; j++) {
+        num += (xVals[j] - xMean) * (yVals[j] - mean);
+        den += Math.pow(xVals[j] - xMean, 2);
+    }
+    slope = den !== 0 ? num / den : 0;
+    var intercept = mean - slope * xMean;
+    for (var k = 0; k < n; k++) {
+        var predicted = slope * xVals[k] + intercept;
+        ssReg += Math.pow(yVals[k] - predicted, 2);
+        ssTot += Math.pow(yVals[k] - mean, 2);
+    }
+    var r2 = ssTot !== 0 ? 1 - ssReg / ssTot : 0;
+
+    return { n: n, mean: mean, stdDev: stdDev, stdError: stdError, min: min, max: max, range: max - min, r2: r2, slope: slope, intercept: intercept };
+}
+
+function drawLabGraph(logId, xVals, yVals, xLabel, yLabel, stats) {
+    var canvas = document.getElementById('labChart_' + logId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var w = 600, h = 300;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.scale(dpr, dpr);
+
+    var pad = { top: 30, right: 30, bottom: 50, left: 60 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+
+    // Background
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, w, h);
+
+    // Calculate ranges
+    var xMin = Math.min.apply(null, xVals), xMax = Math.max.apply(null, xVals);
+    var yMin = Math.min.apply(null, yVals), yMax = Math.max.apply(null, yVals);
+    var yPadding = stats.stdDev > 0 ? stats.stdDev * 1.5 : (yMax - yMin) * 0.2 || 1;
+    yMin -= yPadding; yMax += yPadding;
+    var xPadding = (xMax - xMin) * 0.1 || 1;
+    xMin -= xPadding; xMax += xPadding;
+
+    function toX(v) { return pad.left + ((v - xMin) / (xMax - xMin)) * plotW; }
+    function toY(v) { return pad.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
+
+    // Grid lines
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 0.5;
+    for (var gi = 0; gi <= 5; gi++) {
+        var gy = pad.top + (plotH / 5) * gi;
+        ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + plotW, gy); ctx.stroke();
+        var gVal = yMax - ((yMax - yMin) / 5) * gi;
+        ctx.fillStyle = '#9ca3af'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+        ctx.fillText(gVal.toFixed(1), pad.left - 8, gy + 3);
+    }
+    for (var gj = 0; gj <= 5; gj++) {
+        var gx = pad.left + (plotW / 5) * gj;
+        ctx.beginPath(); ctx.moveTo(gx, pad.top); ctx.lineTo(gx, pad.top + plotH); ctx.stroke();
+        var gxVal = xMin + ((xMax - xMin) / 5) * gj;
+        ctx.fillStyle = '#9ca3af'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+        ctx.fillText(gxVal.toFixed(1), gx, h - pad.bottom + 18);
+    }
+
+    // Axes
+    ctx.strokeStyle = '#374151'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + plotH); ctx.lineTo(pad.left + plotW, pad.top + plotH); ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#374151'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(xLabel, pad.left + plotW / 2, h - 5);
+    ctx.save(); ctx.translate(14, pad.top + plotH / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+    // Error bars (standard error)
+    ctx.strokeStyle = 'rgba(163,64,84,0.3)'; ctx.lineWidth = 1.5;
+    for (var ei = 0; ei < xVals.length; ei++) {
+        var ex = toX(xVals[ei]);
+        var eyCenter = toY(yVals[ei]);
+        var errTop = toY(yVals[ei] + stats.stdError);
+        var errBot = toY(yVals[ei] - stats.stdError);
+        ctx.beginPath(); ctx.moveTo(ex, errTop); ctx.lineTo(ex, errBot); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ex - 4, errTop); ctx.lineTo(ex + 4, errTop); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ex - 4, errBot); ctx.lineTo(ex + 4, errBot); ctx.stroke();
+    }
+
+    // Best fit line
+    if (xVals.length >= 2) {
+        // Proper linear regression with actual x values
+        var xm = xVals.reduce(function(a,b){return a+b;},0) / xVals.length;
+        var ym = stats.mean;
+        var sNum = 0, sDen = 0;
+        for (var fi = 0; fi < xVals.length; fi++) {
+            sNum += (xVals[fi] - xm) * (yVals[fi] - ym);
+            sDen += Math.pow(xVals[fi] - xm, 2);
+        }
+        var fitSlope = sDen !== 0 ? sNum / sDen : 0;
+        var fitIntercept = ym - fitSlope * xm;
+        ctx.strokeStyle = 'rgba(168,85,247,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+        ctx.beginPath(); ctx.moveTo(toX(xMin), toY(fitSlope * xMin + fitIntercept)); ctx.lineTo(toX(xMax), toY(fitSlope * xMax + fitIntercept)); ctx.stroke();
+        ctx.setLineDash([]);
+        // Label
+        ctx.fillStyle = 'rgba(168,85,247,0.7)'; ctx.font = '9px system-ui'; ctx.textAlign = 'right';
+        ctx.fillText('Best fit (R²=' + stats.r2.toFixed(3) + ')', pad.left + plotW - 4, pad.top + 14);
+    }
+
+    // Data line
+    ctx.strokeStyle = '#a34054'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var li = 0; li < xVals.length; li++) {
+        var lx = toX(xVals[li]), ly = toY(yVals[li]);
+        if (li === 0) ctx.moveTo(lx, ly); else ctx.lineTo(lx, ly);
+    }
+    ctx.stroke();
+
+    // Data points
+    for (var pi = 0; pi < xVals.length; pi++) {
+        var px = toX(xVals[pi]), py = toY(yVals[pi]);
+        ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#a34054'; ctx.fill();
+        ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    // Mean line
+    ctx.strokeStyle = 'rgba(34,197,94,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    var meanY = toY(stats.mean);
+    ctx.beginPath(); ctx.moveTo(pad.left, meanY); ctx.lineTo(pad.left + plotW, meanY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(34,197,94,0.7)'; ctx.font = '9px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Mean: ' + stats.mean.toFixed(2), pad.left + 4, meanY - 6);
+
+    // Title
+    ctx.fillStyle = '#1f2937'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Data Plot with Error Bars & Best Fit', w / 2, 16);
+}
+
+async function deleteLabLog(logId) {
+    if (!confirm('Delete this experiment?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/lab_logs?id=eq.' + logId, {
+            method: 'DELETE',
+            headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + authAccessToken }
+        });
+        showToast('✅ Experiment deleted', 'success');
+        loadLabLogs();
+    } catch (err) {
+        showToast('Failed to delete', 'error');
+    }
+}
+
 </script>
 
 </body>
