@@ -4052,6 +4052,9 @@ function disableExamSecurity() {
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
     hideTabWarning();
+    window.removeEventListener('blur', _onScreenCaptureBlur);
+    window.removeEventListener('focus', _onScreenCaptureFocus);
+    document.body.classList.remove('screen-capture-blocked');
 
     // Exit fullscreen
     if (document.fullscreenElement || document.webkitFullscreenElement) {
