@@ -4050,15 +4050,18 @@ function _retryFullscreenOnInteraction() {
 function _onVisibilityChange() {
     if (!_examSecurityActive) return;
     if (document.hidden) {
-        _startTabSwitchCountdown();
-    } else {
-        _cancelTabSwitchCountdown();
+        // Tab switch = instant auto-submit
+        showToast('🚫 تم إنهاء الامتحان لأنك فتحت تاب تانية!', 'error');
+        _forceSubmitExam();
+        return;
     }
 }
 
 function _onWindowBlur() {
     if (!_examSecurityActive) return;
-    _startTabSwitchCountdown();
+    // Window blur (alt-tab etc) = instant auto-submit
+    showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة!', 'error');
+    _forceSubmitExam();
 }
 
 function _onFullscreenChange() {
