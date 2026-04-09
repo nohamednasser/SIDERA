@@ -462,9 +462,13 @@
         
         /* Exam Security Styles */
         .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; }
-        .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; }
+        .exam-secure-mode * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
         .exam-secure-badge { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; animation: securePulse 2s infinite; }
         @keyframes securePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
+        .exam-watermark { position: fixed; inset: 0; pointer-events: none; z-index: 1004; opacity: 0; transition: opacity 0.2s ease; overflow: hidden; display: none; }
+        .exam-watermark.active { display: block; opacity: 1; }
+        .exam-watermark-inner { position: absolute; inset: -15%; display: grid; grid-template-columns: repeat(6, minmax(180px, 1fr)); gap: 28px 40px; align-content: center; justify-items: center; transform: rotate(-24deg) scale(1.08); }
+        .exam-watermark-inner span { color: rgba(163, 64, 84, 0.18); font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
         
         .tab-warning-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; gap: 16px; backdrop-filter: blur(12px); }
         .tab-warning-overlay .warn-icon { font-size: 4rem; animation: warnShake 0.4s infinite; }
@@ -1590,6 +1594,20 @@ function requestExamFullscreen() {
         const result = rfs.call(el);
         if (result && typeof result.catch === 'function') result.catch(() => {});
     } catch (e) {}
+}
+
+function _blockClipboardEvent(e) {
+    if (_examSecurityActive) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}
+
+function _blockPrintEvent(e) {
+    if (_examSecurityActive && e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+        showToast('🚫 الطباعة والتصوير أثناء الامتحان متوقفة', 'warning');
+    }
 }
 
 // Supabase REST helpers - dynamic headers
@@ -3931,6 +3949,7 @@ let _tabSwitchWarnings = 0;
 
 // === EXAM SECURITY SYSTEM ===
 function enableExamSecurity() {
+    if (_examSecurityActive) disableExamSecurity();
     _examSecurityActive = true;
     _tabSwitchWarnings = 0;
 
@@ -3946,6 +3965,11 @@ function enableExamSecurity() {
 
     // 3. Block right-click during exam
     document.addEventListener('contextmenu', _blockContextMenu, true);
+    document.addEventListener('copy', _blockClipboardEvent, true);
+    document.addEventListener('cut', _blockClipboardEvent, true);
+    document.addEventListener('paste', _blockClipboardEvent, true);
+    document.addEventListener('dragstart', _blockClipboardEvent, true);
+    window.addEventListener('beforeprint', _blockPrintEvent, true);
 
     // 4. Request fullscreen
     requestExamFullscreen();
@@ -3955,10 +3979,12 @@ function enableExamSecurity() {
     window.addEventListener('blur', _onWindowBlur);
     document.addEventListener('fullscreenchange', _onFullscreenChange);
     document.addEventListener('webkitfullscreenchange', _onFullscreenChange);
-    document.getElementById('examTakingModal').addEventListener('pointerdown', _retryFullscreenOnInteraction, true);
+    const examTakingModal = document.getElementById('examTakingModal');
+    if (examTakingModal) examTakingModal.addEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     // Show security badge
-    document.getElementById('examSecureBadge').style.display = 'inline-flex';
+    const examSecureBadge = document.getElementById('examSecureBadge');
+    if (examSecureBadge) examSecureBadge.style.display = 'inline-flex';
 }
 
 function disableExamSecurity() {
@@ -3968,11 +3994,17 @@ function disableExamSecurity() {
     document.removeEventListener('keydown', _blockScreenshotKeys, true);
     document.removeEventListener('keyup', _blockScreenshotKeys, true);
     document.removeEventListener('contextmenu', _blockContextMenu, true);
+    document.removeEventListener('copy', _blockClipboardEvent, true);
+    document.removeEventListener('cut', _blockClipboardEvent, true);
+    document.removeEventListener('paste', _blockClipboardEvent, true);
+    document.removeEventListener('dragstart', _blockClipboardEvent, true);
+    window.removeEventListener('beforeprint', _blockPrintEvent, true);
     document.removeEventListener('visibilitychange', _onVisibilityChange);
     window.removeEventListener('blur', _onWindowBlur);
     document.removeEventListener('fullscreenchange', _onFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', _onFullscreenChange);
-    document.getElementById('examTakingModal').removeEventListener('pointerdown', _retryFullscreenOnInteraction, true);
+    const examTakingModal = document.getElementById('examTakingModal');
+    if (examTakingModal) examTakingModal.removeEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
     hideTabWarning();
@@ -3981,7 +4013,8 @@ function disableExamSecurity() {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
     }
-    document.getElementById('examSecureBadge').style.display = 'none';
+    const examSecureBadge = document.getElementById('examSecureBadge');
+    if (examSecureBadge) examSecureBadge.style.display = 'none';
 }
 
 function _blockScreenshotKeys(e) {
@@ -4078,7 +4111,9 @@ function showTabWarning() {
 }
 
 function updateTabWarning() {
-    document.getElementById('tabWarningCount').textContent = _tabSwitchCountdown;
+    const mins = Math.floor(_tabSwitchCountdown / 60);
+    const secs = _tabSwitchCountdown % 60;
+    document.getElementById('tabWarningCount').textContent = mins > 0 ? (String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0')) : String(secs);
 }
 
 function hideTabWarning() {
@@ -4412,7 +4447,8 @@ function updateExamNav() {
     const isFirst = _currentQIdx === 0;
     document.getElementById('examPrevBtn').disabled = isFirst;
     document.getElementById('examNextBtn').style.display = isLast ? 'none' : 'flex';
-    document.getElementById('examSubmitBtn').style.display = isLast ? 'flex' : 'none';
+    document.getElementById('examSubmitBtn').style.display = total > 0 ? 'flex' : 'none';
+    document.getElementById('examSubmitBtn').textContent = isLast ? '✅ Submit Exam' : '✅ Submit Now';
 }
 
 function saveCurrentAnswer() {
@@ -5306,20 +5342,23 @@ setTimeout(() => {
 }, 3000);
 // === EXAM WATERMARK ===
 function showExamWatermark() {
-    const name = _studentInfo.name || 'Student';
-    const email = _studentInfo.email || '';
+    const root = document.getElementById('examWatermark');
     const inner = document.getElementById('examWatermarkInner');
-    const text = name + ' \u2022 ' + email;
+    if (!root || !inner) return;
+    const name = (_studentInfo && _studentInfo.name) || localStorage.getItem('sideraUsername') || 'Student';
+    const email = (_studentInfo && _studentInfo.email) || (_studentUser && _studentUser.email) || getCurrentStudentEmail() || '';
+    const text = esc(name + ' \u2022 ' + email);
     let html = '';
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 36; i++) {
         html += '<span>' + text + '</span>';
     }
     inner.innerHTML = html;
-    document.getElementById('examWatermark').classList.add('active');
+    root.classList.add('active');
 }
 
 function hideExamWatermark() {
-    document.getElementById('examWatermark').classList.remove('active');
+    const root = document.getElementById('examWatermark');
+    if (root) root.classList.remove('active');
 }
 
 // === ALUMNI INSIGHTS (G12 Only) ===
