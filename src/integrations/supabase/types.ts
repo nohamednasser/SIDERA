@@ -183,6 +183,7 @@ export type Database = {
           exam_id: string
           id: string
           score: number | null
+          security_violations: number
           started_at: string | null
           student_email: string
           student_name: string
@@ -193,6 +194,7 @@ export type Database = {
           exam_id: string
           id?: string
           score?: number | null
+          security_violations?: number
           started_at?: string | null
           student_email: string
           student_name: string
@@ -203,6 +205,7 @@ export type Database = {
           exam_id?: string
           id?: string
           score?: number | null
+          security_violations?: number
           started_at?: string | null
           student_email?: string
           student_name?: string

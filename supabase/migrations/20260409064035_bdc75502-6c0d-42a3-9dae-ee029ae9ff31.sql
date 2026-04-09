@@ -1,0 +1,1 @@
+ALTER TABLE public.exam_submissions ADD COLUMN IF NOT EXISTS security_violations integer NOT NULL DEFAULT 0;
