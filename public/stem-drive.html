@@ -1201,7 +1201,17 @@
     </div>
 </div>
 
-<div id="loginModal" class="modal">
+<!-- Certificate Modal -->
+<div id="certModal" class="cert-modal" onclick="if(event.target===this)closeCertificate()">
+    <div class="cert-container">
+        <canvas id="certCanvas" width="1200" height="850"></canvas>
+        <div class="cert-actions">
+            <button class="cert-dl-btn" onclick="downloadCertificate()">📥 تحميل الشهادة</button>
+            <button class="cert-share-btn" onclick="shareCertificate()">📤 مشاركة</button>
+            <button class="cert-close-btn" onclick="closeCertificate()">✕ إغلاق</button>
+        </div>
+    </div>
+</div>
     <div class="modal-content">
         <h2 style="margin-top:0; font-size: 1.3rem;">Admin Portal</h2>
         <input type="text" id="adminUser" placeholder="Username or Email" style="margin-bottom:12px;">
