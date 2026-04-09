@@ -4051,6 +4051,7 @@ function _onVisibilityChange() {
     if (!_examSecurityActive) return;
     if (document.hidden) {
         // Tab switch = instant auto-submit
+        _tabSwitchWarnings++;
         showToast('🚫 تم إنهاء الامتحان لأنك فتحت تاب تانية!', 'error');
         _forceSubmitExam();
         return;
@@ -4060,6 +4061,7 @@ function _onVisibilityChange() {
 function _onWindowBlur() {
     if (!_examSecurityActive) return;
     // Window blur (alt-tab etc) = instant auto-submit
+    _tabSwitchWarnings++;
     showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة!', 'error');
     _forceSubmitExam();
 }
@@ -4629,7 +4631,8 @@ async function submitExam(forceSubmit = false) {
                 student_email: _studentInfo.email,
                 score,
                 total_points: totalPoints,
-                submitted_at: new Date().toISOString()
+                submitted_at: new Date().toISOString(),
+                security_violations: _tabSwitchWarnings || 0
             })
         });
         if (!subRes.ok) throw new Error('Submit failed: ' + await subRes.text());
