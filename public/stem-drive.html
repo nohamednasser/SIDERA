@@ -4610,9 +4610,17 @@ async function submitExam(forceSubmit = false) {
             }
         });
 
+        // Build fresh headers with guaranteed-valid token
+        const freshHeaders = {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + getAuthToken(),
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+
         const subRes = await fetch(SUPABASE_URL + '/rest/v1/exam_submissions', {
             method: 'POST',
-            headers: { ...getSbHeaders(), 'Prefer': 'return=representation' },
+            headers: freshHeaders,
             body: JSON.stringify({
                 exam_id: _currentExamId,
                 student_name: _studentInfo.name,
@@ -4629,7 +4637,7 @@ async function submitExam(forceSubmit = false) {
         const answersData = answers.map(a => ({ ...a, submission_id: submissionId }));
         const answersRes = await fetch(SUPABASE_URL + '/rest/v1/exam_answers', {
             method: 'POST',
-            headers: getSbHeaders(),
+            headers: freshHeaders,
             body: JSON.stringify(answersData)
         });
         if (!answersRes.ok) throw new Error('Answers save failed: ' + await answersRes.text());
