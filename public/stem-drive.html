@@ -5058,7 +5058,7 @@ async function exportExamResults(examId, examTitle) {
         if (!submissions || submissions.length === 0) { showToast('No submissions to export.', 'error'); return; }
 
         // Build CSV-like data for XLSX
-        const headers = ['#', 'Student Name', 'Email', 'Score', 'Total', '%', 'Grade', 'Submitted At'];
+        const headers = ['#', 'Student Name', 'Email', 'Score', 'Total', '%', 'Grade', '⚠️ Violations', 'Submitted At'];
         questions.forEach((q, i) => headers.push('Q' + (i+1) + ': ' + q.question_text.substring(0, 40)));
 
         const rows = submissions.map((sub, idx) => {
@@ -5066,7 +5066,8 @@ async function exportExamResults(examId, examTitle) {
             let grade;
             if (pct >= 90) grade = 'A+'; else if (pct >= 80) grade = 'A'; else if (pct >= 70) grade = 'B';
             else if (pct >= 60) grade = 'C'; else if (pct >= 50) grade = 'D'; else grade = 'F';
-            const row = [idx + 1, sub.student_name, sub.student_email, sub.score, sub.total_points, pct + '%', grade, sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : ''];
+            const violations = sub.security_violations || 0;
+            const row = [idx + 1, sub.student_name, sub.student_email, sub.score, sub.total_points, pct + '%', grade, violations > 0 ? '⚠️ ' + violations : '0', sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : ''];
             questions.forEach(q => {
                 const ans = (sub.exam_answers || []).find(a => a.question_id === q.id);
                 row.push(ans ? (ans.answer_text || '') + (ans.is_correct ? ' ✅' : ' ❌') : '—');
@@ -5090,7 +5091,7 @@ async function exportExamResults(examId, examTitle) {
             xml += '<Row>';
             row.forEach((cell, ci) => {
                 const val = String(cell);
-                const isQ = ci >= 8;
+                const isQ = ci >= 9;
                 const style = isQ ? (val.includes('✅') ? ' ss:StyleID="correct"' : val.includes('❌') ? ' ss:StyleID="wrong"' : '') : '';
                 xml += '<Cell' + style + '><Data ss:Type="String">' + escapeXml(val) + '</Data></Cell>';
             });
