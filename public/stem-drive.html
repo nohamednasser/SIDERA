@@ -3947,7 +3947,7 @@ let _examTimer = null;
 let _examTimeLeft = 0;
 let _examSecurityActive = false;
 let _tabSwitchTimer = null;
-let _tabSwitchCountdown = 5;
+let _tabSwitchCountdown = 300;
 let _tabSwitchWarnings = 0;
 
 // === EXAM SECURITY SYSTEM ===
@@ -4061,14 +4061,14 @@ function _onFullscreenChange() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         // User exited fullscreen — start countdown
         _startTabSwitchCountdown();
-        showToast('⚠️ ارجع للامتحان فوراً! عندك 5 ثواني', 'error');
+        showToast('⚠️ خرجت من الفول سكرين، عندك 5 دقايق ترجع', 'error');
     }
 }
 
 function _startTabSwitchCountdown() {
     if (_tabSwitchTimer) return; // already counting
     _tabSwitchWarnings++;
-    _tabSwitchCountdown = 5;
+    _tabSwitchCountdown = 300;
     showTabWarning();
 
     _tabSwitchTimer = setInterval(() => {
