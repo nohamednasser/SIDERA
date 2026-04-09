@@ -4793,6 +4793,19 @@ function showExamResults(score, totalPoints, answers) {
 
     // Confetti for high scores!
     if (pct >= 70) launchConfetti();
+    
+    // Generate certificate for passing students (>= 50%)
+    if (pct >= 50 && _studentInfo && _currentExamData) {
+        // Add certificate button to results
+        setTimeout(() => {
+            const resultBody = document.getElementById('examResultBody');
+            const certDiv = document.createElement('div');
+            certDiv.style.cssText = 'text-align:center;margin-top:16px;';
+            certDiv.innerHTML = '<button onclick="generateCertificate(\'' + _studentInfo.name.replace(/'/g, "\\'") + '\', \'' + _currentExamData.title.replace(/'/g, "\\'") + '\', ' + score + ', ' + totalPoints + ', \'' + _currentExamId + '\')" style="background:linear-gradient(135deg,#a34054,#c2556a);color:white;border:none;padding:12px 24px;border-radius:14px;font-size:0.9rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform 0.15s;"><span style="font-size:1.2rem;">📜</span> احصل على شهادة الإنجاز</button>';
+            const resultCard = resultBody.querySelector('.result-card');
+            if (resultCard) resultCard.appendChild(certDiv);
+        }, 500);
+    }
 }
 
 function launchConfetti() {
