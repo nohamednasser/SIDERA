@@ -332,6 +332,36 @@ export type Database = {
         }
         Relationships: []
       }
+      scanned_documents: {
+        Row: {
+          created_at: string
+          file_size: number | null
+          id: string
+          page_count: number
+          storage_path: string
+          title: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          page_count?: number
+          storage_path: string
+          title: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          page_count?: number
+          storage_path?: string
+          title?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
       stem_drive_files: {
         Row: {
           created_at: string
