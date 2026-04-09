@@ -4850,6 +4850,218 @@ function launchConfetti() {
 
 function closeExamResult() { document.getElementById('examResultModal').classList.remove('show'); }
 
+// === DIGITAL CERTIFICATE SYSTEM ===
+let _lastCertData = null;
+
+async function generateCertificate(studentName, examTitle, score, totalPoints, examId) {
+    const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
+    if (pct < 50) return; // Only for passing grades
+    
+    const certNumber = 'SID-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    const canvas = document.getElementById('certCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 1200, H = 850;
+    canvas.width = W; canvas.height = H;
+    
+    // Background gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, '#fdf6f0');
+    bgGrad.addColorStop(0.5, '#fff');
+    bgGrad.addColorStop(1, '#f5f0ff');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+    
+    // Decorative border
+    ctx.strokeStyle = '#a34054';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(30, 30, W - 60, H - 60);
+    ctx.strokeStyle = '#c2556a33';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, W - 80, H - 80);
+    
+    // Corner ornaments
+    const corners = [[50, 50], [W-50, 50], [50, H-50], [W-50, H-50]];
+    corners.forEach(([cx, cy]) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#a34054';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#fdf6f0';
+        ctx.fill();
+    });
+    
+    // Top decorative line
+    const topGrad = ctx.createLinearGradient(100, 80, W-100, 80);
+    topGrad.addColorStop(0, 'transparent');
+    topGrad.addColorStop(0.3, '#a34054');
+    topGrad.addColorStop(0.7, '#a34054');
+    topGrad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = topGrad;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(100, 85); ctx.lineTo(W-100, 85); ctx.stroke();
+    
+    // SIDERA Logo text
+    ctx.font = '900 42px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#a34054';
+    ctx.textAlign = 'center';
+    ctx.fillText('SIDERA', W/2, 140);
+    
+    // Subtitle
+    ctx.font = '300 16px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#888';
+    ctx.fillText('STEM Innovation & Digital Education Resources Academy', W/2, 168);
+    
+    // Certificate title
+    ctx.font = '700 38px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#333';
+    ctx.fillText('🏆 Certificate of Achievement', W/2, 240);
+    
+    // Decorative line under title
+    ctx.strokeStyle = topGrad;
+    ctx.beginPath(); ctx.moveTo(200, 260); ctx.lineTo(W-200, 260); ctx.stroke();
+    
+    // "This is to certify that"
+    ctx.font = '400 18px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#666';
+    ctx.fillText('This is to certify that', W/2, 310);
+    
+    // Student name
+    ctx.font = '700 48px "Georgia", serif';
+    ctx.fillStyle = '#a34054';
+    ctx.fillText(studentName, W/2, 375);
+    
+    // Underline under name
+    const nameWidth = ctx.measureText(studentName).width;
+    ctx.strokeStyle = '#a3405440';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W/2 - nameWidth/2 - 20, 390); ctx.lineTo(W/2 + nameWidth/2 + 20, 390); ctx.stroke();
+    
+    // Description
+    ctx.font = '400 18px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#555';
+    ctx.fillText('has successfully completed the examination', W/2, 435);
+    
+    // Exam title
+    ctx.font = '700 28px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#333';
+    ctx.fillText('"' + examTitle + '"', W/2, 480);
+    
+    // Score
+    let gradeText, gradeColor;
+    if (pct >= 90) { gradeText = 'Excellent (A+)'; gradeColor = '#22c55e'; }
+    else if (pct >= 80) { gradeText = 'Very Good (A)'; gradeColor = '#22c55e'; }
+    else if (pct >= 70) { gradeText = 'Good (B)'; gradeColor = '#3b82f6'; }
+    else if (pct >= 60) { gradeText = 'Satisfactory (C)'; gradeColor = '#eab308'; }
+    else { gradeText = 'Passing (D)'; gradeColor = '#f97316'; }
+    
+    ctx.font = '700 24px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = gradeColor;
+    ctx.fillText('Score: ' + pct + '% — ' + gradeText, W/2, 530);
+    
+    // Date
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.font = '400 16px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#888';
+    ctx.fillText('Awarded on ' + dateStr, W/2, 580);
+    
+    // Bottom decorative line
+    ctx.strokeStyle = topGrad;
+    ctx.beginPath(); ctx.moveTo(200, 620); ctx.lineTo(W-200, 620); ctx.stroke();
+    
+    // Signature area
+    ctx.font = '400 14px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#aaa';
+    ctx.textAlign = 'left';
+    ctx.fillText('Certificate No: ' + certNumber, 80, 700);
+    
+    ctx.textAlign = 'right';
+    ctx.fillText('SIDERA Academy', W-80, 700);
+    ctx.font = '700 16px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#a34054';
+    ctx.fillText('Digital Certificate', W-80, 722);
+    
+    // Verification QR placeholder
+    ctx.textAlign = 'center';
+    ctx.font = '400 11px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#bbb';
+    ctx.fillText('Verify at sidera-com.lovable.app', W/2, 790);
+    
+    // Bottom decorative 
+    const btmGrad = ctx.createLinearGradient(100, H-50, W-100, H-50);
+    btmGrad.addColorStop(0, 'transparent');
+    btmGrad.addColorStop(0.3, '#a34054');
+    btmGrad.addColorStop(0.7, '#a34054');
+    btmGrad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = btmGrad;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(100, H-55); ctx.lineTo(W-100, H-55); ctx.stroke();
+    
+    // Save cert data
+    _lastCertData = { studentName, examTitle, score, totalPoints, pct, certNumber, examId };
+    
+    // Save to database
+    try {
+        const session = await getSession();
+        if (session) {
+            await fetch(SUPABASE_URL + '/rest/v1/certificates', {
+                method: 'POST',
+                headers: { ...getSbHeaders(), 'Authorization': 'Bearer ' + session.access_token, 'Prefer': 'return=minimal' },
+                body: JSON.stringify({
+                    student_name: studentName,
+                    student_email: _studentInfo.email,
+                    certificate_type: 'exam',
+                    reference_id: examId,
+                    reference_title: examTitle,
+                    score: pct,
+                    certificate_number: certNumber
+                })
+            });
+        }
+    } catch(e) { console.log('Certificate save error:', e); }
+    
+    // Show modal
+    document.getElementById('certModal').classList.add('show');
+}
+
+function downloadCertificate() {
+    const canvas = document.getElementById('certCanvas');
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'SIDERA_Certificate_' + (_lastCertData ? _lastCertData.studentName.replace(/\s/g,'_') : 'cert') + '.png';
+    a.click();
+    showToast('📥 تم تحميل الشهادة!', 'success');
+}
+
+async function shareCertificate() {
+    const canvas = document.getElementById('certCanvas');
+    try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (navigator.share && navigator.canShare) {
+            const file = new File([blob], 'SIDERA_Certificate.png', { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: '🏆 SIDERA Certificate',
+                    text: 'حصلت على شهادة إنجاز من SIDERA Academy! 🎉',
+                    files: [file]
+                });
+                return;
+            }
+        }
+        // Fallback: copy to clipboard
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('📋 تم نسخ الشهادة! الصقها في أي مكان', 'success');
+    } catch(e) {
+        // Fallback: download
+        downloadCertificate();
+    }
+}
+
+function closeCertificate() {
+    document.getElementById('certModal').classList.remove('show');
+}
+
 // === MINI LEADERBOARD (in-card) ===
 async function loadMiniLeaderboard(examId, examTitle) {
     const el = document.getElementById('miniLb_' + examId);
