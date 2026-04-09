@@ -280,18 +280,18 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            header { padding: 14px 0 42px; }
-            header h1 { font-size: 1.5rem; letter-spacing: 1.5px; }
+            header { padding: 12px 0 38px; }
+            header h1 { font-size: 1.6rem; letter-spacing: 2px; margin-bottom: 2px; }
             
-            .top-controls { gap: 5px; padding: 0 10px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
-            .control-btn { padding: 7px 12px; font-size: 0.72rem; gap: 4px; border-radius: 14px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+            .top-controls { gap: 6px; padding: 0 12px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
+            .control-btn { padding: 8px 14px; font-size: 0.73rem; gap: 5px; border-radius: 16px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; min-height: 36px; }
             .control-btn:active { transform: scale(0.95); background: rgba(163,64,84,0.08); }
             
-            #searchBar { max-width: 92%; padding: 13px 18px; font-size: 0.88rem; margin-top: -22px; }
+            #searchBar { max-width: 92%; padding: 12px 18px; font-size: 0.88rem; margin-top: -20px; }
             
-            .filter-container { margin-top: 28px; gap: 10px; }
-            nav { gap: 5px; padding: 0 10px; }
-            nav span { font-size: 0.68rem; padding: 7px 14px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+            .filter-container { margin-top: 24px; gap: 10px; }
+            nav { gap: 6px; padding: 0 12px; justify-content: center; }
+            nav span { font-size: 0.7rem; padding: 7px 14px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; min-height: 34px; display: inline-flex; align-items: center; }
             nav span:active { transform: scale(0.95); }
             
             #adminPanel { width: 95%; padding: 18px; border-radius: 18px; margin-top: 18px; }
@@ -299,7 +299,7 @@
             .full-w { grid-column: span 1; }
             .file-drop-zone { grid-column: span 1; }
             
-            .content { grid-template-columns: 1fr; gap: 12px; width: 95%; padding: 20px 0; }
+            .content { grid-template-columns: 1fr; gap: 14px; width: 94%; padding: 20px 0; }
             
             .card { padding: 16px; border-radius: 16px; min-height: 170px; }
             .card:active { transform: scale(0.98); }
@@ -309,7 +309,7 @@
             .subj-tag, .type-tag { font-size: 0.62rem; }
             
             .btn-group { flex-direction: row; gap: 8px; }
-            .btn-preview, .btn-dl { padding: 11px 8px; font-size: 0.78rem; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
+            .btn-preview, .btn-dl { padding: 11px 8px; font-size: 0.78rem; border-radius: 10px; -webkit-tap-highlight-color: transparent; min-height: 42px; }
             .btn-preview:active, .btn-dl:active { transform: scale(0.95); }
             
             .modal-content { width: 92%; padding: 24px; border-radius: 20px; }
@@ -334,15 +334,23 @@
             .exam-card:active { transform: scale(0.98); }
             .exam-start-btn { padding: 14px !important; font-size: 0.9rem !important; -webkit-tap-highlight-color: transparent; }
             .exam-q-dot { width: 32px; height: 32px; }
+
+            /* Exam section title */
+            .exam-section-title h2 { font-size: 1.3rem; }
+            .exam-section-title p { font-size: 0.78rem; }
+            .exam-section { width: 94%; }
+            .exam-divider { width: 94%; }
+            .exam-section-title { width: 94%; }
         }
 
         @media (max-width: 400px) {
-            header { padding: 10px 0 32px; }
-            header h1 { font-size: 1.2rem; }
+            header { padding: 10px 0 30px; }
+            header h1 { font-size: 1.3rem; letter-spacing: 1px; }
             .top-controls { gap: 4px; padding: 0 8px; }
-            .control-btn { padding: 6px 10px; font-size: 0.68rem; }
-            nav span { font-size: 0.62rem; padding: 6px 11px; }
+            .control-btn { padding: 7px 10px; font-size: 0.68rem; min-height: 34px; }
+            nav span { font-size: 0.64rem; padding: 6px 11px; }
             .card { padding: 14px; border-radius: 14px; }
+            .content { width: 96%; }
         }
 
         /* ═══════════════════════════════════════════
