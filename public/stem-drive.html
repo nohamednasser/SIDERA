@@ -7259,7 +7259,7 @@ async function loadLabLogs() {
     document.getElementById('newLabLogBtn').style.display = '';
     try {
         var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs?student_email=eq.' + encodeURIComponent(getUserEmail()) + '&order=updated_at.desc', {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + authAccessToken, 'Content-Type': 'application/json' }
+             headers: getSbHeaders()
         });
         _labLogs = await res.json();
     } catch(e) { _labLogs = []; }
