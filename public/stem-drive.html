@@ -1156,6 +1156,25 @@
     <div style="text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text);">Powered by <a href="https://phet.colorado.edu" target="_blank" style="color:var(--accent);font-weight:700;">PhET Interactive Simulations</a> · University of Colorado Boulder</div>
 </div>
 
+<!-- Smart Lab Log Section -->
+<div class="exam-divider"></div>
+<div class="exam-section-title">
+    <h2>📋 Smart Lab Log</h2>
+    <p>سجّل تجاربك المعملية — رسم بياني تلقائي مع تحليل إحصائي وأشرطة خطأ</p>
+</div>
+<div class="lablog-section" id="labLogSection">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <button class="lablog-btn lablog-btn-primary" onclick="openLabLogEditor()" id="newLabLogBtn" style="display:none;">➕ New Lab Log</button>
+        <button class="lablog-btn lablog-btn-secondary" onclick="closeLabLogEditor()" id="backLabLogBtn" style="display:none;">← Back to Logs</button>
+    </div>
+    <div id="labLogListView">
+        <div class="lablog-grid" id="labLogGrid"><div style="text-align:center;padding:40px;color:var(--text);opacity:0.6;font-size:0.85rem;">🔒 Login to create and view your lab logs</div></div>
+    </div>
+    <div id="labLogEditorView" style="display:none;">
+        <div class="lablog-editor" id="labLogEditorContent"></div>
+    </div>
+</div>
+
 <!-- Student Reviews Section -->
 <div class="exam-divider"></div>
 <div class="exam-section-title">
