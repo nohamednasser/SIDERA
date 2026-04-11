@@ -4595,6 +4595,24 @@ async function startExamAfterReg() {
     await loadAndStartExam(_currentExamId);
 }
 
+function _showExamWarningModal() {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('examWarningModal');
+        modal.classList.add('show');
+        const startBtn = document.getElementById('examWarningStart');
+        const cancelBtn = document.getElementById('examWarningCancel');
+        function cleanup() {
+            modal.classList.remove('show');
+            startBtn.removeEventListener('click', onStart);
+            cancelBtn.removeEventListener('click', onCancel);
+        }
+        function onStart() { cleanup(); resolve(true); }
+        function onCancel() { cleanup(); resolve(false); }
+        startBtn.addEventListener('click', onStart);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
 async function loadAndStartExam(examId) {
     try {
         if (!(await ensureStudentSession())) {
