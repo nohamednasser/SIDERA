@@ -4040,6 +4040,30 @@ function enableExamSecurity() {
     window.addEventListener('blur', _onScreenCaptureBlur);
     window.addEventListener('focus', _onScreenCaptureFocus);
 
+    // 7. MOBILE-SPECIFIC SECURITY
+    // Block long-press context menu on mobile
+    document.addEventListener('touchstart', _onMobileTouchStart, { passive: false, capture: true });
+    document.addEventListener('touchend', _onMobileTouchEnd, { passive: false, capture: true });
+    document.addEventListener('touchmove', _onMobileTouchMove, { passive: false, capture: true });
+
+    // Detect iOS screenshot (triggers window resize briefly)
+    window.addEventListener('resize', _onMobileResize);
+    _lastWindowHeight = window.innerHeight;
+
+    // Page Lifecycle API for mobile app switching
+    if ('onfreeze' in document) {
+        document.addEventListener('freeze', _onMobileFreeze);
+        document.addEventListener('resume', _onMobileResume);
+    }
+    // pagehide for older mobile browsers
+    window.addEventListener('pagehide', _onMobilePageHide);
+
+    // Prevent pull-to-refresh and swipe navigation
+    document.body.style.overscrollBehavior = 'none';
+
+    // Detect multi-touch (screenshot gesture on some Android devices)
+    document.addEventListener('touchstart', _detectMultiTouch, { passive: true, capture: true });
+
     // Show security badge
     const examSecureBadge = document.getElementById('examSecureBadge');
     if (examSecureBadge) examSecureBadge.style.display = 'inline-flex';
