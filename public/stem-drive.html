@@ -862,6 +862,41 @@
         .vlab-card .vlab-desc { font-size: 0.78rem; color: var(--text); line-height: 1.5; }
         .vlab-card .vlab-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 0.75rem; font-weight: 700; color: #3b82f6; }
 
+        /* Smart Lab Log */
+        .lablog-section { width: 90%; max-width: 1400px; margin: 0 auto; padding: 20px 0; }
+        .lablog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+        .lablog-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .lablog-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .lablog-card .lablog-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 6px; }
+        .lablog-card .lablog-meta { font-size: 0.72rem; color: var(--text); opacity: 0.7; margin-bottom: 8px; }
+        .lablog-card .lablog-hyp { font-size: 0.78rem; color: var(--text); line-height: 1.5; font-style: italic; }
+        .lablog-editor { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; max-width: 900px; margin: 0 auto; }
+        .lablog-editor h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .lablog-field { margin-bottom: 14px; }
+        .lablog-field label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
+        .lablog-field input, .lablog-field textarea, .lablog-field select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg); color: var(--dark); font-size: 0.85rem; box-sizing: border-box; }
+        .lablog-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .lablog-data-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .lablog-data-table th, .lablog-data-table td { padding: 8px 10px; border: 1px solid var(--border); text-align: center; font-size: 0.8rem; }
+        .lablog-data-table th { background: var(--input-bg); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; }
+        .lablog-data-table input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; text-align: center; background: var(--card-bg); color: var(--dark); font-size: 0.82rem; }
+        .lablog-graph-container { background: var(--input-bg); border-radius: 16px; padding: 16px; margin: 16px 0; position: relative; }
+        .lablog-graph-container canvas { width: 100% !important; height: 350px !important; border-radius: 12px; background: var(--card-bg); }
+        .lablog-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+        .lablog-stat-card { background: var(--input-bg); border-radius: 12px; padding: 12px; text-align: center; }
+        .lablog-stat-card .stat-val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .lablog-stat-card .stat-lbl { font-size: 0.68rem; font-weight: 600; color: var(--text); opacity: 0.6; margin-top: 4px; text-transform: uppercase; }
+        .lablog-btn { padding: 10px 20px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+        .lablog-btn-primary { background: var(--accent); color: white; }
+        .lablog-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .lablog-btn-secondary { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border); }
+        .lablog-btn-danger { background: #ef4444; color: white; }
+        @media (max-width: 600px) {
+            .lablog-grid { grid-template-columns: 1fr; }
+            .lablog-stats { grid-template-columns: 1fr 1fr; }
+            .lablog-graph-container canvas { height: 250px !important; }
+        }
+
         /* Smart Snippets */
         .snippets-panel { position: fixed; right: -380px; top: 0; bottom: 0; width: 360px; background: var(--card-bg); border-left: 1px solid var(--border); z-index: 99996; transition: right 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .snippets-panel.open { right: 0; }
@@ -975,6 +1010,7 @@
     <a href="#capstoneArea" onclick="smoothNav(event,'capstoneArea')">📄 Capstone</a>
     <a href="#alumniSection" onclick="smoothNav(event,'alumniSection')">🎓 Alumni</a>
     <a href="#vlabSection" onclick="smoothNav(event,'vlabSection')">🧪 Labs</a>
+    <a href="#labLogSection" onclick="smoothNav(event,'labLogSection')">📋 Lab Log</a>
     <a href="#reviewsSection" onclick="smoothNav(event,'reviewsSection')">⭐ Reviews</a>
 </nav>
 
@@ -1118,6 +1154,25 @@
 <div class="vlab-section" id="vlabSection">
     <div class="vlab-grid" id="vlabGrid"></div>
     <div style="text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text);">Powered by <a href="https://phet.colorado.edu" target="_blank" style="color:var(--accent);font-weight:700;">PhET Interactive Simulations</a> · University of Colorado Boulder</div>
+</div>
+
+<!-- Smart Lab Log Section -->
+<div class="exam-divider"></div>
+<div class="exam-section-title">
+    <h2>📋 Smart Lab Log</h2>
+    <p>سجّل تجاربك المعملية — رسم بياني تلقائي مع تحليل إحصائي وأشرطة خطأ</p>
+</div>
+<div class="lablog-section" id="labLogSection">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <button class="lablog-btn lablog-btn-primary" onclick="openLabLogEditor()" id="newLabLogBtn" style="display:none;">➕ New Lab Log</button>
+        <button class="lablog-btn lablog-btn-secondary" onclick="closeLabLogEditor()" id="backLabLogBtn" style="display:none;">← Back to Logs</button>
+    </div>
+    <div id="labLogListView">
+        <div class="lablog-grid" id="labLogGrid"><div style="text-align:center;padding:40px;color:var(--text);opacity:0.6;font-size:0.85rem;">🔒 Login to create and view your lab logs</div></div>
+    </div>
+    <div id="labLogEditorView" style="display:none;">
+        <div class="lablog-editor" id="labLogEditorContent"></div>
+    </div>
 </div>
 
 <!-- Student Reviews Section -->
@@ -7189,6 +7244,545 @@ async function generateAIQuestions() {
         btn.innerHTML = '🤖 Generate Questions with AI';
     }
 }
+
+// ===== SMART LAB LOG =====
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+var _labLogs = [];
+var _currentLabLog = null;
+var _labLogDataPoints = [];
+
+async function loadLabLogs() {
+    if (!getUserEmail()) {
+        document.getElementById('labLogGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text);opacity:0.6;font-size:0.85rem;">🔒 سجل الدخول لإنشاء سجلات المعمل</div>';
+        document.getElementById('newLabLogBtn').style.display = 'none';
+        return;
+    }
+    document.getElementById('newLabLogBtn').style.display = '';
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs?student_email=eq.' + encodeURIComponent(getUserEmail()) + '&order=updated_at.desc', {
+             headers: getSbHeaders()
+        });
+        _labLogs = await res.json();
+    } catch(e) { _labLogs = []; }
+    renderLabLogGrid();
+}
+
+function renderLabLogGrid() {
+    var grid = document.getElementById('labLogGrid');
+    if (!_labLogs.length) {
+        grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text);opacity:0.6;font-size:0.85rem;">📋 لا توجد سجلات بعد — أنشئ أول تجربة!</div>';
+        return;
+    }
+    var html = '';
+    _labLogs.forEach(function(log) {
+        var date = new Date(log.updated_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
+        html += '<div class="lablog-card" onclick="openLabLogDetail(\'' + log.id + '\')">' +
+            '<div class="lablog-title">🧪 ' + escapeHtml(log.title) + '</div>' +
+            '<div class="lablog-meta">' + escapeHtml(log.subject || '') + ' · ' + escapeHtml(log.grade || '') + ' · ' + date + '</div>' +
+            (log.hypothesis ? '<div class="lablog-hyp">"' + escapeHtml(log.hypothesis.substring(0, 100)) + (log.hypothesis.length > 100 ? '...' : '') + '"</div>' : '') +
+        '</div>';
+    });
+    grid.innerHTML = html;
+}
+
+function openLabLogEditor(existingLog) {
+    _currentLabLog = existingLog || null;
+    _labLogDataPoints = [];
+    document.getElementById('labLogListView').style.display = 'none';
+    document.getElementById('labLogEditorView').style.display = '';
+    document.getElementById('newLabLogBtn').style.display = 'none';
+    document.getElementById('backLabLogBtn').style.display = '';
+
+    var log = _currentLabLog || {};
+    var subjectOpts = '';
+    (subjectsData || []).forEach(function(s) { subjectOpts += '<option value="' + s.name + '"' + (log.subject === s.name ? ' selected' : '') + '>' + s.icon + ' ' + s.name + '</option>'; });
+
+    var html = '<h3>' + (log.id ? '✏️ Edit Lab Log' : '➕ New Lab Log') + '</h3>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">' +
+            '<div class="lablog-field"><label>Title <span style="color:#ef4444">*</span></label><input id="llTitle" value="' + escapeHtml(log.title || '') + '" placeholder="e.g. Ohm\'s Law Experiment"></div>' +
+            '<div class="lablog-field"><label>Subject</label><select id="llSubject">' + subjectOpts + '</select></div>' +
+            '<div class="lablog-field"><label>Grade</label><select id="llGrade"><option value="G10"' + (log.grade==='G10'?' selected':'') + '>G10</option><option value="G11"' + (log.grade==='G11'?' selected':'') + '>G11</option><option value="G12"' + (log.grade==='G12'?' selected':'') + '>G12</option></select></div>' +
+        '</div>' +
+        '<div class="lablog-field"><label>Hypothesis (الفرضية)</label><textarea id="llHypothesis" placeholder="If... then... because...">' + escapeHtml(log.hypothesis || '') + '</textarea></div>' +
+        '<div class="lablog-field"><label>Procedure (الخطوات)</label><textarea id="llProcedure" placeholder="Step-by-step procedure...">' + escapeHtml(log.procedure_text || '') + '</textarea></div>' +
+
+        '<div style="margin:20px 0;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+                '<label style="font-weight:800;font-size:0.9rem;">📊 Data Points</label>' +
+                '<div style="display:flex;gap:8px;">' +
+                    '<input id="llXLabel" value="' + escapeHtml(log._xLabel || 'X') + '" placeholder="X Label" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;background:var(--input-bg);color:var(--dark);">' +
+                    '<input id="llYLabel" value="' + escapeHtml(log._yLabel || 'Y') + '" placeholder="Y Label" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;background:var(--input-bg);color:var(--dark);">' +
+                    '<button class="lablog-btn lablog-btn-primary" onclick="addLabLogDataRow()" style="padding:6px 14px;font-size:0.75rem;">+ Add Row</button>' +
+                '</div>' +
+            '</div>' +
+            '<table class="lablog-data-table" id="llDataTable"><thead><tr><th>#</th><th id="llXHeader">X</th><th id="llYHeader">Y</th><th>🗑️</th></tr></thead><tbody id="llDataBody"></tbody></table>' +
+        '</div>' +
+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">' +
+            '<button class="lablog-btn lablog-btn-secondary" onclick="drawLabLogGraph()">📈 Draw Graph</button>' +
+            '<button class="lablog-btn lablog-btn-secondary" onclick="calcLabLogStats()">📊 Statistics</button>' +
+        '</div>' +
+
+        '<div class="lablog-graph-container" id="llGraphArea" style="display:none;"><canvas id="llCanvas"></canvas></div>' +
+        '<div class="lablog-stats" id="llStatsArea"></div>' +
+
+        '<div class="lablog-field"><label>Conclusion (الاستنتاج)</label><textarea id="llConclusion" placeholder="Based on the data, we can conclude...">' + escapeHtml(log.conclusion || '') + '</textarea></div>' +
+
+        '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">' +
+            '<button class="lablog-btn lablog-btn-primary" onclick="saveLabLog()">💾 Save Lab Log</button>' +
+            '<button class="lablog-btn lablog-btn-secondary" onclick="exportLabLogPDF()">📄 Export PDF</button>' +
+            (log.id ? '<button class="lablog-btn lablog-btn-danger" onclick="deleteLabLog(\'' + log.id + '\')">🗑️ Delete</button>' : '') +
+        '</div>';
+
+    document.getElementById('labLogEditorContent').innerHTML = html;
+
+    // Load existing data points
+    if (log.id) {
+        loadLabLogDataPoints(log.id);
+    } else {
+        // Start with 3 empty rows
+        _labLogDataPoints = [{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+        renderLabLogDataRows();
+    }
+}
+
+function closeLabLogEditor() {
+    document.getElementById('labLogListView').style.display = '';
+    document.getElementById('labLogEditorView').style.display = 'none';
+    document.getElementById('newLabLogBtn').style.display = '';
+    document.getElementById('backLabLogBtn').style.display = 'none';
+    _currentLabLog = null;
+    loadLabLogs();
+}
+
+async function openLabLogDetail(logId) {
+    var log = _labLogs.find(function(l) { return l.id === logId; });
+    if (!log) return;
+    openLabLogEditor(log);
+}
+
+async function loadLabLogDataPoints(logId) {
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points?log_id=eq.' + logId + '&order=sort_order.asc', {
+            headers: getSbHeaders()
+        });
+        var pts = await res.json();
+        _labLogDataPoints = pts.map(function(p) { return { x: p.x_value, y: p.y_value, id: p.id }; });
+        if (pts.length > 0) {
+            var xl = document.getElementById('llXLabel');
+            var yl = document.getElementById('llYLabel');
+            if (xl && pts[0].x_label) xl.value = pts[0].x_label;
+            if (yl && pts[0].y_label) yl.value = pts[0].y_label;
+        }
+    } catch(e) { _labLogDataPoints = []; }
+    if (_labLogDataPoints.length === 0) _labLogDataPoints = [{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+    renderLabLogDataRows();
+    if (_labLogDataPoints.length > 1) { drawLabLogGraph(); calcLabLogStats(); }
+}
+
+function renderLabLogDataRows() {
+    var xLabel = (document.getElementById('llXLabel')?.value || 'X');
+    var yLabel = (document.getElementById('llYLabel')?.value || 'Y');
+    var xh = document.getElementById('llXHeader');
+    var yh = document.getElementById('llYHeader');
+    if (xh) xh.textContent = xLabel;
+    if (yh) yh.textContent = yLabel;
+    var body = document.getElementById('llDataBody');
+    if (!body) return;
+    var html = '';
+    _labLogDataPoints.forEach(function(pt, i) {
+        html += '<tr>' +
+            '<td style="font-weight:700;color:var(--text);opacity:0.5;">' + (i+1) + '</td>' +
+            '<td><input type="number" step="any" value="' + pt.x + '" onchange="_labLogDataPoints[' + i + '].x=parseFloat(this.value)||0"></td>' +
+            '<td><input type="number" step="any" value="' + pt.y + '" onchange="_labLogDataPoints[' + i + '].y=parseFloat(this.value)||0"></td>' +
+            '<td><button onclick="removeLabLogDataRow(' + i + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;">❌</button></td>' +
+        '</tr>';
+    });
+    body.innerHTML = html;
+}
+
+function addLabLogDataRow() {
+    _labLogDataPoints.push({ x: 0, y: 0 });
+    renderLabLogDataRows();
+}
+
+function removeLabLogDataRow(idx) {
+    if (_labLogDataPoints.length <= 1) return;
+    _labLogDataPoints.splice(idx, 1);
+    renderLabLogDataRows();
+}
+
+function readLabLogData() {
+    // Re-read from inputs
+    var rows = document.querySelectorAll('#llDataBody tr');
+    rows.forEach(function(tr, i) {
+        var inputs = tr.querySelectorAll('input[type="number"]');
+        if (inputs.length >= 2 && _labLogDataPoints[i]) {
+            _labLogDataPoints[i].x = parseFloat(inputs[0].value) || 0;
+            _labLogDataPoints[i].y = parseFloat(inputs[1].value) || 0;
+        }
+    });
+    return _labLogDataPoints.filter(function(p) { return !isNaN(p.x) && !isNaN(p.y); });
+}
+
+function drawLabLogGraph() {
+    var data = readLabLogData();
+    if (data.length < 2) { showToast('أضف نقطتين على الأقل لرسم الجراف', 'warning'); return; }
+
+    var area = document.getElementById('llGraphArea');
+    area.style.display = '';
+    var canvas = document.getElementById('llCanvas');
+    var ctx = canvas.getContext('2d');
+
+    // High DPI
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.parentElement.getBoundingClientRect();
+    var w = rect.width - 32;
+    var h = 350;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.scale(dpr, dpr);
+
+    var xLabel = document.getElementById('llXLabel')?.value || 'X';
+    var yLabel = document.getElementById('llYLabel')?.value || 'Y';
+
+    // Calc ranges
+    var xs = data.map(function(d) { return d.x; });
+    var ys = data.map(function(d) { return d.y; });
+    var xMin = Math.min.apply(null, xs), xMax = Math.max.apply(null, xs);
+    var yMin = Math.min.apply(null, ys), yMax = Math.max.apply(null, ys);
+    var xPad = (xMax - xMin) * 0.1 || 1;
+    var yPad = (yMax - yMin) * 0.1 || 1;
+    xMin -= xPad; xMax += xPad; yMin -= yPad; yMax += yPad;
+
+    var pad = { top: 30, right: 30, bottom: 50, left: 60 };
+    var pw = w - pad.left - pad.right;
+    var ph = h - pad.top - pad.bottom;
+
+    function toX(v) { return pad.left + (v - xMin) / (xMax - xMin) * pw; }
+    function toY(v) { return pad.top + ph - (v - yMin) / (yMax - yMin) * ph; }
+
+    var isDark = document.body.classList.contains('dark-mode');
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = isDark ? '#1a1a2e' : '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1;
+    for (var i = 0; i <= 5; i++) {
+        var gy = pad.top + ph * i / 5;
+        ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(w - pad.right, gy); ctx.stroke();
+        var gx = pad.left + pw * i / 5;
+        ctx.beginPath(); ctx.moveTo(gx, pad.top); ctx.lineTo(gx, pad.top + ph); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + ph); ctx.lineTo(w - pad.right, pad.top + ph); ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
+    ctx.font = '600 11px system-ui';
+    ctx.textAlign = 'center';
+    for (var i = 0; i <= 5; i++) {
+        var val;
+        val = xMin + (xMax - xMin) * i / 5;
+        ctx.fillText(val.toFixed(1), pad.left + pw * i / 5, pad.top + ph + 20);
+        val = yMin + (yMax - yMin) * (5 - i) / 5;
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(1), pad.left - 8, pad.top + ph * i / 5 + 4);
+        ctx.textAlign = 'center';
+    }
+
+    // Axis titles
+    ctx.font = '700 12px system-ui';
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)';
+    ctx.fillText(xLabel, pad.left + pw / 2, h - 8);
+    ctx.save();
+    ctx.translate(14, pad.top + ph / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(yLabel, 0, 0);
+    ctx.restore();
+
+    // Linear regression
+    var stats = calcLinearRegression(data);
+
+    // Regression line
+    ctx.strokeStyle = 'rgba(168,85,247,0.5)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(toX(xMin), toY(stats.slope * xMin + stats.intercept));
+    ctx.lineTo(toX(xMax), toY(stats.slope * xMax + stats.intercept));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Error bars (std dev of y for binned x, or overall if too few)
+    var yMean = stats.yMean;
+    var yStdDev = stats.yStdDev;
+
+    // Data line
+    var sorted = data.slice().sort(function(a, b) { return a.x - b.x; });
+    ctx.strokeStyle = isDark ? '#60a5fa' : '#3b82f6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    sorted.forEach(function(pt, i) {
+        if (i === 0) ctx.moveTo(toX(pt.x), toY(pt.y));
+        else ctx.lineTo(toX(pt.x), toY(pt.y));
+    });
+    ctx.stroke();
+
+    // Points + error bars
+    sorted.forEach(function(pt) {
+        // Error bar
+        ctx.strokeStyle = isDark ? 'rgba(239,68,68,0.5)' : 'rgba(239,68,68,0.4)';
+        ctx.lineWidth = 1.5;
+        var errTop = toY(pt.y + yStdDev);
+        var errBot = toY(pt.y - yStdDev);
+        var px = toX(pt.x);
+        ctx.beginPath(); ctx.moveTo(px, errTop); ctx.lineTo(px, errBot); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px - 4, errTop); ctx.lineTo(px + 4, errTop); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px - 4, errBot); ctx.lineTo(px + 4, errBot); ctx.stroke();
+
+        // Point
+        ctx.fillStyle = isDark ? '#60a5fa' : '#3b82f6';
+        ctx.beginPath(); ctx.arc(px, toY(pt.y), 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = isDark ? '#1a1a2e' : '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
+
+    // R² label
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
+    ctx.font = '700 11px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText('R² = ' + stats.rSquared.toFixed(4), w - pad.right - 5, pad.top + 15);
+    ctx.fillText('y = ' + stats.slope.toFixed(3) + 'x + ' + stats.intercept.toFixed(3), w - pad.right - 5, pad.top + 30);
+}
+
+function calcLinearRegression(data) {
+    var n = data.length;
+    var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+    data.forEach(function(p) {
+        sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumX2 += p.x * p.x; sumY2 += p.y * p.y;
+    });
+    var xMean = sumX / n;
+    var yMean = sumY / n;
+    var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX) || 0;
+    var intercept = yMean - slope * xMean;
+    // R²
+    var ssRes = 0, ssTot = 0;
+    data.forEach(function(p) {
+        var predicted = slope * p.x + intercept;
+        ssRes += (p.y - predicted) * (p.y - predicted);
+        ssTot += (p.y - yMean) * (p.y - yMean);
+    });
+    var rSquared = ssTot === 0 ? 0 : 1 - ssRes / ssTot;
+    // Std devs
+    var xVar = 0, yVar = 0;
+    data.forEach(function(p) { xVar += (p.x - xMean) * (p.x - xMean); yVar += (p.y - yMean) * (p.y - yMean); });
+    var xStdDev = Math.sqrt(xVar / n);
+    var yStdDev = Math.sqrt(yVar / n);
+    // Percentage uncertainty
+    var percUncert = yMean !== 0 ? (yStdDev / Math.abs(yMean) * 100) : 0;
+    return { slope: slope, intercept: intercept, rSquared: rSquared, xMean: xMean, yMean: yMean, xStdDev: xStdDev, yStdDev: yStdDev, percUncert: percUncert, n: n };
+}
+
+function calcLabLogStats() {
+    var data = readLabLogData();
+    if (data.length < 2) { showToast('أضف نقطتين على الأقل للتحليل الإحصائي', 'warning'); return; }
+    var stats = calcLinearRegression(data);
+    var xs = data.map(function(d) { return d.x; });
+    var ys = data.map(function(d) { return d.y; });
+    var html = '' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + data.length + '</div><div class="stat-lbl">Data Points</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.xMean.toFixed(3) + '</div><div class="stat-lbl">X̄ Mean</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.yMean.toFixed(3) + '</div><div class="stat-lbl">Ȳ Mean</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.xStdDev.toFixed(3) + '</div><div class="stat-lbl">σx Std Dev</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.yStdDev.toFixed(3) + '</div><div class="stat-lbl">σy Std Dev</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.slope.toFixed(4) + '</div><div class="stat-lbl">Slope (m)</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.intercept.toFixed(4) + '</div><div class="stat-lbl">Intercept (b)</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.rSquared.toFixed(4) + '</div><div class="stat-lbl">R² Value</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + stats.percUncert.toFixed(1) + '%</div><div class="stat-lbl">% Uncertainty</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + Math.min.apply(null, ys).toFixed(2) + '</div><div class="stat-lbl">Y Min</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + Math.max.apply(null, ys).toFixed(2) + '</div><div class="stat-lbl">Y Max</div></div>' +
+        '<div class="lablog-stat-card"><div class="stat-val">' + (Math.max.apply(null, ys) - Math.min.apply(null, ys)).toFixed(2) + '</div><div class="stat-lbl">Range</div></div>';
+    document.getElementById('llStatsArea').innerHTML = html;
+}
+
+async function saveLabLog() {
+    var title = document.getElementById('llTitle').value.trim();
+    if (!title) { showToast('عنوان التجربة مطلوب', 'warning'); return; }
+    var data = readLabLogData();
+    var xLabel = document.getElementById('llXLabel')?.value || 'X';
+    var yLabel = document.getElementById('llYLabel')?.value || 'Y';
+
+    var payload = {
+        title: title,
+        subject: document.getElementById('llSubject').value,
+        grade: document.getElementById('llGrade').value,
+        hypothesis: document.getElementById('llHypothesis').value.trim(),
+        procedure_text: document.getElementById('llProcedure').value.trim(),
+        conclusion: document.getElementById('llConclusion').value.trim(),
+        student_email: getUserEmail(),
+        student_name: getUserEmail().split('@')[0],
+        updated_at: new Date().toISOString()
+    };
+
+    try {
+        var logId;
+        if (_currentLabLog && _currentLabLog.id) {
+            logId = _currentLabLog.id;
+            await fetch(SUPABASE_URL + '/rest/v1/lab_logs?id=eq.' + logId, {
+                method: 'PATCH', headers: getSbHeaders(), body: JSON.stringify(payload)
+            });
+        } else {
+            var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs', {
+                method: 'POST', headers: getSbHeaders(), body: JSON.stringify(payload)
+            });
+            var created = await res.json();
+            logId = created[0]?.id;
+        }
+        if (!logId) throw new Error('No log ID');
+
+        // Delete old data points if editing
+        if (_currentLabLog && _currentLabLog.id) {
+            await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points?log_id=eq.' + logId, {
+                method: 'DELETE', headers: getSbHeaders()
+            });
+        }
+
+        // Insert data points
+        if (data.length > 0) {
+            var pts = data.map(function(p, i) {
+                return { log_id: logId, x_value: p.x, y_value: p.y, x_label: xLabel, y_label: yLabel, sort_order: i, data_set: 'Set 1' };
+            });
+            await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points', {
+                method: 'POST', headers: getSbHeaders(), body: JSON.stringify(pts)
+            });
+        }
+
+        showToast('✅ تم حفظ سجل المعمل بنجاح!', 'success');
+        closeLabLogEditor();
+    } catch (err) {
+        console.error('Save lab log error:', err);
+        showToast('حدث خطأ أثناء الحفظ', 'error');
+    }
+}
+
+async function deleteLabLog(logId) {
+    if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points?log_id=eq.' + logId, { method: 'DELETE', headers: getSbHeaders() });
+        await fetch(SUPABASE_URL + '/rest/v1/lab_logs?id=eq.' + logId, { method: 'DELETE', headers: getSbHeaders() });
+        showToast('🗑️ تم حذف السجل', 'success');
+        closeLabLogEditor();
+    } catch(e) {
+        showToast('حدث خطأ أثناء الحذف', 'error');
+    }
+}
+
+function exportLabLogPDF() {
+    var title = document.getElementById('llTitle')?.value || 'Lab Log';
+    var data = readLabLogData();
+    if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+        // Load jsPDF dynamically
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = function() { _doExportLabLogPDF(title, data); };
+        document.head.appendChild(s);
+    } else {
+        _doExportLabLogPDF(title, data);
+    }
+}
+
+function _doExportLabLogPDF(title, data) {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF();
+    var y = 20;
+    doc.setFontSize(18);
+    doc.text('Lab Log: ' + title, 14, y); y += 12;
+    doc.setFontSize(11);
+    doc.text('Subject: ' + (document.getElementById('llSubject')?.value || ''), 14, y); y += 7;
+    doc.text('Grade: ' + (document.getElementById('llGrade')?.value || ''), 14, y); y += 7;
+    doc.text('Date: ' + new Date().toLocaleDateString(), 14, y); y += 12;
+
+    doc.setFontSize(13);
+    doc.text('Hypothesis:', 14, y); y += 7;
+    doc.setFontSize(10);
+    var hyp = doc.splitTextToSize(document.getElementById('llHypothesis')?.value || 'N/A', 180);
+    doc.text(hyp, 14, y); y += hyp.length * 5 + 8;
+
+    doc.setFontSize(13);
+    doc.text('Procedure:', 14, y); y += 7;
+    doc.setFontSize(10);
+    var proc = doc.splitTextToSize(document.getElementById('llProcedure')?.value || 'N/A', 180);
+    doc.text(proc, 14, y); y += proc.length * 5 + 8;
+
+    // Data table
+    if (data.length > 0) {
+        doc.setFontSize(13);
+        doc.text('Data:', 14, y); y += 7;
+        doc.setFontSize(9);
+        var xLabel = document.getElementById('llXLabel')?.value || 'X';
+        var yLabel = document.getElementById('llYLabel')?.value || 'Y';
+        doc.text(xLabel + '     |     ' + yLabel, 14, y); y += 5;
+        data.forEach(function(p) {
+            doc.text(p.x.toFixed(3) + '     |     ' + p.y.toFixed(3), 14, y); y += 4.5;
+            if (y > 270) { doc.addPage(); y = 20; }
+        });
+        y += 5;
+    }
+
+    // Graph image
+    var canvas = document.getElementById('llCanvas');
+    if (canvas && document.getElementById('llGraphArea').style.display !== 'none') {
+        try {
+            var imgData = canvas.toDataURL('image/png');
+            if (y > 180) { doc.addPage(); y = 20; }
+            doc.addImage(imgData, 'PNG', 14, y, 180, 80);
+            y += 85;
+        } catch(e) {}
+    }
+
+    // Stats
+    var stats = calcLinearRegression(data);
+    if (data.length >= 2 && y < 260) {
+        doc.setFontSize(13);
+        doc.text('Statistical Analysis:', 14, y); y += 7;
+        doc.setFontSize(10);
+        doc.text('Mean X: ' + stats.xMean.toFixed(4) + '   Mean Y: ' + stats.yMean.toFixed(4), 14, y); y += 5;
+        doc.text('Std Dev X: ' + stats.xStdDev.toFixed(4) + '   Std Dev Y: ' + stats.yStdDev.toFixed(4), 14, y); y += 5;
+        doc.text('Slope: ' + stats.slope.toFixed(4) + '   Intercept: ' + stats.intercept.toFixed(4), 14, y); y += 5;
+        doc.text('R-squared: ' + stats.rSquared.toFixed(4) + '   Uncertainty: ' + stats.percUncert.toFixed(1) + '%', 14, y); y += 8;
+    }
+
+    // Conclusion
+    doc.setFontSize(13);
+    doc.text('Conclusion:', 14, y); y += 7;
+    doc.setFontSize(10);
+    var conc = doc.splitTextToSize(document.getElementById('llConclusion')?.value || 'N/A', 180);
+    doc.text(conc, 14, y);
+
+    doc.save(title.replace(/[^a-zA-Z0-9]/g, '_') + '_LabLog.pdf');
+    showToast('📄 تم تصدير الـ PDF بنجاح!', 'success');
+}
+
+// Hook into auth flow
+var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
+(function() {
+    var _checkLabLogLoad = setInterval(function() {
+        if (getUserEmail()) { clearInterval(_checkLabLogLoad); loadLabLogs(); }
+    }, 2000);
+})();
+
 </script>
 
 </body>
