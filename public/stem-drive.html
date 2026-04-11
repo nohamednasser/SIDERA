@@ -862,6 +862,41 @@
         .vlab-card .vlab-desc { font-size: 0.78rem; color: var(--text); line-height: 1.5; }
         .vlab-card .vlab-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 0.75rem; font-weight: 700; color: #3b82f6; }
 
+        /* Smart Lab Log */
+        .lablog-section { width: 90%; max-width: 1400px; margin: 0 auto; padding: 20px 0; }
+        .lablog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+        .lablog-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .lablog-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .lablog-card .lablog-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 6px; }
+        .lablog-card .lablog-meta { font-size: 0.72rem; color: var(--text); opacity: 0.7; margin-bottom: 8px; }
+        .lablog-card .lablog-hyp { font-size: 0.78rem; color: var(--text); line-height: 1.5; font-style: italic; }
+        .lablog-editor { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; max-width: 900px; margin: 0 auto; }
+        .lablog-editor h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .lablog-field { margin-bottom: 14px; }
+        .lablog-field label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
+        .lablog-field input, .lablog-field textarea, .lablog-field select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg); color: var(--dark); font-size: 0.85rem; box-sizing: border-box; }
+        .lablog-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .lablog-data-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .lablog-data-table th, .lablog-data-table td { padding: 8px 10px; border: 1px solid var(--border); text-align: center; font-size: 0.8rem; }
+        .lablog-data-table th { background: var(--input-bg); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; }
+        .lablog-data-table input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; text-align: center; background: var(--card-bg); color: var(--dark); font-size: 0.82rem; }
+        .lablog-graph-container { background: var(--input-bg); border-radius: 16px; padding: 16px; margin: 16px 0; position: relative; }
+        .lablog-graph-container canvas { width: 100% !important; height: 350px !important; border-radius: 12px; background: var(--card-bg); }
+        .lablog-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+        .lablog-stat-card { background: var(--input-bg); border-radius: 12px; padding: 12px; text-align: center; }
+        .lablog-stat-card .stat-val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .lablog-stat-card .stat-lbl { font-size: 0.68rem; font-weight: 600; color: var(--text); opacity: 0.6; margin-top: 4px; text-transform: uppercase; }
+        .lablog-btn { padding: 10px 20px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+        .lablog-btn-primary { background: var(--accent); color: white; }
+        .lablog-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .lablog-btn-secondary { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border); }
+        .lablog-btn-danger { background: #ef4444; color: white; }
+        @media (max-width: 600px) {
+            .lablog-grid { grid-template-columns: 1fr; }
+            .lablog-stats { grid-template-columns: 1fr 1fr; }
+            .lablog-graph-container canvas { height: 250px !important; }
+        }
+
         /* Smart Snippets */
         .snippets-panel { position: fixed; right: -380px; top: 0; bottom: 0; width: 360px; background: var(--card-bg); border-left: 1px solid var(--border); z-index: 99996; transition: right 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .snippets-panel.open { right: 0; }
