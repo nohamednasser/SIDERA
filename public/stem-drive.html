@@ -7373,6 +7373,198 @@ async function generateAIQuestions() {
     }
 }
 
+// ===== CAPSTONE BUDGET PREDICTOR =====
+function openBudgetPredictor() {
+    document.getElementById('budgetModal').style.display = 'flex';
+    document.getElementById('budgetInputArea').style.display = '';
+    document.getElementById('budgetResultArea').style.display = 'none';
+    document.getElementById('budgetResultArea').innerHTML = '';
+}
+function closeBudgetPredictor() {
+    document.getElementById('budgetModal').style.display = 'none';
+}
+
+async function generateBudgetPrediction() {
+    var idea = document.getElementById('budgetIdeaInput').value.trim();
+    if (!idea || idea.length < 10) {
+        showToast('اكتب فكرة المشروع (10 حروف على الأقل)', 'warning');
+        return;
+    }
+
+    var btn = document.getElementById('budgetGenBtn');
+    var status = document.getElementById('budgetStatus');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner" style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></span> AI is analyzing...';
+    status.style.display = 'block';
+    status.textContent = '⏳ AI بيحلل فكرة المشروع ويجهزلك قائمة المكونات والتكلفة... (15-30 ثانية)';
+
+    try {
+        var resp = await fetch(SUPABASE_URL + '/functions/v1/capstone-budget', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+            body: JSON.stringify({
+                project_idea: idea,
+                grade: document.getElementById('budgetGrade').value
+            })
+        });
+
+        if (resp.status === 429) { showToast('Rate limited. Please wait.', 'warning'); return; }
+        if (resp.status === 402) { showToast('AI credits exhausted.', 'warning'); return; }
+        if (!resp.ok) throw new Error('Failed: ' + resp.status);
+
+        var data = await resp.json();
+        if (!data.budget) throw new Error('No budget data');
+
+        renderBudgetResult(data.budget);
+    } catch (err) {
+        console.error('Budget predict error:', err);
+        showToast('حدث خطأ. حاول مرة أخرى.', 'error');
+        status.textContent = '❌ Error. Try again.';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '💰 Predict Budget & Components';
+    }
+}
+
+function renderBudgetResult(b) {
+    document.getElementById('budgetInputArea').style.display = 'none';
+    var area = document.getElementById('budgetResultArea');
+    area.style.display = '';
+
+    var diffColor = b.difficulty_level === 'Easy' ? '#22c55e' : b.difficulty_level === 'Medium' ? '#f59e0b' : b.difficulty_level === 'Hard' ? '#ef4444' : '#8b5cf6';
+
+    var html = '<div style="margin-bottom:16px;">' +
+        '<button onclick="document.getElementById(\'budgetInputArea\').style.display=\'\';document.getElementById(\'budgetResultArea\').style.display=\'none\';" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;color:var(--dark);margin-bottom:12px;">← Try another idea</button>' +
+        '<h3 style="font-size:1rem;font-weight:800;margin-bottom:8px;">📋 ' + escapeHtml(b.project_summary) + '</h3>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">' +
+            '<span style="padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;background:' + diffColor + '20;color:' + diffColor + ';border:1px solid ' + diffColor + '40;">⚡ ' + b.difficulty_level + '</span>' +
+            '<span style="padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.2);">⏱️ ' + escapeHtml(b.estimated_build_time) + '</span>' +
+        '</div>' +
+    '</div>';
+
+    // Summary cards
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;">' +
+        '<div style="background:var(--input-bg);border-radius:14px;padding:14px;text-align:center;"><div style="font-size:1.3rem;font-weight:800;color:var(--accent);">' + b.subtotal_egp.toLocaleString() + '</div><div style="font-size:0.7rem;font-weight:600;color:var(--text);opacity:0.6;margin-top:4px;">SUBTOTAL (EGP)</div></div>' +
+        '<div style="background:var(--input-bg);border-radius:14px;padding:14px;text-align:center;"><div style="font-size:1.3rem;font-weight:800;color:#f59e0b;">' + b.contingency_egp.toLocaleString() + '</div><div style="font-size:0.7rem;font-weight:600;color:var(--text);opacity:0.6;margin-top:4px;">CONTINGENCY 15%</div></div>' +
+        '<div style="background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(245,158,11,0.1));border-radius:14px;padding:14px;text-align:center;border:2px solid rgba(239,68,68,0.2);"><div style="font-size:1.3rem;font-weight:800;color:#ef4444;">' + b.total_egp.toLocaleString() + '</div><div style="font-size:0.7rem;font-weight:600;color:var(--text);opacity:0.6;margin-top:4px;">TOTAL (EGP)</div></div>' +
+    '</div>';
+
+    // Categories
+    (b.categories || []).forEach(function(cat) {
+        html += '<div style="margin-bottom:18px;background:var(--input-bg);border-radius:16px;padding:16px;border:1px solid var(--border);">' +
+            '<h4 style="font-size:0.9rem;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;">' + (cat.category_icon || '📦') + ' ' + escapeHtml(cat.category_name) + ' (' + cat.items.length + ')</h4>' +
+            '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.78rem;">' +
+            '<thead><tr style="background:var(--card-bg);"><th style="padding:8px 10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);">Item</th><th style="padding:8px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);">Qty</th><th style="padding:8px;text-align:right;font-weight:700;border-bottom:2px solid var(--border);">Unit (EGP)</th><th style="padding:8px;text-align:right;font-weight:700;border-bottom:2px solid var(--border);">Total</th><th style="padding:8px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);">Where to Buy</th></tr></thead><tbody>';
+
+        cat.items.forEach(function(item) {
+            var buyLink = item.buy_url ? '<a href="' + item.buy_url + '" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">' + escapeHtml(item.where_to_buy) + ' ↗</a>' : escapeHtml(item.where_to_buy || '');
+            html += '<tr style="border-bottom:1px solid var(--border);">' +
+                '<td style="padding:8px 10px;"><strong>' + escapeHtml(item.name) + '</strong>' + (item.notes ? '<div style="font-size:0.7rem;color:var(--text);opacity:0.6;margin-top:2px;">💡 ' + escapeHtml(item.notes) + '</div>' : '') + '</td>' +
+                '<td style="padding:8px;text-align:center;">' + item.quantity + '</td>' +
+                '<td style="padding:8px;text-align:right;">' + item.unit_price_egp.toLocaleString() + '</td>' +
+                '<td style="padding:8px;text-align:right;font-weight:700;">' + item.total_price_egp.toLocaleString() + '</td>' +
+                '<td style="padding:8px;">' + buyLink + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div></div>';
+    });
+
+    // Tips
+    if (b.tips && b.tips.length) {
+        html += '<div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:16px;margin-bottom:14px;">' +
+            '<h4 style="font-size:0.85rem;font-weight:800;margin-bottom:8px;color:#22c55e;">💡 Tips & Warnings</h4>' +
+            '<ul style="margin:0;padding-left:18px;font-size:0.8rem;line-height:1.8;color:var(--text);">';
+        b.tips.forEach(function(tip) { html += '<li>' + escapeHtml(tip) + '</li>'; });
+        html += '</ul></div>';
+    }
+
+    // Export button
+    html += '<div style="display:flex;gap:10px;margin-top:14px;">' +
+        '<button onclick="exportBudgetPDF()" style="padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;">📄 Export as PDF</button>' +
+        '<button onclick="copyBudgetText()" style="padding:10px 20px;background:var(--input-bg);color:var(--dark);border:1px solid var(--border);border-radius:12px;font-weight:700;font-size:0.82rem;cursor:pointer;">📋 Copy Text</button>' +
+    '</div>';
+
+    area.innerHTML = html;
+    // Store for export
+    area._budgetData = b;
+}
+
+function copyBudgetText() {
+    var b = document.getElementById('budgetResultArea')._budgetData;
+    if (!b) return;
+    var text = '💰 Capstone Budget Prediction\n';
+    text += '📋 ' + b.project_summary + '\n';
+    text += 'Difficulty: ' + b.difficulty_level + ' | Time: ' + b.estimated_build_time + '\n\n';
+    (b.categories || []).forEach(function(cat) {
+        text += cat.category_icon + ' ' + cat.category_name + ':\n';
+        cat.items.forEach(function(item) {
+            text += '  • ' + item.name + ' x' + item.quantity + ' = ' + item.total_price_egp + ' EGP (' + item.where_to_buy + ')\n';
+        });
+        text += '\n';
+    });
+    text += 'Subtotal: ' + b.subtotal_egp + ' EGP\n';
+    text += 'Contingency (15%): ' + b.contingency_egp + ' EGP\n';
+    text += 'TOTAL: ' + b.total_egp + ' EGP\n\n';
+    text += 'Tips:\n';
+    (b.tips || []).forEach(function(t) { text += '  💡 ' + t + '\n'; });
+    navigator.clipboard.writeText(text).then(function() { showToast('📋 Copied!', 'success'); });
+}
+
+function exportBudgetPDF() {
+    var b = document.getElementById('budgetResultArea')._budgetData;
+    if (!b) return;
+    if (typeof window.jspdf === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = function() { _doBudgetPDF(b); };
+        document.head.appendChild(s);
+    } else { _doBudgetPDF(b); }
+}
+
+function _doBudgetPDF(b) {
+    var doc = new window.jspdf.jsPDF();
+    var y = 20;
+    doc.setFontSize(16);
+    doc.text('Capstone Budget Prediction', 14, y); y += 10;
+    doc.setFontSize(11);
+    doc.text(b.project_summary, 14, y, { maxWidth: 180 }); y += 12;
+    doc.text('Difficulty: ' + b.difficulty_level + '  |  Build Time: ' + b.estimated_build_time, 14, y); y += 10;
+
+    (b.categories || []).forEach(function(cat) {
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFontSize(13);
+        doc.text(cat.category_icon + ' ' + cat.category_name, 14, y); y += 7;
+        doc.setFontSize(9);
+        cat.items.forEach(function(item) {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.text(item.name + ' x' + item.quantity + ' = ' + item.total_price_egp + ' EGP  (' + item.where_to_buy + ')', 18, y);
+            y += 5;
+        });
+        y += 5;
+    });
+
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(12);
+    doc.text('Subtotal: ' + b.subtotal_egp + ' EGP', 14, y); y += 6;
+    doc.text('Contingency (15%): ' + b.contingency_egp + ' EGP', 14, y); y += 6;
+    doc.setFontSize(14);
+    doc.text('TOTAL: ' + b.total_egp + ' EGP', 14, y); y += 10;
+
+    if (b.tips && b.tips.length) {
+        doc.setFontSize(12);
+        doc.text('Tips:', 14, y); y += 6;
+        doc.setFontSize(9);
+        b.tips.forEach(function(t) {
+            if (y > 270) { doc.addPage(); y = 20; }
+            var lines = doc.splitTextToSize('- ' + t, 180);
+            doc.text(lines, 14, y); y += lines.length * 4.5 + 2;
+        });
+    }
+
+    doc.save('Capstone_Budget_' + new Date().toISOString().slice(0,10) + '.pdf');
+    showToast('📄 PDF exported!', 'success');
+}
+
 // ===== SMART LAB LOG =====
 function escapeHtml(str) {
     if (!str) return '';
