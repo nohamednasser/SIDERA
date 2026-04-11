@@ -6171,6 +6171,208 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// === FORMULA SEARCH ===
+var _katexLoaded = false;
+function loadKatex(cb) {
+    if (_katexLoaded) { cb(); return; }
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css';
+    document.head.appendChild(link);
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';
+    s.onload = function() { _katexLoaded = true; cb(); };
+    document.head.appendChild(s);
+}
+
+function openFormulaSearch() {
+    document.getElementById('formulaSearchModal').style.display = 'flex';
+    document.getElementById('formulaSearchResults').innerHTML = '';
+    loadKatex(function() { renderFormulaPreview(); });
+}
+function closeFormulaSearch() {
+    document.getElementById('formulaSearchModal').style.display = 'none';
+}
+
+function insertFormula(latex) {
+    document.getElementById('formulaLatexInput').value = latex.replace(/\\\\\\\\/g, '\\');
+    renderFormulaPreview();
+}
+
+function renderFormulaPreview() {
+    var input = document.getElementById('formulaLatexInput').value.trim();
+    var preview = document.getElementById('formulaPreview');
+    if (!input) { preview.innerHTML = '<span style="opacity:0.4;font-size:0.85rem;">Formula preview will appear here</span>'; return; }
+    if (!_katexLoaded) { preview.innerHTML = input; return; }
+    try {
+        preview.innerHTML = katex.renderToString(input, { throwOnError: false, displayMode: true });
+    } catch(e) {
+        preview.innerHTML = '<span style="font-family:monospace;font-size:1rem;">' + escapeHtml(input) + '</span>';
+    }
+}
+
+function searchByFormula() {
+    var input = document.getElementById('formulaLatexInput').value.trim();
+    if (!input || input.length < 2) { showToast('اكتب معادلة أولاً', 'warning'); return; }
+
+    // Build search terms from the LaTeX
+    var searchTerms = _extractFormulaTerms(input);
+    var results = [];
+
+    // Search files
+    if (_cachedItems) {
+        _cachedItems.forEach(function(item) {
+            var text = (item.title + ' ' + (item.desc || '') + ' ' + item.subject).toLowerCase();
+            var score = 0;
+            searchTerms.forEach(function(term) {
+                if (text.includes(term.toLowerCase())) score++;
+            });
+            if (score > 0) results.push({ type: 'file', item: item, score: score });
+        });
+    }
+
+    // Search exam questions
+    if (typeof _allExamQuestions !== 'undefined' && _allExamQuestions) {
+        _allExamQuestions.forEach(function(q) {
+            var text = (q.question_text + ' ' + JSON.stringify(q.options || [])).toLowerCase();
+            var score = 0;
+            searchTerms.forEach(function(term) {
+                if (text.includes(term.toLowerCase())) score++;
+            });
+            if (score > 0) results.push({ type: 'question', item: q, score: score });
+        });
+    }
+
+    // Search exams by title/description
+    if (_allExams) {
+        _allExams.forEach(function(exam) {
+            var text = (exam.title + ' ' + (exam.description || '') + ' ' + exam.subject).toLowerCase();
+            var score = 0;
+            searchTerms.forEach(function(term) {
+                if (text.includes(term.toLowerCase())) score++;
+            });
+            if (score > 0) results.push({ type: 'exam', item: exam, score: score });
+        });
+    }
+
+    // Sort by relevance
+    results.sort(function(a, b) { return b.score - a.score; });
+    results = results.slice(0, 15);
+
+    // Render
+    var container = document.getElementById('formulaSearchResults');
+    if (results.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text);opacity:0.6;">' +
+            '<div style="font-size:2rem;margin-bottom:8px;">🔍</div>' +
+            '<div style="font-size:0.85rem;">No results found for this formula</div>' +
+            '<div style="font-size:0.75rem;margin-top:4px;">Try a simpler term like "velocity" or "pH"</div>' +
+        '</div>';
+        return;
+    }
+
+    var html = '<div style="font-size:0.78rem;font-weight:700;color:var(--text);opacity:0.6;margin-bottom:10px;">🔍 Found ' + results.length + ' results (searched: ' + searchTerms.join(', ') + ')</div>';
+
+    results.forEach(function(r) {
+        if (r.type === 'file') {
+            var sInfo = subjectMap[r.item.subject];
+            html += '<div class="formula-result-card" onclick="openPreview(\'' + r.item.id + '\');closeFormulaSearch();" style="background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:10px;">' +
+                '<span style="font-size:1.3rem;">' + (sInfo ? sInfo.icon : '📄') + '</span>' +
+                '<div><div style="font-weight:700;font-size:0.82rem;">' + escapeHtml(r.item.title) + '</div><div style="font-size:0.72rem;color:var(--text);opacity:0.6;">' + r.item.subject + ' · ' + r.item.grade + ' · 📁 File</div></div>' +
+            '</div>';
+        } else if (r.type === 'exam') {
+            html += '<div class="formula-result-card" onclick="closeFormulaSearch();document.getElementById(\'examsSection\').scrollIntoView({behavior:\'smooth\'});" style="background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:10px;">' +
+                '<span style="font-size:1.3rem;">📝</span>' +
+                '<div><div style="font-weight:700;font-size:0.82rem;">' + escapeHtml(r.item.title) + '</div><div style="font-size:0.72rem;color:var(--text);opacity:0.6;">' + r.item.grade + ' · ' + r.item.subject + ' · 📝 Exam</div></div>' +
+            '</div>';
+        } else if (r.type === 'question') {
+            html += '<div class="formula-result-card" style="background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;">' +
+                '<span style="font-size:1.3rem;">❓</span>' +
+                '<div><div style="font-weight:700;font-size:0.82rem;">' + escapeHtml(r.item.question_text.substring(0, 120)) + '</div><div style="font-size:0.72rem;color:var(--text);opacity:0.6;">Exam Question · ' + r.item.question_type.toUpperCase() + '</div></div>' +
+            '</div>';
+        }
+    });
+    container.innerHTML = html;
+}
+
+function _extractFormulaTerms(latex) {
+    var terms = [];
+    // Add the raw input
+    terms.push(latex);
+
+    // Extract variable names and common patterns
+    var cleaned = latex
+        .replace(/\\\\/g, ' ')
+        .replace(/\\frac/g, ' ')
+        .replace(/\\sqrt/g, 'sqrt ')
+        .replace(/\\Delta/g, 'delta ')
+        .replace(/\\theta/g, 'theta ')
+        .replace(/\\sin/g, 'sin ')
+        .replace(/\\cos/g, 'cos ')
+        .replace(/\\tan/g, 'tan ')
+        .replace(/\\log/g, 'log ')
+        .replace(/\\ln/g, 'ln ')
+        .replace(/\\int/g, 'integral ')
+        .replace(/\\sum/g, 'sum ')
+        .replace(/\\rightarrow/g, ' ')
+        .replace(/\\pm/g, ' ')
+        .replace(/[{}()_^=+\-*/|,]/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+
+    // Add individual meaningful tokens
+    cleaned.split(' ').forEach(function(t) {
+        t = t.trim();
+        if (t.length >= 2 && terms.indexOf(t) === -1) terms.push(t);
+    });
+
+    // Formula-to-concept mapping
+    var conceptMap = {
+        'E=mc': ['energy', 'mass', 'relativity', 'einstein', 'طاقة'],
+        'F=ma': ['force', 'newton', 'acceleration', 'قوة', 'تسارع'],
+        'PV=nRT': ['gas', 'ideal gas', 'pressure', 'volume', 'غاز', 'ضغط'],
+        'v=': ['velocity', 'speed', 'سرعة'],
+        'a=': ['acceleration', 'تسارع'],
+        'pH': ['acid', 'base', 'hydrogen', 'حمض', 'قاعدة'],
+        'H_2O': ['water', 'ماء'],
+        'CO_2': ['carbon dioxide', 'كربون'],
+        'NaOH': ['sodium hydroxide', 'base', 'قاعدة'],
+        'HCl': ['hydrochloric acid', 'حمض'],
+        'NaCl': ['salt', 'ملح'],
+        'C_6H': ['glucose', 'sugar', 'جلوكوز', 'سكر'],
+        'quadratic': ['quadratic', 'polynomial', 'معادلة تربيعية'],
+        'sin': ['trigonometry', 'حساب مثلثات'],
+        'cos': ['trigonometry', 'حساب مثلثات'],
+        'int': ['integral', 'calculus', 'تكامل'],
+        'frac{d': ['derivative', 'calculus', 'مشتقة', 'تفاضل'],
+        'Delta G': ['gibbs', 'free energy', 'thermodynamics'],
+        'Delta H': ['enthalpy', 'thermodynamics', 'حرارة'],
+        'Gravity': ['gravity', 'gravitational', 'جاذبية'],
+    };
+
+    for (var key in conceptMap) {
+        if (latex.includes(key) || cleaned.toLowerCase().includes(key.toLowerCase())) {
+            conceptMap[key].forEach(function(c) { if (terms.indexOf(c) === -1) terms.push(c); });
+        }
+    }
+
+    return terms;
+}
+
+// Cache exam questions for formula search
+var _allExamQuestions = [];
+(function() {
+    var _cacheInterval = setInterval(function() {
+        if (_allExams && _allExams.length > 0) {
+            clearInterval(_cacheInterval);
+            // Fetch all questions for search
+            fetch(SUPABASE_URL + '/rest/v1/exam_questions?select=*&limit=500', {
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                _allExamQuestions = data || [];
+            }).catch(function() {});
+        }
+    }, 3000);
+})();
+
 // === CAPSTONE PDF BUILDER ===
 let _capStep = 1;
 
