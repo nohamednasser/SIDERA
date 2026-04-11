@@ -4289,9 +4289,10 @@ function _onWindowBlur() {
 function _onFullscreenChange() {
     if (!_examSecurityActive) return;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // User exited fullscreen — start countdown
-        _startTabSwitchCountdown();
-        showToast('⚠️ خرجت من الفول سكرين، عندك 10 ثواني ترجع!', 'error');
+        // User exited fullscreen = instant auto-submit
+        _tabSwitchWarnings++;
+        showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الفول سكرين!', 'error');
+        _forceSubmitExam();
     }
 }
 
