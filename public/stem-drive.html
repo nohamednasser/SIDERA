@@ -4094,12 +4094,121 @@ function disableExamSecurity() {
     window.removeEventListener('focus', _onScreenCaptureFocus);
     document.body.classList.remove('screen-capture-blocked');
 
+    // Remove mobile security listeners
+    document.removeEventListener('touchstart', _onMobileTouchStart, true);
+    document.removeEventListener('touchend', _onMobileTouchEnd, true);
+    document.removeEventListener('touchmove', _onMobileTouchMove, true);
+    window.removeEventListener('resize', _onMobileResize);
+    if ('onfreeze' in document) {
+        document.removeEventListener('freeze', _onMobileFreeze);
+        document.removeEventListener('resume', _onMobileResume);
+    }
+    window.removeEventListener('pagehide', _onMobilePageHide);
+    document.removeEventListener('touchstart', _detectMultiTouch, true);
+    document.body.style.overscrollBehavior = '';
+    document.body.style.position = '';
+    document.body.style.overflow = '';
+    if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; }
+
     // Exit fullscreen
     if (document.fullscreenElement || document.webkitFullscreenElement) {
         (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
     }
     const examSecureBadge = document.getElementById('examSecureBadge');
     if (examSecureBadge) examSecureBadge.style.display = 'none';
+}
+
+// === MOBILE ANTI-CHEAT FUNCTIONS ===
+let _longPressTimer = null;
+let _lastWindowHeight = window.innerHeight;
+
+// Block long-press (context menu trigger on mobile)
+function _onMobileTouchStart(e) {
+    if (!_examSecurityActive) return;
+    // Block 3+ finger touches (screenshot gesture on some devices)
+    if (e.touches && e.touches.length >= 3) {
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('🚫 محظور أثناء الامتحان!', 'error');
+        _tabSwitchWarnings++;
+        document.body.classList.add('screen-capture-blocked');
+        setTimeout(() => { if(_examSecurityActive && document.hasFocus()) document.body.classList.remove('screen-capture-blocked'); }, 3000);
+        return;
+    }
+    // Detect long-press and block it
+    _longPressTimer = setTimeout(() => {
+        if (_examSecurityActive) {
+            showToast('🚫 الضغط المطول محظور أثناء الامتحان!', 'error');
+        }
+    }, 500);
+}
+
+function _onMobileTouchEnd(e) {
+    if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; }
+}
+
+function _onMobileTouchMove(e) {
+    if (!_examSecurityActive) return;
+    if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; }
+    // Block pull-to-refresh (swipe down from top)
+    if (e.touches && e.touches.length === 1) {
+        const touch = e.touches[0];
+        if (touch.clientY < 30 || touch.clientY > window.innerHeight - 30) {
+            e.preventDefault();
+        }
+    }
+}
+
+// iOS screenshot detection: iOS briefly resizes the window when taking a screenshot
+function _onMobileResize() {
+    if (!_examSecurityActive) return;
+    const heightDiff = Math.abs(window.innerHeight - _lastWindowHeight);
+    // iOS screenshot causes a brief height change
+    if (heightDiff > 0 && heightDiff < 200) {
+        _tabSwitchWarnings++;
+        showToast('⚠️ تم رصد محاولة تصوير الشاشة!', 'error');
+        document.body.classList.add('screen-capture-blocked');
+        setTimeout(() => {
+            if (_examSecurityActive && document.hasFocus()) {
+                document.body.classList.remove('screen-capture-blocked');
+            }
+        }, 5000);
+    }
+    _lastWindowHeight = window.innerHeight;
+}
+
+// Page Lifecycle API (modern mobile browsers)
+function _onMobileFreeze() {
+    if (!_examSecurityActive) return;
+    _tabSwitchWarnings++;
+    _forceSubmitExam();
+}
+
+function _onMobileResume() {
+    if (!_examSecurityActive) return;
+    showToast('🚫 تم إنهاء الامتحان لأنك خرجت من التطبيق!', 'error');
+}
+
+function _onMobilePageHide(e) {
+    if (!_examSecurityActive) return;
+    if (!e.persisted) return; // only care about bfcache (app switch)
+    _tabSwitchWarnings++;
+    _forceSubmitExam();
+}
+
+// Detect multi-touch screenshot gestures
+function _detectMultiTouch(e) {
+    if (!_examSecurityActive) return;
+    if (e.touches && e.touches.length >= 3) {
+        _tabSwitchWarnings++;
+        showToast('🚫 محاولة تصوير مرصودة! سيتم إنهاء الامتحان.', 'error');
+        document.body.classList.add('screen-capture-blocked');
+        setTimeout(() => {
+            if (_examSecurityActive && document.hasFocus()) {
+                document.body.classList.remove('screen-capture-blocked');
+            }
+        }, 5000);
+    }
 }
 
 function _blockScreenshotKeys(e) {
