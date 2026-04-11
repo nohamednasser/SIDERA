@@ -7363,7 +7363,7 @@ async function openLabLogDetail(logId) {
 async function loadLabLogDataPoints(logId) {
     try {
         var res = await fetch(SUPABASE_URL + '/rest/v1/lab_log_data_points?log_id=eq.' + logId + '&order=sort_order.asc', {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + authAccessToken, 'Content-Type': 'application/json' }
+            headers: getSbHeaders()
         });
         var pts = await res.json();
         _labLogDataPoints = pts.map(function(p) { return { x: p.x_value, y: p.y_value, id: p.id }; });
