@@ -1295,6 +1295,48 @@
     </div>
 </div>
 
+<!-- Cloud IDE Section -->
+<div class="exam-divider"></div>
+<div class="exam-section-title">
+    <h2>💻 Cloud IDE for STEM</h2>
+    <p>اكتب كود Python أو JavaScript أو C++ وجرّبه مباشرة — بدون تنزيل أي برنامج</p>
+</div>
+<div class="ide-section" id="ideSection">
+    <div class="ide-templates" id="ideTemplates">
+        <span style="font-size:0.75rem;font-weight:700;color:var(--dark);padding:6px 0;">📋 Templates:</span>
+    </div>
+    <div class="ide-toolbar">
+        <select id="ideLang" onchange="ideChangeLang()">
+            <option value="python">🐍 Python</option>
+            <option value="javascript">⚡ JavaScript</option>
+            <option value="cpp">⚙️ C++</option>
+        </select>
+        <input type="text" id="ideTitle" placeholder="Snippet title..." value="Untitled" style="flex:1;min-width:120px;">
+        <button class="ide-btn ide-btn-run" onclick="ideRunCode()">▶ Run</button>
+        <button class="ide-btn ide-btn-save" onclick="ideSaveSnippet()" id="ideSaveBtn" style="display:none;">💾 Save</button>
+        <button class="ide-btn ide-btn-outline" onclick="ideNewSnippet()">📄 New</button>
+        <button class="ide-btn ide-btn-outline" onclick="ideToggleSaved()" id="ideSavedToggle" style="display:none;">📂 My Code</button>
+    </div>
+    <div class="ide-editor-wrap">
+        <div id="ideEditorContainer" style="height:350px;"></div>
+    </div>
+    <div class="ide-output" id="ideOutputWrap" style="display:none;">
+        <div class="ide-output-header">
+            <span>📤 Output</span>
+            <button class="ide-btn ide-btn-outline" onclick="ideClearOutput()" style="padding:4px 10px;font-size:0.72rem;">Clear</button>
+        </div>
+        <pre id="ideOutput"></pre>
+    </div>
+    <div id="ideSavedPanel" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+            <h3 style="font-size:1rem;font-weight:700;color:var(--dark);">📂 My Saved Code</h3>
+        </div>
+        <div class="ide-saved-list" id="ideSavedList">
+            <p style="text-align:center;color:var(--text);padding:20px;grid-column:1/-1;">🔒 Login to save and load your code</p>
+        </div>
+    </div>
+</div>
+
 <!-- Student Reviews Section -->
 <div class="exam-divider"></div>
 <div class="exam-section-title">
