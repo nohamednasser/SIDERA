@@ -1642,12 +1642,25 @@ function getCurrentStudentEmail() {
 
 function requestExamFullscreen() {
     const el = document.documentElement;
+    // Standard Fullscreen API
     const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-    if (!rfs) return;
-    try {
-        const result = rfs.call(el);
-        if (result && typeof result.catch === 'function') result.catch(() => {});
-    } catch (e) {}
+    if (rfs) {
+        try {
+            const result = rfs.call(el, { navigationUI: 'hide' });
+            if (result && typeof result.catch === 'function') result.catch(() => {});
+        } catch (e) {}
+    }
+    // Mobile: hide address bar by scrolling trick + lock orientation
+    if ('orientation' in screen && screen.orientation && screen.orientation.lock) {
+        try { screen.orientation.lock('portrait').catch(() => {}); } catch(e) {}
+    }
+    // iOS standalone-like behavior: scroll to hide address bar
+    setTimeout(() => { window.scrollTo(0, 1); }, 100);
+    // Add meta viewport manipulation for mobile
+    let metaVp = document.querySelector('meta[name="viewport"]');
+    if (metaVp) {
+        metaVp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+    }
 }
 
 function _blockClipboardEvent(e) {
