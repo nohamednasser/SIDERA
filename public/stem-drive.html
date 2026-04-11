@@ -7251,14 +7251,14 @@ var _currentLabLog = null;
 var _labLogDataPoints = [];
 
 async function loadLabLogs() {
-    if (!authEmail) {
+    if (!getUserEmail()) {
         document.getElementById('labLogGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text);opacity:0.6;font-size:0.85rem;">🔒 سجل الدخول لإنشاء سجلات المعمل</div>';
         document.getElementById('newLabLogBtn').style.display = 'none';
         return;
     }
     document.getElementById('newLabLogBtn').style.display = '';
     try {
-        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs?student_email=eq.' + encodeURIComponent(authEmail) + '&order=updated_at.desc', {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/lab_logs?student_email=eq.' + encodeURIComponent(getUserEmail()) + '&order=updated_at.desc', {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + authAccessToken, 'Content-Type': 'application/json' }
         });
         _labLogs = await res.json();
@@ -7627,8 +7627,8 @@ async function saveLabLog() {
         hypothesis: document.getElementById('llHypothesis').value.trim(),
         procedure_text: document.getElementById('llProcedure').value.trim(),
         conclusion: document.getElementById('llConclusion').value.trim(),
-        student_email: authEmail,
-        student_name: authEmail.split('@')[0],
+        student_email: getUserEmail(),
+        student_name: getUserEmail().split('@')[0],
         updated_at: new Date().toISOString()
     };
 
@@ -7775,7 +7775,7 @@ function _doExportLabLogPDF(title, data) {
 var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
 (function() {
     var _checkLabLogLoad = setInterval(function() {
-        if (authEmail) { clearInterval(_checkLabLogLoad); loadLabLogs(); }
+        if (getUserEmail()) { clearInterval(_checkLabLogLoad); loadLabLogs(); }
     }, 2000);
 })();
 
