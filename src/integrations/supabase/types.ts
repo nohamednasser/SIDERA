@@ -125,6 +125,39 @@ export type Database = {
         }
         Relationships: []
       }
+      code_snippets: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          language: string
+          student_email: string
+          student_name: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          id?: string
+          language?: string
+          student_email: string
+          student_name: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          language?: string
+          student_email?: string
+          student_name?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exam_answers: {
         Row: {
           answer_text: string | null
