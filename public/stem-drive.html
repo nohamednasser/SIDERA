@@ -4587,6 +4587,10 @@ async function loadAndStartExam(examId) {
         _currentExamData = exams[0];
         _currentExamQuestions = questions;
         
+        // Show warning before starting
+        const warningConfirmed = await _showExamWarningModal();
+        if (!warningConfirmed) return;
+
         renderExamQuestions();
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
