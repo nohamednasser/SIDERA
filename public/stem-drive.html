@@ -983,9 +983,58 @@
     <h1 ondblclick="showLogin()" title="Double click for admin login">SIDERA</h1>
 </header>
 
-<div style="position:relative;width:90%;max-width:550px;margin:0 auto;z-index:10;margin-top:-35px;">
-<input type="text" id="searchBar" placeholder="Search for files, subjects, or notes..." style="margin-top:0;position:static;">
+<div style="position:relative;width:90%;max-width:600px;margin:0 auto;z-index:10;margin-top:-35px;display:flex;gap:8px;align-items:center;">
+<input type="text" id="searchBar" placeholder="Search for files, subjects, or notes..." style="margin-top:0;position:static;flex:1;">
+<button id="formulaSearchBtn" onclick="openFormulaSearch()" title="Search by formula / equation" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:white;border:none;border-radius:50%;width:46px;height:46px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(139,92,246,0.3);transition:transform 0.2s;flex-shrink:0;">∑</button>
 <div class="ai-search-results" id="aiSearchResults"></div>
+</div>
+
+<!-- Formula Search Modal -->
+<div id="formulaSearchModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10001;justify-content:center;align-items:center;padding:16px;">
+    <div style="background:var(--card-bg);border-radius:20px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:8px;">∑ Formula & Equation Search</h3>
+            <button onclick="closeFormulaSearch()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text);">✕</button>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text);opacity:0.7;margin-bottom:14px;">اكتب أو اختار معادلة رياضية/كيميائية وهندور لك على كل الملفات والأسئلة اللي فيها</p>
+
+        <!-- Quick formula buttons -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="formulaQuickBtns">
+            <button onclick="insertFormula('E=mc^2')" class="fq-btn">E=mc²</button>
+            <button onclick="insertFormula('F=ma')" class="fq-btn">F=ma</button>
+            <button onclick="insertFormula('PV=nRT')" class="fq-btn">PV=nRT</button>
+            <button onclick="insertFormula('v=\\\\frac{d}{t}')" class="fq-btn">v=d/t</button>
+            <button onclick="insertFormula('a=\\\\frac{\\\\Delta v}{\\\\Delta t}')" class="fq-btn">a=Δv/Δt</button>
+            <button onclick="insertFormula('F=G\\\\frac{m_1 m_2}{r^2}')" class="fq-btn">Gravity</button>
+            <button onclick="insertFormula('\\\\Delta G=\\\\Delta H-T\\\\Delta S')" class="fq-btn">ΔG=ΔH-TΔS</button>
+            <button onclick="insertFormula('pH=-\\\\log[H^+]')" class="fq-btn">pH</button>
+            <button onclick="insertFormula('x=\\\\frac{-b\\\\pm\\\\sqrt{b^2-4ac}}{2a}')" class="fq-btn">Quadratic</button>
+            <button onclick="insertFormula('\\\\sin^2\\\\theta+\\\\cos^2\\\\theta=1')" class="fq-btn">Trig Identity</button>
+            <button onclick="insertFormula('\\\\int_a^b f(x)dx')" class="fq-btn">Integral</button>
+            <button onclick="insertFormula('\\\\frac{dy}{dx}')" class="fq-btn">Derivative</button>
+            <button onclick="insertFormula('H_2O')" class="fq-btn">H₂O</button>
+            <button onclick="insertFormula('CO_2')" class="fq-btn">CO₂</button>
+            <button onclick="insertFormula('NaOH+HCl\\\\rightarrow NaCl+H_2O')" class="fq-btn">Neutralization</button>
+            <button onclick="insertFormula('C_6H_{12}O_6')" class="fq-btn">Glucose</button>
+        </div>
+
+        <!-- LaTeX input -->
+        <div style="margin-bottom:14px;">
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">✏️ Type LaTeX or plain formula:</label>
+            <input type="text" id="formulaLatexInput" placeholder="e.g. E=mc^2 or \\frac{d}{t} or H_2O" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;background:var(--input-bg);color:var(--dark);font-size:1rem;font-family:'Courier New',monospace;box-sizing:border-box;" oninput="renderFormulaPreview()">
+        </div>
+
+        <!-- Preview -->
+        <div id="formulaPreview" style="background:var(--input-bg);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px;min-height:50px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;"></div>
+
+        <!-- Search button -->
+        <button onclick="searchByFormula()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:white;font-weight:800;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+            🔍 Search Files & Exams
+        </button>
+
+        <!-- Results -->
+        <div id="formulaSearchResults" style="margin-top:16px;"></div>
+    </div>
 </div>
 
 <div class="filter-container">
