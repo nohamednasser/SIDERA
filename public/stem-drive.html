@@ -7166,8 +7166,90 @@ if (typeof filterSub === 'function') {
 </div>
 
 <script>
+// Load PDF.js library
+var _pdfJsLoaded = false;
+function loadPdfJs(cb) {
+    if (_pdfJsLoaded) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = function() {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        _pdfJsLoaded = true;
+        cb();
+    };
+    document.head.appendChild(s);
+}
+
+async function handleAIPdfUpload(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+        showToast('يرجى رفع ملف PDF فقط', 'warning');
+        return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+        showToast('الملف كبير جداً (الحد الأقصى 20MB)', 'warning');
+        return;
+    }
+
+    document.getElementById('aiGenPdfName').innerHTML = '📄 ' + file.name;
+    var progress = document.getElementById('aiGenPdfProgress');
+    var bar = document.getElementById('aiGenPdfBar');
+    var status = document.getElementById('aiGenPdfStatus');
+    progress.style.display = 'block';
+    bar.style.width = '10%';
+    status.textContent = '⏳ Loading PDF.js...';
+
+    loadPdfJs(async function() {
+        try {
+            bar.style.width = '20%';
+            status.textContent = '⏳ Reading PDF...';
+
+            var arrayBuf = await file.arrayBuffer();
+            bar.style.width = '30%';
+            status.textContent = '⏳ Extracting text from pages...';
+
+            var pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
+            var totalPages = pdf.numPages;
+            var allText = '';
+            var maxPages = Math.min(totalPages, 50);
+
+            for (var i = 1; i <= maxPages; i++) {
+                var page = await pdf.getPage(i);
+                var content = await page.getTextContent();
+                var pageText = content.items.map(function(item) { return item.str; }).join(' ');
+                allText += pageText + '\n\n';
+                bar.style.width = (30 + (i / maxPages) * 60) + '%';
+                status.textContent = '⏳ Page ' + i + ' / ' + maxPages + '...';
+            }
+
+            allText = allText.trim();
+            if (!allText || allText.length < 20) {
+                showToast('⚠️ لم يتم استخراج نص كافٍ من الـ PDF. قد يكون ملف صور (Scanned).', 'warning');
+                progress.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('aiGenText').value = allText;
+            document.getElementById('aiGenCharCount').textContent = allText.length.toLocaleString() + ' characters · ' + maxPages + ' pages';
+            bar.style.width = '100%';
+            status.textContent = '✅ Done! Extracted ' + allText.length.toLocaleString() + ' characters from ' + maxPages + ' pages';
+            showToast('✅ تم استخراج النص من ' + maxPages + ' صفحة بنجاح!', 'success');
+
+            setTimeout(function() { progress.style.display = 'none'; }, 3000);
+        } catch (err) {
+            console.error('PDF extract error:', err);
+            showToast('❌ فشل في قراءة الـ PDF', 'error');
+            progress.style.display = 'none';
+        }
+    });
+}
+
 function openAIGenerator() {
     document.getElementById('aiGenModal').style.display = 'flex';
+    // Update char count on input
+    var ta = document.getElementById('aiGenText');
+    ta.oninput = function() { document.getElementById('aiGenCharCount').textContent = ta.value.length.toLocaleString() + ' characters'; };
 }
 function closeAIGenerator() {
     document.getElementById('aiGenModal').style.display = 'none';
