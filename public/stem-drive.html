@@ -1148,7 +1148,34 @@
 
 
 
-<!-- Student Registration Modal -->
+<!-- Exam Warning Modal -->
+<div id="examWarningModal" class="exam-modal" style="z-index:100001;">
+    <div class="exam-modal-content" style="max-width:500px;border:2px solid #ef4444;">
+        <div class="exam-modal-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;">
+            <h2>⚠️ تعليمات مهمة قبل الامتحان</h2>
+        </div>
+        <div class="exam-modal-body" style="text-align:right;direction:rtl;padding:24px;">
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:20px;margin-bottom:16px;">
+                <p style="font-size:1.1rem;font-weight:700;color:#dc2626;margin-bottom:12px;">🚨 تحذير: الامتحان محمي بنظام أمان صارم</p>
+                <ul style="list-style:none;padding:0;margin:0;font-size:0.95rem;color:#374151;line-height:2;">
+                    <li>🔒 الخروج من الفول سكرين = <strong style="color:#dc2626;">إنهاء فوري للامتحان</strong></li>
+                    <li>🚫 فتح تاب تانية أو تطبيق تاني = <strong style="color:#dc2626;">إنهاء فوري</strong></li>
+                    <li>📵 تصوير الشاشة أو السكرين شوت = <strong style="color:#dc2626;">محظور ومرصود</strong></li>
+                    <li>⌨️ النسخ واللصق والطباعة = <strong style="color:#dc2626;">محظور</strong></li>
+                    <li>📱 الخروج من المتصفح على الموبايل = <strong style="color:#dc2626;">إنهاء فوري</strong></li>
+                </ul>
+            </div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:20px;">
+                <p style="font-size:0.95rem;color:#166534;margin:0;">✅ تأكد إنك في مكان هادي ومتصل بالنت كويس قبل ما تبدأ. مفيش رجوع بعد البدء!</p>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button id="examWarningCancel" style="padding:12px 32px;border-radius:10px;border:2px solid #d1d5db;background:#fff;color:#374151;font-size:1rem;font-weight:600;cursor:pointer;">↩️ رجوع</button>
+                <button id="examWarningStart" style="padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(22,163,74,0.3);">✅ فاهم، ابدأ الامتحان</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="studentRegModal" class="exam-modal" onclick="if(event.target===this)closeStudentReg()">
     <div class="exam-modal-content" style="max-width:420px;">
         <div class="exam-modal-header">
@@ -4568,6 +4595,24 @@ async function startExamAfterReg() {
     await loadAndStartExam(_currentExamId);
 }
 
+function _showExamWarningModal() {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('examWarningModal');
+        modal.classList.add('show');
+        const startBtn = document.getElementById('examWarningStart');
+        const cancelBtn = document.getElementById('examWarningCancel');
+        function cleanup() {
+            modal.classList.remove('show');
+            startBtn.removeEventListener('click', onStart);
+            cancelBtn.removeEventListener('click', onCancel);
+        }
+        function onStart() { cleanup(); resolve(true); }
+        function onCancel() { cleanup(); resolve(false); }
+        startBtn.addEventListener('click', onStart);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
 async function loadAndStartExam(examId) {
     try {
         if (!(await ensureStudentSession())) {
@@ -4587,6 +4632,10 @@ async function loadAndStartExam(examId) {
         _currentExamData = exams[0];
         _currentExamQuestions = questions;
         
+        // Show warning before starting
+        const warningConfirmed = await _showExamWarningModal();
+        if (!warningConfirmed) return;
+
         renderExamQuestions();
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
