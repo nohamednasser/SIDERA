@@ -4747,87 +4747,73 @@ function _retryFullscreenOnInteraction() {
 function _onVisibilityChange() {
     if (!_examSecurityActive) return;
     if (document.hidden) {
-        // Tab switch = instant auto-submit
         _tabSwitchWarnings++;
-        showToast('🚫 تم إنهاء الامتحان لأنك فتحت تاب تانية!', 'error');
-        _forceSubmitExam();
+        _startGracePeriod('🚫 فتحت تاب تانية!');
         return;
+    } else {
+        _cancelGracePeriod();
     }
 }
 
 function _onWindowBlur() {
     if (!_examSecurityActive) return;
-    // Window blur (alt-tab etc) = instant auto-submit
     _tabSwitchWarnings++;
-    showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة!', 'error');
-    _forceSubmitExam();
+    _startGracePeriod('⚠️ خرجت من الصفحة!');
 }
 
 function _onFullscreenChange() {
     if (!_examSecurityActive) return;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // 5-second grace period to return to fullscreen
         _tabSwitchWarnings++;
-        if (_fsGraceTimer) clearInterval(_fsGraceTimer);
-        _fsGraceCountdown = 5;
-        showToast('⚠️ ارجع للفول سكرين خلال 5 ثواني وإلا الامتحان هيتقفل!', 'warning', 5500);
-        _fsGraceTimer = setInterval(() => {
-            _fsGraceCountdown--;
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
-                showToast('✅ تم الرجوع للفول سكرين — كمّل الامتحان', 'success');
-                return;
-            }
-            if (_fsGraceCountdown <= 0) {
-                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
-                showToast('🚫 تم إنهاء الامتحان لأنك ما رجعتش للفول سكرين!', 'error');
-                _forceSubmitExam();
-            }
-        }, 1000);
-        // Try to show a clickable prompt to re-enter fullscreen
-        requestExamFullscreen();
+        _startGracePeriod('⚠️ خرجت من الفول سكرين!');
     } else {
-        // Returned to fullscreen — cancel grace timer
-        if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
+        _cancelGracePeriod();
     }
 }
 
-function _startTabSwitchCountdown() {
-    if (_tabSwitchTimer) return; // already counting
-    _tabSwitchWarnings++;
-    _tabSwitchCountdown = 10;
-    showTabWarning();
+// === Unified 5-second grace period ===
+var _graceTimer = null;
+var _graceCountdown = 5;
 
-    _tabSwitchTimer = setInterval(() => {
-        _tabSwitchCountdown--;
-        updateTabWarning();
-        if (_tabSwitchCountdown <= 0) {
-            clearInterval(_tabSwitchTimer);
-            _tabSwitchTimer = null;
-            // Auto-submit the exam
-            hideTabWarning();
-            showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة', 'error');
+function _startGracePeriod(reason) {
+    if (_graceTimer) return; // already running
+    _graceCountdown = 5;
+    var overlay = document.getElementById('tabWarningOverlay');
+    overlay.style.display = 'flex';
+    document.getElementById('tabWarningCount').textContent = _graceCountdown;
+    document.getElementById('graceReason').textContent = reason;
+    showToast(reason + ' عندك 5 ثواني ترجع!', 'warning', 5500);
+
+    _graceTimer = setInterval(function() {
+        _graceCountdown--;
+        document.getElementById('tabWarningCount').textContent = _graceCountdown;
+        if (_graceCountdown <= 0) {
+            clearInterval(_graceTimer); _graceTimer = null;
+            overlay.style.display = 'none';
+            showToast('🚫 تم إنهاء الامتحان — ما رجعتش في الوقت!', 'error');
             _forceSubmitExam();
         }
     }, 1000);
 }
 
-function _cancelTabSwitchCountdown() {
-    if (_tabSwitchTimer) {
-        clearInterval(_tabSwitchTimer);
-        _tabSwitchTimer = null;
+function _cancelGracePeriod() {
+    if (_graceTimer) {
+        clearInterval(_graceTimer); _graceTimer = null;
+        document.getElementById('tabWarningOverlay').style.display = 'none';
+        showToast('✅ رجعت بنجاح — كمّل الامتحان!', 'success');
     }
-    hideTabWarning();
-
-    // Re-request fullscreen
+    // Re-enter fullscreen if needed
     if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
         requestExamFullscreen();
     }
-
-    if (_tabSwitchWarnings >= 1) {
-        showToast('⚠️ تحذير ' + _tabSwitchWarnings + ' - لو خرجت تاني الامتحان هيتقفل!', 'warning');
-    }
 }
+
+// Legacy functions kept as aliases
+function _startTabSwitchCountdown() { _startGracePeriod('⚠️ خرجت من الصفحة!'); }
+function _cancelTabSwitchCountdown() { _cancelGracePeriod(); }
+function showTabWarning() { document.getElementById('tabWarningOverlay').style.display = 'flex'; }
+function updateTabWarning() { document.getElementById('tabWarningCount').textContent = _graceCountdown; }
+function hideTabWarning() { document.getElementById('tabWarningOverlay').style.display = 'none'; }
 
 function _forceSubmitExam() {
     if (_examTimer) clearInterval(_examTimer);
@@ -7586,10 +7572,10 @@ if (typeof filterSub === 'function') {
 <!-- Tab Switch Warning Overlay -->
 <div class="tab-warning-overlay" id="tabWarningOverlay">
     <div class="warn-icon">⚠️</div>
-    <h2>ارجع للامتحان فوراً!</h2>
-    <div class="countdown" id="tabWarningCount">05:00</div>
-    <p>لو خرجت من الفول سكرين أو بدّلت التبويب، عندك 10 ثواني ترجع وإلا الامتحان هيتسلم تلقائياً</p>
-    <button onclick="_cancelTabSwitchCountdown();requestExamFullscreen();" style="margin-top:12px;padding:14px 36px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;cursor:pointer;animation:securePulse 1.5s infinite;">🔙 ارجع للامتحان</button>
+    <h2 id="graceReason">خرجت من الامتحان!</h2>
+    <div class="countdown" id="tabWarningCount">5</div>
+    <p>عندك 5 ثواني ترجع وإلا الامتحان هيتسلم تلقائياً</p>
+    <button onclick="_cancelGracePeriod();requestExamFullscreen();" style="margin-top:12px;padding:14px 36px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;cursor:pointer;animation:securePulse 1.5s infinite;">🔙 ارجع للامتحان</button>
 </div>
 
 <!-- Capstone PDF Builder Modal -->
