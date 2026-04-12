@@ -4533,10 +4533,29 @@ function _onWindowBlur() {
 function _onFullscreenChange() {
     if (!_examSecurityActive) return;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // User exited fullscreen = instant auto-submit
+        // 5-second grace period to return to fullscreen
         _tabSwitchWarnings++;
-        showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الفول سكرين!', 'error');
-        _forceSubmitExam();
+        if (_fsGraceTimer) clearInterval(_fsGraceTimer);
+        _fsGraceCountdown = 5;
+        showToast('⚠️ ارجع للفول سكرين خلال 5 ثواني وإلا الامتحان هيتقفل!', 'warning', 5500);
+        _fsGraceTimer = setInterval(() => {
+            _fsGraceCountdown--;
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
+                showToast('✅ تم الرجوع للفول سكرين — كمّل الامتحان', 'success');
+                return;
+            }
+            if (_fsGraceCountdown <= 0) {
+                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
+                showToast('🚫 تم إنهاء الامتحان لأنك ما رجعتش للفول سكرين!', 'error');
+                _forceSubmitExam();
+            }
+        }, 1000);
+        // Try to show a clickable prompt to re-enter fullscreen
+        requestExamFullscreen();
+    } else {
+        // Returned to fullscreen — cancel grace timer
+        if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
     }
 }
 
