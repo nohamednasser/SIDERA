@@ -1183,9 +1183,35 @@
         </div>
         <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
         <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
-    </div>
+     </div>
 
-    <div id="adminExamsTab" style="display:none;">
+     <div id="adminLOsTab" style="display:none;">
+         <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+             <div style="font-weight:700;font-size:0.9rem;margin-bottom:12px;">🎯 Add Learning Outcome</div>
+             <div class="form-grid">
+                 <select id="loGradeIn">
+                     <option value="G10">Grade 10</option>
+                     <option value="G11">Grade 11</option>
+                     <option value="G12">Grade 12</option>
+                 </select>
+                 <select id="loSubjectIn"></select>
+                 <input type="text" id="loCodeIn" placeholder="LO Code (e.g., LO1.1, LO2.3)">
+                 <input type="text" id="loTitleIn" class="full-w" placeholder="LO Title (e.g., Newton's Laws of Motion)">
+                 <textarea id="loDescIn" class="full-w" placeholder="LO Description (optional)..." rows="2"></textarea>
+             </div>
+             <button class="btn-pub" onclick="addLearningOutcome()" style="margin-top:12px;">➕ Add LO</button>
+         </div>
+         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+             <select id="loFilterGrade" onchange="renderLOsList()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.82rem;">
+                 <option value="All">All Grades</option><option value="G10">G10</option><option value="G11">G11</option><option value="G12">G12</option>
+             </select>
+             <select id="loFilterSubject" onchange="renderLOsList()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.82rem;">
+                 <option value="All">All Subjects</option>
+             </select>
+         </div>
+         <div id="losList" style="max-height:400px;overflow-y:auto;"></div>
+     </div>
+
         <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
             <div style="font-weight:700;font-size:0.9rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📋 Exam Details</div>
             <div class="form-grid">
