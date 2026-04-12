@@ -31,8 +31,10 @@ export type Database = {
           created_at: string
           description: string | null
           grade: string
+          grand_challenge: string | null
           id: string
           image_url: string | null
+          material_type: string | null
           storage_path: string | null
           team_members: string | null
           title: string
@@ -43,8 +45,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           grade?: string
+          grand_challenge?: string | null
           id?: string
           image_url?: string | null
+          material_type?: string | null
           storage_path?: string | null
           team_members?: string | null
           title: string
@@ -55,8 +59,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           grade?: string
+          grand_challenge?: string | null
           id?: string
           image_url?: string | null
+          material_type?: string | null
           storage_path?: string | null
           team_members?: string | null
           title?: string
@@ -413,6 +419,39 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_outcomes: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: string
+          id: string
+          lo_code: string
+          sort_order: number | null
+          subject: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade: string
+          id?: string
+          lo_code: string
+          sort_order?: number | null
+          subject: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: string
+          id?: string
+          lo_code?: string
+          sort_order?: number | null
+          subject?: string
+          title?: string
+        }
+        Relationships: []
+      }
       learning_path_items: {
         Row: {
           created_at: string
@@ -526,6 +565,7 @@ export type Database = {
           file_type: string | null
           grade: string
           id: string
+          lo_id: string | null
           semester: string | null
           storage_path: string | null
           subject: string
@@ -541,6 +581,7 @@ export type Database = {
           file_type?: string | null
           grade: string
           id?: string
+          lo_id?: string | null
           semester?: string | null
           storage_path?: string | null
           subject: string
@@ -556,6 +597,7 @@ export type Database = {
           file_type?: string | null
           grade?: string
           id?: string
+          lo_id?: string | null
           semester?: string | null
           storage_path?: string | null
           subject?: string
@@ -563,7 +605,15 @@ export type Database = {
           type?: string
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stem_drive_files_lo_id_fkey"
+            columns: ["lo_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_reviews: {
         Row: {
