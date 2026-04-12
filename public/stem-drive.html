@@ -7602,10 +7602,10 @@ if (typeof filterSub === 'function') {
 <!-- Tab Switch Warning Overlay -->
 <div class="tab-warning-overlay" id="tabWarningOverlay">
     <div class="warn-icon">⚠️</div>
-    <h2>ارجع للامتحان فوراً!</h2>
-    <div class="countdown" id="tabWarningCount">05:00</div>
-    <p>لو خرجت من الفول سكرين أو بدّلت التبويب، عندك 10 ثواني ترجع وإلا الامتحان هيتسلم تلقائياً</p>
-    <button onclick="_cancelTabSwitchCountdown();requestExamFullscreen();" style="margin-top:12px;padding:14px 36px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;cursor:pointer;animation:securePulse 1.5s infinite;">🔙 ارجع للامتحان</button>
+    <h2 id="graceReason">خرجت من الامتحان!</h2>
+    <div class="countdown" id="tabWarningCount">5</div>
+    <p>عندك 5 ثواني ترجع وإلا الامتحان هيتسلم تلقائياً</p>
+    <button onclick="_cancelGracePeriod();requestExamFullscreen();" style="margin-top:12px;padding:14px 36px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:14px;font-size:1.1rem;font-weight:800;cursor:pointer;animation:securePulse 1.5s infinite;">🔙 ارجع للامتحان</button>
 </div>
 
 <!-- Capstone PDF Builder Modal -->
