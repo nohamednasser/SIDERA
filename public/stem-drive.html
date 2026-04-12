@@ -3176,8 +3176,15 @@ async function render() {
                 else if (isPdf) openBtnLabel = '📄 Open PDF';
                 else if (isLink) openBtnLabel = '🔗 Open Link';
 
+                // Find LO info if linked
+                let loBadge = '';
+                if (item.loId && _loCache) {
+                    const lo = _loCache.find(l => l.id === item.loId);
+                    if (lo) loBadge = '<span style="background:rgba(59,130,246,0.12);color:#3b82f6;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:4px;">🎯 ' + lo.lo_code + '</span>';
+                }
+
                 card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:flex;align-items:center;justify-content:center' : '') + '" data-id="' + item.id + '" title="Delete">🗑️</button>' +
-                    '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
+                    '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span>' + loBadge + '<span class="type-tag">' + item.type + sizeStr + '</span></div>' +
                     '<h3>' + item.title + '</h3>' +
                     '<p>' + (item.desc || 'No additional notes.') + '</p>' +
                     '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">' + openBtnLabel + '</button>' + (item.storagePath ? '<button class="btn-dl" data-id="' + item.id + '">📥 Download</button>' : '') + '</div>';
