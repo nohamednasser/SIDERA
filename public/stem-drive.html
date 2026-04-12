@@ -4282,6 +4282,68 @@ async function clearAllReviews() {
     renderReviewsTab();
 }
 
+// ========== HABD LEADERBOARD (Admin) ==========
+function renderHabdTab() {
+    var subs = _dashData.submissions || [];
+    var habds = subs.filter(function(s) { return s.effort_status === 'habd' || s.effort_status === 'suspect'; });
+    habds.sort(function(a, b) { return (a.effort_score || 100) - (b.effort_score || 100); });
+    
+    var habdCount = habds.filter(function(s) { return s.effort_status === 'habd'; }).length;
+    var suspectCount = habds.filter(function(s) { return s.effort_status === 'suspect'; }).length;
+    
+    var html = '<div class="dash-section-title">🤡 Habd Leaderboard — لوحة شرف الهابدين</div>';
+    html += '<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">🤡</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + habdCount + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">هابدين رسميين</div></div>';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">🔍</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + suspectCount + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">مشكوك فيهم</div></div>';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">✅</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + (subs.length - habds.length) + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">طلاب مجتهدين</div></div>';
+    html += '</div>';
+    
+    if (habds.length === 0) {
+        html += '<div class="dash-empty" style="text-align:center;padding:40px;"><div style="font-size:3rem;margin-bottom:12px;">🎉</div><div style="font-size:1.1rem;font-weight:700;">مفيش هابدين! كل الطلاب مجتهدين 💪</div></div>';
+    } else {
+        // Top 3 Habdeen podium
+        html += '<div style="text-align:center;margin-bottom:20px;"><h3 style="font-size:1rem;font-weight:800;margin-bottom:12px;">🏆 Top Habdeen 🤡</h3>';
+        html += '<div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">';
+        var top3 = habds.slice(0, 3);
+        var medals = ['🥇', '🥈', '🥉'];
+        top3.forEach(function(s, i) {
+            var exam = (_dashData.exams || []).find(function(e) { return e.id === s.exam_id; });
+            html += '<div style="background:var(--input-bg);border:2px solid ' + (s.effort_status === 'habd' ? '#ef4444' : '#f59e0b') + ';border-radius:16px;padding:16px;min-width:140px;text-align:center;">' +
+                '<div style="font-size:1.5rem;">' + medals[i] + '</div>' +
+                '<div style="font-size:0.85rem;font-weight:800;margin-top:4px;">' + esc(s.student_name) + '</div>' +
+                '<div style="font-size:0.7rem;color:var(--text);opacity:0.6;margin-top:2px;">' + (exam ? esc(exam.title) : 'Unknown') + '</div>' +
+                '<div style="font-size:0.75rem;font-weight:700;color:' + (s.effort_status === 'habd' ? '#ef4444' : '#f59e0b') + ';margin-top:6px;">Effort: ' + (s.effort_score || 0) + '% ' + (s.effort_status === 'habd' ? '🤡' : '🔍') + '</div>' +
+                '<div style="font-size:0.65rem;color:var(--text);opacity:0.5;margin-top:2px;">⏱ ' + (s.time_per_question_avg || 0).toFixed(1) + 's/Q</div>' +
+            '</div>';
+        });
+        html += '</div></div>';
+        
+        // Full table
+        html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
+        html += '<thead><tr style="background:var(--input-bg);"><th style="padding:10px;text-align:left;font-weight:700;">الطالب</th><th style="padding:10px;text-align:left;">الامتحان</th><th style="padding:10px;text-align:center;">الحالة</th><th style="padding:10px;text-align:center;">Effort</th><th style="padding:10px;text-align:center;">⏱ Avg/Q</th><th style="padding:10px;text-align:center;">🔄 Pattern</th><th style="padding:10px;text-align:center;">⚠️ Violations</th><th style="padding:10px;text-align:center;">النتيجة</th></tr></thead><tbody>';
+        habds.forEach(function(s) {
+            var exam = (_dashData.exams || []).find(function(e) { return e.id === s.exam_id; });
+            var statusBadge = s.effort_status === 'habd' 
+                ? '<span style="background:#ef4444;color:white;padding:3px 10px;border-radius:8px;font-weight:700;font-size:0.7rem;">🤡 هابد</span>'
+                : '<span style="background:#f59e0b;color:white;padding:3px 10px;border-radius:8px;font-weight:700;font-size:0.7rem;">🔍 مشكوك</span>';
+            var pctScore = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
+            html += '<tr style="border-bottom:1px solid var(--border);">' +
+                '<td style="padding:10px;font-weight:600;">' + esc(s.student_name) + '<div style="font-size:0.65rem;color:var(--text);opacity:0.5;">' + esc(s.student_email) + '</div></td>' +
+                '<td style="padding:10px;">' + (exam ? esc(exam.title) : '-') + '</td>' +
+                '<td style="padding:10px;text-align:center;">' + statusBadge + '</td>' +
+                '<td style="padding:10px;text-align:center;font-weight:700;color:' + ((s.effort_score || 0) < 30 ? '#ef4444' : '#f59e0b') + ';">' + (s.effort_score || 0) + '%</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.time_per_question_avg || 0).toFixed(1) + 's</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.answer_pattern_flag ? '🔴 Yes' : '🟢 No') + '</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.security_violations || 0) + '</td>' +
+                '<td style="padding:10px;text-align:center;font-weight:700;">' + pctScore + '%</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+    }
+    
+    document.getElementById('dashTabHabd').innerHTML = html;
+}
+
 // === SECTION NAV ===
 function smoothNav(e, id) {
     e.preventDefault();
