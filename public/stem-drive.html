@@ -4735,6 +4735,7 @@ function _onScreenCaptureBlur() {
 function _onScreenCaptureFocus() {
     if (!_examSecurityActive) return;
     document.body.classList.remove('screen-capture-blocked');
+    _cancelGracePeriod();
 }
 
 function _retryFullscreenOnInteraction() {
