@@ -5098,6 +5098,9 @@ async function loadAndStartExam(examId) {
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
         
+        // Track exam start time for Habd Detector
+        _examStartedAt = Date.now();
+        
         // Enable exam security: fullscreen + screenshot prevention + tab switch detection
         enableExamSecurity();
         
