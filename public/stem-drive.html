@@ -1554,7 +1554,7 @@
 
 <footer>
     <div style="position:relative;display:inline-block;">
-        Developed by <span style="font-weight:bold;color:var(--accent);">A.C.I.S Team</span> · <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & 
+        Sponsored by <span style="font-weight:bold;color:var(--accent);">A.C.I.S Team</span> · <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> & 
         <span id="teamToggle" style="cursor:pointer;color:var(--accent);font-weight:bold;text-decoration:underline;" onclick="toggleTeam()">Team</span>
         <div id="teamDropdown" style="display:none;position:absolute;bottom:35px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.2);white-space:nowrap;z-index:100;text-align:center;min-width:220px;">
             <div style="font-weight:800;font-size:0.95rem;color:var(--accent);margin-bottom:14px;letter-spacing:0.5px;">👥 Our Team</div>
@@ -4257,6 +4257,8 @@ let _examSecurityActive = false;
 let _tabSwitchTimer = null;
 let _tabSwitchCountdown = 10;
 let _tabSwitchWarnings = 0;
+let _fsGraceTimer = null;
+let _fsGraceCountdown = 5;
 
 // === EXAM SECURITY SYSTEM ===
 function enableExamSecurity() {
@@ -4346,6 +4348,7 @@ function disableExamSecurity() {
     if (examTakingModal) examTakingModal.removeEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
+    if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
     hideTabWarning();
     window.removeEventListener('blur', _onScreenCaptureBlur);
     window.removeEventListener('focus', _onScreenCaptureFocus);
@@ -4533,10 +4536,29 @@ function _onWindowBlur() {
 function _onFullscreenChange() {
     if (!_examSecurityActive) return;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // User exited fullscreen = instant auto-submit
+        // 5-second grace period to return to fullscreen
         _tabSwitchWarnings++;
-        showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الفول سكرين!', 'error');
-        _forceSubmitExam();
+        if (_fsGraceTimer) clearInterval(_fsGraceTimer);
+        _fsGraceCountdown = 5;
+        showToast('⚠️ ارجع للفول سكرين خلال 5 ثواني وإلا الامتحان هيتقفل!', 'warning', 5500);
+        _fsGraceTimer = setInterval(() => {
+            _fsGraceCountdown--;
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
+                showToast('✅ تم الرجوع للفول سكرين — كمّل الامتحان', 'success');
+                return;
+            }
+            if (_fsGraceCountdown <= 0) {
+                clearInterval(_fsGraceTimer); _fsGraceTimer = null;
+                showToast('🚫 تم إنهاء الامتحان لأنك ما رجعتش للفول سكرين!', 'error');
+                _forceSubmitExam();
+            }
+        }, 1000);
+        // Try to show a clickable prompt to re-enter fullscreen
+        requestExamFullscreen();
+    } else {
+        // Returned to fullscreen — cancel grace timer
+        if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
     }
 }
 
