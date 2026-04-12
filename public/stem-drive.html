@@ -5541,10 +5541,43 @@ function showExamResults(score, totalPoints, answers, effortData) {
     });
     reviewHtml += '</div>';
 
+    // ========== HABD DETECTOR UI ==========
+    let habdBanner = '';
+    if (effortData.effortStatus === 'habd') {
+        habdBanner = '<div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;animation:bounceIn 0.6s cubic-bezier(.68,-.55,.27,1.55);">' +
+            '<div style="font-size:3rem;margin-bottom:8px;">🤡</div>' +
+            '<div style="font-size:1.3rem;font-weight:900;color:white;">يا هبّاد!</div>' +
+            '<div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-top:8px;">نظامنا رصد إنك كنت بتهبد! 😂</div>' +
+            '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">' +
+                '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">⏱ ' + Math.round(effortData.avgTimePerQ) + 's/سؤال</span>' +
+                (effortData.answerPatternFlag ? '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">🔄 نمط متكرر</span>' : '') +
+                '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">📊 Effort: ' + effortData.effortScore + '%</span>' +
+            '</div>' +
+            '<div style="font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:12px;">🚫 مفيش شهادة للهابدين!</div>' +
+        '</div>';
+    } else if (effortData.effortStatus === 'suspect') {
+        habdBanner = '<div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">' +
+            '<div style="font-size:2rem;">🔍</div>' +
+            '<div style="font-size:1rem;font-weight:800;color:white;">نتيجة مشكوك فيها</div>' +
+            '<div style="font-size:0.8rem;color:rgba(255,255,255,0.85);margin-top:6px;">نظامنا رصد سرعة غير عادية. تم حجب الشهادة للمراجعة.</div>' +
+            '<div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;">' +
+                '<span style="background:rgba(0,0,0,0.25);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">⏱ ' + Math.round(effortData.avgTimePerQ) + 's/سؤال</span>' +
+                '<span style="background:rgba(0,0,0,0.25);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">📊 Effort: ' + effortData.effortScore + '%</span>' +
+            '</div>' +
+        '</div>';
+    }
+    // Effort score badge for genuine students
+    let effortBadge = '';
+    if (effortData.effortStatus === 'genuine' && effortData.effortScore >= 80) {
+        effortBadge = '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;color:#22c55e;margin-top:8px;">✅ Verified Effort: ' + effortData.effortScore + '%</div>';
+    }
+
     document.getElementById('examResultBody').innerHTML = 
         '<div class="result-card">' +
+            habdBanner +
             '<div style="font-size:3rem;margin-bottom:8px;animation:bounceIn 0.5s cubic-bezier(.68,-.55,.27,1.55);">' + gradeEmoji + '</div>' +
             '<div class="grade-label ' + gradeClass + '" style="animation:bounceIn 0.6s cubic-bezier(.68,-.55,.27,1.55) 0.1s both;">' + gradeLetter + '</div>' +
+            effortBadge +
             scoreRing +
             statsGrid +
             reviewHtml +
@@ -5552,12 +5585,11 @@ function showExamResults(score, totalPoints, answers, effortData) {
         '<style>@keyframes bounceIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}</style>';
     document.getElementById('examResultModal').classList.add('show');
 
-    // Confetti for high scores!
-    if (pct >= 70) launchConfetti();
+    // Confetti only for genuine high scorers!
+    if (pct >= 70 && effortData.effortStatus === 'genuine') launchConfetti();
     
-    // Generate certificate for passing students (>= 50%)
-    if (pct >= 50 && _studentInfo && _currentExamData) {
-        // Add certificate button to results
+    // Generate certificate ONLY for genuine passing students (>= 50%)
+    if (pct >= 50 && effortData.effortStatus === 'genuine' && _studentInfo && _currentExamData) {
         setTimeout(() => {
             const resultBody = document.getElementById('examResultBody');
             const certDiv = document.createElement('div');
