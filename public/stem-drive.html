@@ -929,6 +929,38 @@
         .lablog-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
         .lablog-btn-secondary { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border); }
         .lablog-btn-danger { background: #ef4444; color: white; }
+
+        /* Logic Builder Blocks */
+        .lb-container { display: flex; gap: 16px; margin-top: 8px; }
+        .lb-palette { width: 200px; min-width: 180px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 12px; max-height: 400px; overflow-y: auto; }
+        .lb-palette-title { font-size: 0.75rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lb-palette-cat { font-size: 0.68rem; font-weight: 700; color: var(--text); margin: 10px 0 6px; opacity: 0.6; }
+        .lb-block { padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; cursor: grab; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; transition: transform 0.15s, box-shadow 0.15s; user-select: none; border: 2px solid transparent; }
+        .lb-block:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .lb-block:active { cursor: grabbing; }
+        .lb-block.cat-setup { background: rgba(59,130,246,0.12); color: #2563eb; border-color: rgba(59,130,246,0.2); }
+        .lb-block.cat-measure { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.2); }
+        .lb-block.cat-action { background: rgba(245,158,11,0.12); color: #d97706; border-color: rgba(245,158,11,0.2); }
+        .lb-block.cat-record { background: rgba(139,92,246,0.12); color: #7c3aed; border-color: rgba(139,92,246,0.2); }
+        .lb-block.cat-safety { background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.2); }
+        .lb-block.cat-control { background: rgba(236,72,153,0.12); color: #db2777; border-color: rgba(236,72,153,0.2); }
+        .lb-workspace { flex: 1; min-height: 200px; background: var(--input-bg); border: 2px dashed var(--border); border-radius: 14px; padding: 14px; position: relative; transition: border-color 0.2s, background-color 0.2s; }
+        .lb-workspace.drag-over { border-color: var(--accent); background: rgba(163,64,84,0.04); }
+        .lb-workspace-title { font-size: 0.72rem; font-weight: 700; color: var(--text); opacity: 0.5; margin-bottom: 10px; text-align: center; }
+        .lb-workspace .lb-block { cursor: move; position: relative; margin-bottom: 4px; }
+        .lb-workspace .lb-block .lb-remove { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.4; transition: opacity 0.15s; padding: 2px 4px; }
+        .lb-workspace .lb-block .lb-remove:hover { opacity: 1; }
+        .lb-workspace .lb-block .lb-edit { flex: 1; background: none; border: none; color: inherit; font: inherit; font-size: 0.78rem; outline: none; padding: 0; min-width: 0; }
+        .lb-connector { height: 8px; display: flex; align-items: center; justify-content: center; }
+        .lb-connector::before { content: ''; width: 2px; height: 100%; background: var(--border); }
+        .lb-gen-bar { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+        .lb-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .lb-toggle-btn { padding: 7px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: var(--input-bg); color: var(--text); transition: all 0.15s; }
+        .lb-toggle-btn.active { background: var(--accent); color: white; }
+        @media(max-width:600px) {
+            .lb-container { flex-direction: column; }
+            .lb-palette { width: 100%; max-height: 180px; }
+        }
         @media (max-width: 600px) {
             .lablog-grid { grid-template-columns: 1fr; }
             .lablog-stats { grid-template-columns: 1fr 1fr; }
@@ -7982,7 +8014,28 @@ function openLabLogEditor(existingLog) {
             '<div class="lablog-field"><label>Grade</label><select id="llGrade"><option value="G10"' + (log.grade==='G10'?' selected':'') + '>G10</option><option value="G11"' + (log.grade==='G11'?' selected':'') + '>G11</option><option value="G12"' + (log.grade==='G12'?' selected':'') + '>G12</option></select></div>' +
         '</div>' +
         '<div class="lablog-field"><label>Hypothesis (الفرضية)</label><textarea id="llHypothesis" placeholder="If... then... because...">' + escapeHtml(log.hypothesis || '') + '</textarea></div>' +
-        '<div class="lablog-field"><label>Procedure (الخطوات)</label><textarea id="llProcedure" placeholder="Step-by-step procedure...">' + escapeHtml(log.procedure_text || '') + '</textarea></div>' +
+        '<div class="lablog-field">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+                '<label style="font-weight:700;font-size:0.8rem;color:var(--dark);">Procedure (الخطوات)</label>' +
+                '<div class="lb-toggle" id="lbModeToggle">' +
+                    '<button class="lb-toggle-btn active" onclick="lbSwitchMode(\'blocks\',this)">🧩 Blocks</button>' +
+                    '<button class="lb-toggle-btn" onclick="lbSwitchMode(\'text\',this)">📝 Text</button>' +
+                '</div>' +
+            '</div>' +
+            '<div id="lbBlocksView">' +
+                '<div class="lb-container">' +
+                    '<div class="lb-palette" id="lbPalette"></div>' +
+                    '<div class="lb-workspace" id="lbWorkspace"><div class="lb-workspace-title">⬇️ اسحب الـ Blocks هنا لبناء الخطوات</div></div>' +
+                '</div>' +
+                '<div class="lb-gen-bar">' +
+                    '<button class="lablog-btn lablog-btn-primary" onclick="lbGenerateProcedure()" style="font-size:0.78rem;">🤖 Generate Scientific Procedure</button>' +
+                    '<span style="font-size:0.7rem;color:var(--text);opacity:0.6;">AI يحول البلوكات لنص علمي منظم</span>' +
+                '</div>' +
+            '</div>' +
+            '<div id="lbTextView" style="display:none;">' +
+                '<textarea id="llProcedure" placeholder="Step-by-step procedure...">' + escapeHtml(log.procedure_text || '') + '</textarea>' +
+            '</div>' +
+        '</div>' +
 
         '<div style="margin:20px 0;">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
@@ -8014,6 +8067,9 @@ function openLabLogEditor(existingLog) {
 
     document.getElementById('labLogEditorContent').innerHTML = html;
 
+    // Init Logic Builder
+    lbInit(log);
+
     // Load existing data points
     if (log.id) {
         loadLabLogDataPoints(log.id);
@@ -8022,6 +8078,238 @@ function openLabLogEditor(existingLog) {
         _labLogDataPoints = [{x:0,y:0},{x:0,y:0},{x:0,y:0}];
         renderLabLogDataRows();
     }
+
+    // If existing procedure text, decide mode
+    if (log.procedure_text) {
+        if (log.procedure_text.startsWith('[LB]')) {
+            // Has blocks — stay in blocks mode (lbInit already parsed them)
+            // Extract clean text after ---
+            var parts = log.procedure_text.split('\n---\n');
+            if (parts.length > 1) {
+                document.getElementById('llProcedure').value = parts.slice(1).join('\n---\n');
+            }
+        } else {
+            lbSwitchMode('text', document.querySelectorAll('.lb-toggle-btn')[1]);
+        }
+    }
+}
+
+// ====== LOGIC BUILDER ======
+var _lbBlocks = []; // workspace blocks
+var _lbDragData = null;
+
+var LB_PALETTE = [
+    { cat: 'setup', icon: '🔧', label: 'Gather materials: {items}', defaults: 'beakers, thermometer' },
+    { cat: 'setup', icon: '⚖️', label: 'Measure {amount} of {substance}', defaults: '50 mL, water' },
+    { cat: 'setup', icon: '🧪', label: 'Prepare {solution} at {concentration}', defaults: 'NaCl solution, 0.1 M' },
+    { cat: 'setup', icon: '🔌', label: 'Set up {apparatus}', defaults: 'circuit board' },
+    { cat: 'setup', icon: '🌡️', label: 'Calibrate {instrument}', defaults: 'thermometer' },
+    { cat: 'action', icon: '🔥', label: 'Heat {substance} to {temp}', defaults: 'solution, 80°C' },
+    { cat: 'action', icon: '🌀', label: 'Stir for {duration}', defaults: '5 minutes' },
+    { cat: 'action', icon: '💧', label: 'Add {amount} of {reagent}', defaults: '10 mL, HCl' },
+    { cat: 'action', icon: '⏳', label: 'Wait {duration} for reaction', defaults: '3 minutes' },
+    { cat: 'action', icon: '🔄', label: 'Repeat step {n} times: {count}', defaults: '3' },
+    { cat: 'action', icon: '⚡', label: 'Apply {voltage} V across {component}', defaults: '5, resistor' },
+    { cat: 'action', icon: '🧲', label: 'Connect {component A} to {component B}', defaults: 'ammeter, circuit' },
+    { cat: 'measure', icon: '📏', label: 'Measure {quantity} using {instrument}', defaults: 'temperature, thermometer' },
+    { cat: 'measure', icon: '👁️', label: 'Observe {what} and note changes', defaults: 'color change' },
+    { cat: 'measure', icon: '⏱️', label: 'Record time for {event}', defaults: 'reaction to complete' },
+    { cat: 'measure', icon: '📐', label: 'Measure {dimension} of {object}', defaults: 'length, wire' },
+    { cat: 'record', icon: '📝', label: 'Record data in table: {variables}', defaults: 'voltage vs current' },
+    { cat: 'record', icon: '📸', label: 'Take photo of {what}', defaults: 'setup' },
+    { cat: 'record', icon: '📊', label: 'Plot graph of {x} vs {y}', defaults: 'time vs temperature' },
+    { cat: 'record', icon: '🔢', label: 'Calculate {formula}', defaults: 'average of 3 trials' },
+    { cat: 'control', icon: '🔀', label: 'Change {variable} to {value}', defaults: 'voltage, 10 V' },
+    { cat: 'control', icon: '🔒', label: 'Keep {variable} constant', defaults: 'room temperature' },
+    { cat: 'control', icon: '🎯', label: 'Set control group: {description}', defaults: 'no reagent added' },
+    { cat: 'safety', icon: '🥽', label: 'Wear {safety equipment}', defaults: 'goggles and gloves' },
+    { cat: 'safety', icon: '🚿', label: 'Ensure {safety measure} is available', defaults: 'eye wash station' },
+    { cat: 'safety', icon: '♻️', label: 'Dispose of {waste} properly', defaults: 'chemical waste' },
+];
+
+var LB_CAT_NAMES = { setup: '🔧 Setup', action: '⚗️ Action', measure: '📏 Measure', record: '📝 Record', control: '🎯 Control', safety: '🛡️ Safety' };
+
+function lbInit(log) {
+    _lbBlocks = [];
+    var palette = document.getElementById('lbPalette');
+    if (!palette) return;
+
+    // Render palette grouped by category
+    var html = '<div class="lb-palette-title">🧩 Block Palette</div>';
+    var lastCat = '';
+    LB_PALETTE.forEach(function(b, i) {
+        if (b.cat !== lastCat) {
+            lastCat = b.cat;
+            html += '<div class="lb-palette-cat">' + LB_CAT_NAMES[b.cat] + '</div>';
+        }
+        html += '<div class="lb-block cat-' + b.cat + '" draggable="true" data-idx="' + i + '">' +
+            '<span>' + b.icon + '</span> <span style="flex:1;">' + b.label.replace(/\{[^}]+\}/g, '___') + '</span>' +
+        '</div>';
+    });
+    palette.innerHTML = html;
+
+    // Palette drag events
+    palette.querySelectorAll('.lb-block').forEach(function(el) {
+        el.addEventListener('dragstart', function(e) {
+            _lbDragData = { type: 'palette', idx: parseInt(el.dataset.idx) };
+            e.dataTransfer.effectAllowed = 'copy';
+            el.style.opacity = '0.5';
+        });
+        el.addEventListener('dragend', function() { el.style.opacity = '1'; });
+        // Click to add
+        el.addEventListener('click', function() {
+            var b = LB_PALETTE[parseInt(el.dataset.idx)];
+            _lbBlocks.push({ palIdx: parseInt(el.dataset.idx), text: b.label.replace(/\{([^}]+)\}/g, function(m, key) {
+                var defs = (b.defaults || '').split(', ');
+                var keys = b.label.match(/\{[^}]+\}/g) || [];
+                var ki = keys.indexOf(m);
+                return defs[ki] || key;
+            })});
+            lbRenderWorkspace();
+        });
+    });
+
+    // Workspace drop zone
+    var ws = document.getElementById('lbWorkspace');
+    ws.addEventListener('dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; ws.classList.add('drag-over'); });
+    ws.addEventListener('dragleave', function() { ws.classList.remove('drag-over'); });
+    ws.addEventListener('drop', function(e) {
+        e.preventDefault();
+        ws.classList.remove('drag-over');
+        if (_lbDragData && _lbDragData.type === 'palette') {
+            var b = LB_PALETTE[_lbDragData.idx];
+            _lbBlocks.push({ palIdx: _lbDragData.idx, text: b.label.replace(/\{([^}]+)\}/g, function(m, key) {
+                var defs = (b.defaults || '').split(', ');
+                var keys = b.label.match(/\{[^}]+\}/g) || [];
+                var ki = keys.indexOf(m);
+                return defs[ki] || key;
+            })});
+            lbRenderWorkspace();
+        }
+        _lbDragData = null;
+    });
+
+    // If log has procedure text, try to parse blocks from it
+    if (log && log.procedure_text && log.procedure_text.startsWith('[LB]')) {
+        try {
+            var lbData = log.procedure_text.split('\n---\n')[0].substring(4);
+            _lbBlocks = JSON.parse(lbData);
+        } catch(e) { _lbBlocks = []; }
+    }
+    lbRenderWorkspace();
+}
+
+function lbRenderWorkspace() {
+    var ws = document.getElementById('lbWorkspace');
+    if (!ws) return;
+    if (_lbBlocks.length === 0) {
+        ws.innerHTML = '<div class="lb-workspace-title">⬇️ اسحب الـ Blocks هنا أو اضغط عليها لبناء الخطوات</div>';
+        return;
+    }
+    var html = '';
+    _lbBlocks.forEach(function(block, i) {
+        var pal = LB_PALETTE[block.palIdx] || { cat: 'action', icon: '📌' };
+        html += '<div class="lb-block cat-' + pal.cat + '" draggable="true" data-wi="' + i + '">' +
+            '<span>' + pal.icon + '</span>' +
+            '<span style="font-weight:700;color:var(--text);opacity:0.5;font-size:0.7rem;min-width:18px;">' + (i+1) + '.</span>' +
+            '<input class="lb-edit" value="' + escapeHtml(block.text) + '" onchange="_lbBlocks[' + i + '].text=this.value">' +
+            '<button class="lb-remove" onclick="_lbBlocks.splice(' + i + ',1);lbRenderWorkspace()">✕</button>' +
+        '</div>';
+        if (i < _lbBlocks.length - 1) html += '<div class="lb-connector"></div>';
+    });
+    ws.innerHTML = html;
+
+    // Enable workspace block reorder via drag
+    ws.querySelectorAll('.lb-block[data-wi]').forEach(function(el) {
+        el.addEventListener('dragstart', function(e) {
+            _lbDragData = { type: 'workspace', idx: parseInt(el.dataset.wi) };
+            e.dataTransfer.effectAllowed = 'move';
+            el.style.opacity = '0.4';
+        });
+        el.addEventListener('dragend', function() { el.style.opacity = '1'; });
+        el.addEventListener('dragover', function(e) { e.preventDefault(); });
+        el.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (_lbDragData && _lbDragData.type === 'workspace') {
+                var from = _lbDragData.idx;
+                var to = parseInt(el.dataset.wi);
+                if (from !== to) {
+                    var item = _lbBlocks.splice(from, 1)[0];
+                    _lbBlocks.splice(to, 0, item);
+                    lbRenderWorkspace();
+                }
+            }
+            _lbDragData = null;
+        });
+    });
+}
+
+function lbSwitchMode(mode, btn) {
+    document.querySelectorAll('.lb-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    document.getElementById('lbBlocksView').style.display = mode === 'blocks' ? '' : 'none';
+    document.getElementById('lbTextView').style.display = mode === 'text' ? '' : 'none';
+}
+
+async function lbGenerateProcedure() {
+    if (_lbBlocks.length === 0) { showToast('أضف بلوكات الأول!', 'warning'); return; }
+
+    var title = document.getElementById('llTitle')?.value || '';
+    var hypothesis = document.getElementById('llHypothesis')?.value || '';
+    var steps = _lbBlocks.map(function(b, i) { return (i+1) + '. ' + b.text; }).join('\n');
+
+    var prompt = 'You are a scientific lab report writer for high school STEM students.\n' +
+        'Convert these procedural blocks into a formal, numbered scientific procedure suitable for a lab notebook.\n' +
+        'Use passive voice and past tense where appropriate. Be precise and concise.\n' +
+        'Title: ' + title + '\n' +
+        'Hypothesis: ' + hypothesis + '\n' +
+        'Steps from blocks:\n' + steps + '\n\n' +
+        'Write the procedure in English as numbered steps. Each step should be one clear sentence.';
+
+    var textarea = document.getElementById('llProcedure');
+    textarea.value = '⏳ Generating scientific procedure...';
+    lbSwitchMode('text', document.querySelectorAll('.lb-toggle-btn')[1]);
+
+    try {
+        var resp = await fetch(SUPABASE_URL + '/functions/v1/ai-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken(), 'apikey': SUPABASE_ANON_KEY },
+            body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+        });
+        var data = await resp.json();
+        var text = data.choices?.[0]?.message?.content || data.reply || data.text || '';
+        if (text) {
+            textarea.value = text.trim();
+            showToast('✅ تم توليد الـ Procedure!', 'success');
+        } else {
+            textarea.value = steps;
+            showToast('⚠️ تم نسخ الخطوات كنص عادي', 'warning');
+        }
+    } catch(e) {
+        // Fallback: just convert blocks to numbered list
+        textarea.value = _lbBlocks.map(function(b, i) { return (i+1) + '. ' + b.text + '.'; }).join('\n');
+        showToast('📝 تم تحويل البلوكات لنص (بدون AI)', 'info');
+    }
+}
+
+// Override saveLabLog to include block data
+var _origSaveLabLogProcedure = null;
+function lbGetProcedureText() {
+    var textView = document.getElementById('lbTextView');
+    var textArea = document.getElementById('llProcedure');
+    // If user is in text mode and has text, use that
+    if (textArea && textArea.value.trim()) {
+        // Also store blocks as metadata prefix
+        if (_lbBlocks.length > 0) {
+            return '[LB]' + JSON.stringify(_lbBlocks) + '\n---\n' + textArea.value.trim();
+        }
+        return textArea.value.trim();
+    }
+    // If only blocks, store as JSON
+    if (_lbBlocks.length > 0) {
+        return '[LB]' + JSON.stringify(_lbBlocks);
+    }
+    return '';
 }
 
 function closeLabLogEditor() {
@@ -8304,7 +8592,7 @@ async function saveLabLog() {
         subject: document.getElementById('llSubject').value,
         grade: document.getElementById('llGrade').value,
         hypothesis: document.getElementById('llHypothesis').value.trim(),
-        procedure_text: document.getElementById('llProcedure').value.trim(),
+        procedure_text: typeof lbGetProcedureText === 'function' ? lbGetProcedureText() : document.getElementById('llProcedure').value.trim(),
         conclusion: document.getElementById('llConclusion').value.trim(),
         student_email: getUserEmail(),
         student_name: getUserEmail().split('@')[0],
