@@ -7537,6 +7537,163 @@ if (typeof filterSub === 'function') {
     };
 }
 
+// ========== LANGUAGE TOGGLE SYSTEM ==========
+var _currentLang = localStorage.getItem('sideraLang') || 'en';
+
+var _translations = {
+    // Header buttons
+    'Calculator': 'الآلة الحاسبة',
+    'Scanner': 'الماسح',
+    'Mode': 'الوضع',
+    'Alerts': 'التنبيهات',
+    'Notes': 'الملاحظات',
+    'Dashboard': 'لوحة التحكم',
+    'Admin': 'الأدمن',
+    'Logout': 'تسجيل خروج',
+    'Sign In': 'تسجيل دخول',
+    // Navigation
+    'All Grades': 'كل الصفوف',
+    'Grade 10': 'الصف العاشر',
+    'Grade 11': 'الصف الحادي عشر',
+    'Grade 12': 'الصف الثاني عشر',
+    'All Semesters': 'كل الفصول',
+    'Semester 1': 'الفصل الأول',
+    'Semester 2': 'الفصل الثاني',
+    // Section nav
+    'Exams': 'الامتحانات',
+    'Materials': 'المواد',
+    'Capstone': 'المشاريع',
+    'Lab Logs': 'سجل المختبر',
+    'Learning Paths': 'مسارات التعلم',
+    'Code IDE': 'محرر الأكواد',
+    'Reviews': 'التقييمات',
+    // Search
+    'Search for files, subjects, or notes...': 'ابحث عن ملفات، مواد، أو ملاحظات...',
+    // Exam section
+    'Exams & Assessments': 'الامتحانات والتقييمات',
+    'All': 'الكل',
+    'Physics': 'الفيزياء',
+    'Chemistry': 'الكيمياء',
+    'Math': 'الرياضيات',
+    'Biology': 'الأحياء',
+    'Computer Science': 'علوم الحاسوب',
+    'SAT': 'SAT',
+    'ACT': 'ACT',
+    // Materials
+    'Educational Materials': 'المواد التعليمية',
+    'No resources found': 'لا توجد موارد',
+    'No exams available': 'لا توجد امتحانات',
+    // Cards
+    'Open': 'فتح',
+    'View': 'عرض',
+    'Download': 'تحميل',
+    'Start Exam': 'ابدأ الامتحان',
+    'Submit': 'إرسال',
+    'Next': 'التالي',
+    'Previous': 'السابق',
+    // Reviews
+    'Student Reviews': 'تقييمات الطلاب',
+    'Write a review...': 'اكتب تقييم...',
+    'Submit Review': 'إرسال التقييم',
+    // Capstone
+    'Capstone Projects': 'مشاريع التخرج',
+    // Lab
+    'Lab Logs & Reports': 'سجلات وتقارير المختبر',
+    // Learning paths
+    'Learning Paths': 'مسارات التعلم',
+    // General
+    'Loading...': 'جاري التحميل...',
+    'Error': 'خطأ',
+    'Success': 'نجاح',
+    'Cancel': 'إلغاء',
+    'Save': 'حفظ',
+    'Delete': 'حذف',
+    'Edit': 'تعديل',
+    'Close': 'إغلاق',
+    'Welcome back!': 'أهلاً بعودتك!',
+    'Top Students': 'أفضل الطلاب',
+    'No submissions yet': 'لا توجد إجابات بعد',
+    'questions': 'أسئلة',
+    'minutes': 'دقائق',
+    'Score': 'النتيجة',
+    'Time Left': 'الوقت المتبقي',
+    'Question': 'سؤال',
+    'of': 'من',
+};
+
+// Build reverse map
+var _reverseTranslations = {};
+Object.keys(_translations).forEach(function(k) {
+    _reverseTranslations[_translations[k]] = k;
+});
+
+function toggleLanguage() {
+    _currentLang = _currentLang === 'en' ? 'ar' : 'en';
+    localStorage.setItem('sideraLang', _currentLang);
+    applyLanguage();
+}
+
+function applyLanguage() {
+    var isAr = _currentLang === 'ar';
+    var btn = document.getElementById('langBtn');
+    if (btn) btn.innerHTML = isAr ? '🌐 English' : '🌐 عربي';
+    
+    // Set direction
+    document.body.dir = isAr ? 'rtl' : 'ltr';
+    document.body.style.textAlign = isAr ? 'right' : '';
+    
+    // Translate text nodes
+    var dict = isAr ? _translations : _reverseTranslations;
+    
+    // Translate nav spans
+    document.querySelectorAll('#gradeNav span, #semesterNav span, #sectionNav a').forEach(function(el) {
+        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
+        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
+        emoji = emoji ? emoji[1] : '';
+        if (dict[text]) {
+            el.textContent = emoji + dict[text];
+        }
+    });
+    
+    // Translate control buttons
+    document.querySelectorAll('.control-btn').forEach(function(el) {
+        if (el.id === 'langBtn') return;
+        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
+        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
+        emoji = emoji ? emoji[1] : '';
+        if (dict[text]) {
+            el.textContent = emoji + dict[text];
+        }
+    });
+    
+    // Translate search placeholder
+    var search = document.getElementById('searchBar');
+    if (search) {
+        search.placeholder = isAr ? 'ابحث عن ملفات، مواد، أو ملاحظات...' : 'Search for files, subjects, or notes...';
+    }
+    
+    // Translate section headings
+    document.querySelectorAll('h2, h3').forEach(function(el) {
+        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
+        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
+        emoji = emoji ? emoji[1] : '';
+        if (dict[text]) {
+            el.textContent = emoji + dict[text];
+        }
+    });
+    
+    // Translate exam filter buttons  
+    document.querySelectorAll('.exam-filter-btn').forEach(function(el) {
+        var text = el.textContent.trim();
+        if (dict[text]) el.textContent = dict[text];
+    });
+}
+
+// Apply on load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(applyLanguage, 500);
+});
+
 </script>
 
 <!-- Chatbot Widget -->
