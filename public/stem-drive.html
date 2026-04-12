@@ -2137,7 +2137,8 @@ class StorageManager {
             title: entry.title, grade: entry.grade, subject: entry.subject, semester: entry.semester || 'S1',
             url: entry.url || '', description: entry.desc || '', type: entry.type,
             file_name: entry.fileName || '', file_size: entry.fileSize || 0,
-            file_type: entry.fileType || '', storage_path: storagePath
+            file_type: entry.fileType || '', storage_path: storagePath,
+            lo_id: entry.loId || null
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
