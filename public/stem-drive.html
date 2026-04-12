@@ -8437,5 +8437,278 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
 
 </script>
 
-</body>
-</html>
+<!-- Cloud IDE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<script>
+(function(){
+    var _ideEditor = null;
+    var _ideCurrentId = null;
+    var _ideSavedSnippets = [];
+    var _ideRunning = false;
+    var _ideSavedVisible = false;
+
+    var IDE_TEMPLATES = {
+        python: [
+            { name: '🔢 Hello World', code: 'print("Hello, STEM World! 🌍")' },
+            { name: '📊 Loop & Math', code: 'import math\n\nfor i in range(1, 11):\n    print(f"sqrt({i}) = {math.sqrt(i):.4f}")' },
+            { name: '📈 Fibonacci', code: 'def fibonacci(n):\n    a, b = 0, 1\n    result = []\n    for _ in range(n):\n        result.append(a)\n        a, b = b, a + b\n    return result\n\nprint("First 15 Fibonacci numbers:")\nprint(fibonacci(15))' },
+            { name: '🧪 Chemistry', code: '# Molarity Calculator\nmass = 58.44  # NaCl molar mass (g/mol)\ngrams = 29.22  # grams dissolved\nvolume_L = 0.5  # liters of solution\n\nmoles = grams / mass\nmolarity = moles / volume_L\nprint(f"Mass: {grams}g NaCl")\nprint(f"Volume: {volume_L}L")\nprint(f"Moles: {moles:.4f} mol")\nprint(f"Molarity: {molarity:.4f} M")' }
+        ],
+        javascript: [
+            { name: '🔢 Hello World', code: 'console.log("Hello, STEM World! 🌍");' },
+            { name: '📊 Array Methods', code: 'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n\nconst evens = numbers.filter(n => n % 2 === 0);\nconst squares = numbers.map(n => n ** 2);\nconst sum = numbers.reduce((a, b) => a + b, 0);\n\nconsole.log("Numbers:", numbers);\nconsole.log("Evens:", evens);\nconsole.log("Squares:", squares);\nconsole.log("Sum:", sum);' },
+            { name: '🧬 DNA', code: 'function complementDNA(strand) {\n  const pairs = { A: "T", T: "A", C: "G", G: "C" };\n  return strand.split("").map(b => pairs[b]).join("");\n}\n\nconst dna = "ATCGATCG";\nconsole.log("Original:", dna);\nconsole.log("Complement:", complementDNA(dna));' }
+        ],
+        cpp: [
+            { name: '🔢 Hello World', code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, STEM World! 🌍" << endl;\n    return 0;\n}' },
+            { name: '📊 Sorting', code: '#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    vector<int> nums = {64, 34, 25, 12, 22, 11, 90};\n    cout << "Before: ";\n    for(int n : nums) cout << n << " ";\n    cout << endl;\n    \n    sort(nums.begin(), nums.end());\n    \n    cout << "After:  ";\n    for(int n : nums) cout << n << " ";\n    cout << endl;\n    return 0;\n}' },
+            { name: '🔬 Physics', code: '#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    // Projectile Motion Calculator\n    double v0 = 20.0;  // initial velocity (m/s)\n    double angle = 45.0; // launch angle (degrees)\n    double g = 9.81;\n    \n    double rad = angle * M_PI / 180.0;\n    double t_flight = 2 * v0 * sin(rad) / g;\n    double range = v0 * v0 * sin(2 * rad) / g;\n    double max_h = v0 * v0 * sin(rad) * sin(rad) / (2 * g);\n    \n    cout << "=== Projectile Motion ===" << endl;\n    cout << "Initial velocity: " << v0 << " m/s" << endl;\n    cout << "Angle: " << angle << "°" << endl;\n    cout << "Flight time: " << t_flight << " s" << endl;\n    cout << "Range: " << range << " m" << endl;\n    cout << "Max height: " << max_h << " m" << endl;\n    return 0;\n}' }
+        ]
+    };
+
+    // Piston API language mapping
+    var PISTON_LANGS = {
+        python: { language: 'python', version: '3.10.0' },
+        javascript: { language: 'javascript', version: '18.15.0' },
+        cpp: { language: 'c++', version: '10.2.0' }
+    };
+
+    function initIDE() {
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            _ideEditor = monaco.editor.create(document.getElementById('ideEditorContainer'), {
+                value: IDE_TEMPLATES.python[0].code,
+                language: 'python',
+                theme: 'vs-dark',
+                fontSize: 14,
+                fontFamily: "'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace",
+                minimap: { enabled: false },
+                lineNumbers: 'on',
+                roundedSelection: true,
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                padding: { top: 10, bottom: 10 },
+                wordWrap: 'on',
+                tabSize: 4,
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true
+            });
+
+            // Ctrl+Enter to run
+            _ideEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { ideRunCode(); });
+            // Ctrl+S to save
+            _ideEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function() { ideSaveSnippet(); });
+
+            renderIdeTemplates();
+            updateIdeBtns();
+        });
+    }
+
+    function renderIdeTemplates() {
+        var lang = document.getElementById('ideLang').value;
+        var templates = IDE_TEMPLATES[lang] || [];
+        var container = document.getElementById('ideTemplates');
+        var html = '<span style="font-size:0.75rem;font-weight:700;color:var(--dark);padding:6px 0;">📋 Templates:</span>';
+        templates.forEach(function(t) {
+            html += '<button class="ide-template-btn" onclick="ideLoadTemplate(\'' + encodeURIComponent(t.code) + '\')">' + t.name + '</button>';
+        });
+        container.innerHTML = html;
+    }
+
+    window.ideLoadTemplate = function(encodedCode) {
+        if (_ideEditor) {
+            _ideEditor.setValue(decodeURIComponent(encodedCode));
+            _ideCurrentId = null;
+            document.getElementById('ideTitle').value = 'Untitled';
+        }
+    };
+
+    window.ideChangeLang = function() {
+        var lang = document.getElementById('ideLang').value;
+        if (_ideEditor) {
+            var monacoLang = lang === 'cpp' ? 'cpp' : lang;
+            monaco.editor.setModelLanguage(_ideEditor.getModel(), monacoLang);
+            var templates = IDE_TEMPLATES[lang];
+            if (templates && templates.length) _ideEditor.setValue(templates[0].code);
+        }
+        _ideCurrentId = null;
+        document.getElementById('ideTitle').value = 'Untitled';
+        renderIdeTemplates();
+    };
+
+    window.ideRunCode = async function() {
+        if (_ideRunning || !_ideEditor) return;
+        _ideRunning = true;
+        var outWrap = document.getElementById('ideOutputWrap');
+        var outPre = document.getElementById('ideOutput');
+        outWrap.style.display = 'block';
+        outPre.className = 'running';
+        outPre.textContent = '⏳ Running...';
+
+        var lang = document.getElementById('ideLang').value;
+        var code = _ideEditor.getValue();
+        var pistonCfg = PISTON_LANGS[lang];
+
+        try {
+            var resp = await fetch('https://emkc.org/api/v2/piston/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: pistonCfg.language,
+                    version: pistonCfg.version,
+                    files: [{ content: code }]
+                })
+            });
+            var data = await resp.json();
+            var output = '';
+            if (data.run) {
+                if (data.run.stdout) output += data.run.stdout;
+                if (data.run.stderr) output += (output ? '\n' : '') + data.run.stderr;
+                if (!output && data.run.code !== 0) output = 'Process exited with code ' + data.run.code;
+                if (!output) output = '(No output)';
+            } else if (data.compile && data.compile.stderr) {
+                output = '❌ Compilation Error:\n' + data.compile.stderr;
+            } else {
+                output = 'Error: Unexpected response';
+            }
+            outPre.className = (data.run && data.run.code !== 0) || (data.compile && data.compile.code !== 0) ? 'error' : '';
+            outPre.textContent = output;
+        } catch (e) {
+            outPre.className = 'error';
+            outPre.textContent = '❌ Network error: ' + e.message;
+        }
+        _ideRunning = false;
+    };
+
+    window.ideClearOutput = function() {
+        document.getElementById('ideOutputWrap').style.display = 'none';
+        document.getElementById('ideOutput').textContent = '';
+    };
+
+    window.ideNewSnippet = function() {
+        _ideCurrentId = null;
+        document.getElementById('ideTitle').value = 'Untitled';
+        var lang = document.getElementById('ideLang').value;
+        var templates = IDE_TEMPLATES[lang];
+        if (_ideEditor && templates) _ideEditor.setValue(templates[0].code);
+    };
+
+    function updateIdeBtns() {
+        var email = getUserEmail();
+        document.getElementById('ideSaveBtn').style.display = email ? '' : 'none';
+        document.getElementById('ideSavedToggle').style.display = email ? '' : 'none';
+    }
+
+    window.ideSaveSnippet = async function() {
+        var email = getUserEmail();
+        if (!email || !_ideEditor) return showToast('🔒 سجّل دخول الأول عشان تحفظ الكود');
+        var title = document.getElementById('ideTitle').value.trim() || 'Untitled';
+        var lang = document.getElementById('ideLang').value;
+        var code = _ideEditor.getValue();
+        var name = getUserName() || email;
+
+        try {
+            if (_ideCurrentId) {
+                var { error } = await SUPABASE.from('code_snippets').update({ title: title, language: lang, code: code, updated_at: new Date().toISOString() }).eq('id', _ideCurrentId);
+                if (error) throw error;
+                showToast('✅ تم حفظ التحديث!', 'success');
+            } else {
+                var { data, error } = await SUPABASE.from('code_snippets').insert({ student_email: email, student_name: name, title: title, language: lang, code: code }).select().single();
+                if (error) throw error;
+                _ideCurrentId = data.id;
+                showToast('✅ تم الحفظ بنجاح!', 'success');
+            }
+            if (_ideSavedVisible) ideLoadSaved();
+        } catch (e) {
+            showToast('❌ فشل الحفظ: ' + e.message);
+        }
+    };
+
+    window.ideToggleSaved = function() {
+        _ideSavedVisible = !_ideSavedVisible;
+        document.getElementById('ideSavedPanel').style.display = _ideSavedVisible ? '' : 'none';
+        if (_ideSavedVisible) ideLoadSaved();
+    };
+
+    async function ideLoadSaved() {
+        var email = getUserEmail();
+        if (!email) return;
+        var listEl = document.getElementById('ideSavedList');
+        listEl.innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;grid-column:1/-1;">Loading...</p>';
+        try {
+            var { data, error } = await SUPABASE.from('code_snippets').select('*').eq('student_email', email).order('updated_at', { ascending: false });
+            if (error) throw error;
+            _ideSavedSnippets = data || [];
+            if (!_ideSavedSnippets.length) {
+                listEl.innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;grid-column:1/-1;opacity:0.6;">No saved code yet — write and save your first snippet! ✨</p>';
+                return;
+            }
+            var langIcons = { python: '🐍', javascript: '⚡', cpp: '⚙️' };
+            var html = '';
+            _ideSavedSnippets.forEach(function(s) {
+                var d = new Date(s.updated_at);
+                var dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                html += '<div class="ide-saved-card" onclick="ideOpenSnippet(\'' + s.id + '\')">';
+                html += '<button class="ide-card-del" onclick="event.stopPropagation();ideDeleteSnippet(\'' + s.id + '\')" title="Delete">🗑️</button>';
+                html += '<h4>' + escapeHtml(s.title) + '</h4>';
+                html += '<div class="ide-card-meta"><span class="ide-card-lang">' + (langIcons[s.language] || '📝') + ' ' + s.language + '</span><span>' + dateStr + '</span></div>';
+                html += '</div>';
+            });
+            listEl.innerHTML = html;
+        } catch(e) {
+            listEl.innerHTML = '<p style="text-align:center;color:#f87171;padding:20px;grid-column:1/-1;">Error loading: ' + e.message + '</p>';
+        }
+    }
+
+    window.ideOpenSnippet = function(id) {
+        var s = _ideSavedSnippets.find(function(x) { return x.id === id; });
+        if (!s || !_ideEditor) return;
+        _ideCurrentId = s.id;
+        document.getElementById('ideTitle').value = s.title;
+        document.getElementById('ideLang').value = s.language;
+        var monacoLang = s.language === 'cpp' ? 'cpp' : s.language;
+        monaco.editor.setModelLanguage(_ideEditor.getModel(), monacoLang);
+        _ideEditor.setValue(s.code);
+        renderIdeTemplates();
+        document.getElementById('ideSavedPanel').style.display = 'none';
+        _ideSavedVisible = false;
+        smoothNav(null, 'ideSection');
+    };
+
+    window.ideDeleteSnippet = async function(id) {
+        if (!confirm('Delete this snippet?')) return;
+        try {
+            var { error } = await SUPABASE.from('code_snippets').delete().eq('id', id);
+            if (error) throw error;
+            if (_ideCurrentId === id) { _ideCurrentId = null; document.getElementById('ideTitle').value = 'Untitled'; }
+            showToast('🗑️ تم الحذف', 'success');
+            ideLoadSaved();
+        } catch(e) { showToast('❌ ' + e.message); }
+    };
+
+    // Init Monaco when IDE section scrolls into view (lazy)
+    var _ideInited = false;
+    var ideObs = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting && !_ideInited) {
+            _ideInited = true;
+            initIDE();
+            ideObs.disconnect();
+        }
+    }, { rootMargin: '200px' });
+
+    // Wait for DOM
+    function setupIdeObserver() {
+        var el = document.getElementById('ideSection');
+        if (el) ideObs.observe(el);
+        else setTimeout(setupIdeObserver, 500);
+    }
+    setupIdeObserver();
+
+    // Re-check auth state for IDE buttons
+    var _ideAuthCheck = setInterval(function() {
+        if (getUserEmail()) { updateIdeBtns(); clearInterval(_ideAuthCheck); }
+    }, 2000);
+
+    function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+})();
+</script>
