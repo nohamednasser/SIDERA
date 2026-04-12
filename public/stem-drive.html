@@ -5453,7 +5453,8 @@ async function submitExam(forceSubmit = false) {
     }
 }
 
-function showExamResults(score, totalPoints, answers) {
+function showExamResults(score, totalPoints, answers, effortData) {
+    effortData = effortData || { effortStatus: 'genuine', effortScore: 100, avgTimePerQ: 30, answerPatternFlag: false, violations: 0 };
     const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
     
     let gradeLetter, gradeClass, gradeEmoji, gradeColor;
