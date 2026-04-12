@@ -4808,42 +4808,12 @@ function _cancelGracePeriod() {
     }
 }
 
-function _startTabSwitchCountdown() {
-    if (_tabSwitchTimer) return; // already counting
-    _tabSwitchWarnings++;
-    _tabSwitchCountdown = 10;
-    showTabWarning();
-
-    _tabSwitchTimer = setInterval(() => {
-        _tabSwitchCountdown--;
-        updateTabWarning();
-        if (_tabSwitchCountdown <= 0) {
-            clearInterval(_tabSwitchTimer);
-            _tabSwitchTimer = null;
-            // Auto-submit the exam
-            hideTabWarning();
-            showToast('🚫 تم إنهاء الامتحان لأنك خرجت من الصفحة', 'error');
-            _forceSubmitExam();
-        }
-    }, 1000);
-}
-
-function _cancelTabSwitchCountdown() {
-    if (_tabSwitchTimer) {
-        clearInterval(_tabSwitchTimer);
-        _tabSwitchTimer = null;
-    }
-    hideTabWarning();
-
-    // Re-request fullscreen
-    if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        requestExamFullscreen();
-    }
-
-    if (_tabSwitchWarnings >= 1) {
-        showToast('⚠️ تحذير ' + _tabSwitchWarnings + ' - لو خرجت تاني الامتحان هيتقفل!', 'warning');
-    }
-}
+// Legacy functions kept as aliases
+function _startTabSwitchCountdown() { _startGracePeriod('⚠️ خرجت من الصفحة!'); }
+function _cancelTabSwitchCountdown() { _cancelGracePeriod(); }
+function showTabWarning() { document.getElementById('tabWarningOverlay').style.display = 'flex'; }
+function updateTabWarning() { document.getElementById('tabWarningCount').textContent = _graceCountdown; }
+function hideTabWarning() { document.getElementById('tabWarningOverlay').style.display = 'none'; }
 
 function _forceSubmitExam() {
     if (_examTimer) clearInterval(_examTimer);
