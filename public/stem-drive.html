@@ -3651,6 +3651,7 @@ async function loadAllDashboardData() {
         renderCapstoneTab();
         renderChatmgmtTab();
         renderReviewsTab();
+        renderHabdTab();
     } catch (err) {
         console.error('Dashboard error:', err);
         document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
