@@ -1605,6 +1605,7 @@
             <button class="dash-tab" onclick="switchDashTab('capstone', this)">📄 Capstone</button>
             <button class="dash-tab" onclick="switchDashTab('chatmgmt', this)">💬 Chat</button>
             <button class="dash-tab" onclick="switchDashTab('reviews', this)">⭐ Reviews</button>
+            <button class="dash-tab" onclick="switchDashTab('habd', this)">🤡 Habd</button>
         </div>
         <div class="dash-body" id="dashBody">
             <div id="dashTabOverview" class="dash-tab-content active"></div>
@@ -1618,6 +1619,7 @@
             <div id="dashTabCapstone" class="dash-tab-content"></div>
             <div id="dashTabChatmgmt" class="dash-tab-content"></div>
             <div id="dashTabReviews" class="dash-tab-content"></div>
+            <div id="dashTabHabd" class="dash-tab-content"></div>
         </div>
     </div>
 </div>
@@ -3649,6 +3651,7 @@ async function loadAllDashboardData() {
         renderCapstoneTab();
         renderChatmgmtTab();
         renderReviewsTab();
+        renderHabdTab();
     } catch (err) {
         console.error('Dashboard error:', err);
         document.getElementById('dashTabOverview').innerHTML = '<p style="text-align:center;color:var(--accent);">Failed to load stats.</p>';
@@ -4277,6 +4280,68 @@ async function clearAllReviews() {
         loadReviews();
     } catch(e) { showToast('Failed to delete', 'error'); }
     renderReviewsTab();
+}
+
+// ========== HABD LEADERBOARD (Admin) ==========
+function renderHabdTab() {
+    var subs = _dashData.submissions || [];
+    var habds = subs.filter(function(s) { return s.effort_status === 'habd' || s.effort_status === 'suspect'; });
+    habds.sort(function(a, b) { return (a.effort_score || 100) - (b.effort_score || 100); });
+    
+    var habdCount = habds.filter(function(s) { return s.effort_status === 'habd'; }).length;
+    var suspectCount = habds.filter(function(s) { return s.effort_status === 'suspect'; }).length;
+    
+    var html = '<div class="dash-section-title">🤡 Habd Leaderboard — لوحة شرف الهابدين</div>';
+    html += '<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">🤡</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + habdCount + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">هابدين رسميين</div></div>';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">🔍</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + suspectCount + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">مشكوك فيهم</div></div>';
+    html += '<div style="flex:1;min-width:140px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:2rem;">✅</div><div style="font-size:1.8rem;font-weight:900;color:white;">' + (subs.length - habds.length) + '</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.8);font-weight:600;">طلاب مجتهدين</div></div>';
+    html += '</div>';
+    
+    if (habds.length === 0) {
+        html += '<div class="dash-empty" style="text-align:center;padding:40px;"><div style="font-size:3rem;margin-bottom:12px;">🎉</div><div style="font-size:1.1rem;font-weight:700;">مفيش هابدين! كل الطلاب مجتهدين 💪</div></div>';
+    } else {
+        // Top 3 Habdeen podium
+        html += '<div style="text-align:center;margin-bottom:20px;"><h3 style="font-size:1rem;font-weight:800;margin-bottom:12px;">🏆 Top Habdeen 🤡</h3>';
+        html += '<div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">';
+        var top3 = habds.slice(0, 3);
+        var medals = ['🥇', '🥈', '🥉'];
+        top3.forEach(function(s, i) {
+            var exam = (_dashData.exams || []).find(function(e) { return e.id === s.exam_id; });
+            html += '<div style="background:var(--input-bg);border:2px solid ' + (s.effort_status === 'habd' ? '#ef4444' : '#f59e0b') + ';border-radius:16px;padding:16px;min-width:140px;text-align:center;">' +
+                '<div style="font-size:1.5rem;">' + medals[i] + '</div>' +
+                '<div style="font-size:0.85rem;font-weight:800;margin-top:4px;">' + esc(s.student_name) + '</div>' +
+                '<div style="font-size:0.7rem;color:var(--text);opacity:0.6;margin-top:2px;">' + (exam ? esc(exam.title) : 'Unknown') + '</div>' +
+                '<div style="font-size:0.75rem;font-weight:700;color:' + (s.effort_status === 'habd' ? '#ef4444' : '#f59e0b') + ';margin-top:6px;">Effort: ' + (s.effort_score || 0) + '% ' + (s.effort_status === 'habd' ? '🤡' : '🔍') + '</div>' +
+                '<div style="font-size:0.65rem;color:var(--text);opacity:0.5;margin-top:2px;">⏱ ' + (s.time_per_question_avg || 0).toFixed(1) + 's/Q</div>' +
+            '</div>';
+        });
+        html += '</div></div>';
+        
+        // Full table
+        html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
+        html += '<thead><tr style="background:var(--input-bg);"><th style="padding:10px;text-align:left;font-weight:700;">الطالب</th><th style="padding:10px;text-align:left;">الامتحان</th><th style="padding:10px;text-align:center;">الحالة</th><th style="padding:10px;text-align:center;">Effort</th><th style="padding:10px;text-align:center;">⏱ Avg/Q</th><th style="padding:10px;text-align:center;">🔄 Pattern</th><th style="padding:10px;text-align:center;">⚠️ Violations</th><th style="padding:10px;text-align:center;">النتيجة</th></tr></thead><tbody>';
+        habds.forEach(function(s) {
+            var exam = (_dashData.exams || []).find(function(e) { return e.id === s.exam_id; });
+            var statusBadge = s.effort_status === 'habd' 
+                ? '<span style="background:#ef4444;color:white;padding:3px 10px;border-radius:8px;font-weight:700;font-size:0.7rem;">🤡 هابد</span>'
+                : '<span style="background:#f59e0b;color:white;padding:3px 10px;border-radius:8px;font-weight:700;font-size:0.7rem;">🔍 مشكوك</span>';
+            var pctScore = s.total_points > 0 ? Math.round((s.score / s.total_points) * 100) : 0;
+            html += '<tr style="border-bottom:1px solid var(--border);">' +
+                '<td style="padding:10px;font-weight:600;">' + esc(s.student_name) + '<div style="font-size:0.65rem;color:var(--text);opacity:0.5;">' + esc(s.student_email) + '</div></td>' +
+                '<td style="padding:10px;">' + (exam ? esc(exam.title) : '-') + '</td>' +
+                '<td style="padding:10px;text-align:center;">' + statusBadge + '</td>' +
+                '<td style="padding:10px;text-align:center;font-weight:700;color:' + ((s.effort_score || 0) < 30 ? '#ef4444' : '#f59e0b') + ';">' + (s.effort_score || 0) + '%</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.time_per_question_avg || 0).toFixed(1) + 's</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.answer_pattern_flag ? '🔴 Yes' : '🟢 No') + '</td>' +
+                '<td style="padding:10px;text-align:center;">' + (s.security_violations || 0) + '</td>' +
+                '<td style="padding:10px;text-align:center;font-weight:700;">' + pctScore + '%</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+    }
+    
+    document.getElementById('dashTabHabd').innerHTML = html;
 }
 
 // === SECTION NAV ===
@@ -5098,6 +5163,9 @@ async function loadAndStartExam(examId) {
         document.getElementById('examTakingModal').classList.add('show');
         document.getElementById('examTakingTitle').textContent = _currentExamData.title;
         
+        // Track exam start time for Habd Detector
+        _examStartedAt = Date.now();
+        
         // Enable exam security: fullscreen + screenshot prevention + tab switch detection
         enableExamSecurity();
         
@@ -5139,6 +5207,7 @@ function updateTimerDisplay() {
 
 let _currentQIdx = 0;
 let _examAnswers = {}; // Store answers by question id
+let _examStartedAt = 0; // Timestamp when exam started
 
 function renderExamQuestions() {
     _currentQIdx = 0;
@@ -5342,6 +5411,62 @@ async function submitExam(forceSubmit = false) {
             }
         });
 
+        // ========== HABD DETECTOR ==========
+        const totalTimeSec = Math.max(1, Math.round((Date.now() - _examStartedAt) / 1000));
+        const numQ = _currentExamQuestions.length;
+        const avgTimePerQ = totalTimeSec / numQ;
+        
+        // 1. Time factor (0-40 points)
+        let timeScore = 0;
+        if (avgTimePerQ >= 20) timeScore = 40;
+        else if (avgTimePerQ >= 10) timeScore = Math.round(20 + (avgTimePerQ - 10) * 2);
+        else if (avgTimePerQ >= 5) timeScore = Math.round(avgTimePerQ * 2);
+        else timeScore = 0;
+        
+        // 2. Answer pattern detection (0-40 points)
+        let patternScore = 40;
+        let answerPatternFlag = false;
+        const mcqAnswers = [];
+        _currentExamQuestions.forEach(q => {
+            if (q.question_type === 'mcq' || q.question_type === 'tf') {
+                mcqAnswers.push(_examAnswers[q.id] || '');
+            }
+        });
+        if (mcqAnswers.length >= 4) {
+            // Check same answer repetition
+            const freq = {};
+            mcqAnswers.forEach(a => { freq[a] = (freq[a] || 0) + 1; });
+            const maxFreq = Math.max(...Object.values(freq));
+            const sameAnswerRatio = maxFreq / mcqAnswers.length;
+            if (sameAnswerRatio > 0.7) { patternScore = 5; answerPatternFlag = true; }
+            else if (sameAnswerRatio > 0.5) { patternScore = 20; answerPatternFlag = true; }
+            
+            // Check sequential pattern (A,B,C,D,A,B...)
+            let seqMatches = 0;
+            for (let i = 1; i < mcqAnswers.length; i++) {
+                if (mcqAnswers[i] !== '' && mcqAnswers[i] === mcqAnswers[i-1]) seqMatches++;
+            }
+            if (seqMatches / mcqAnswers.length > 0.6) { patternScore = Math.min(patternScore, 10); answerPatternFlag = true; }
+        }
+        
+        // 3. Security violations factor (0-20 points)
+        let securityScore = 20;
+        const violations = _tabSwitchWarnings || 0;
+        if (violations >= 5) securityScore = 0;
+        else if (violations >= 3) securityScore = 5;
+        else if (violations >= 1) securityScore = 10;
+        
+        const effortScore = Math.min(100, timeScore + patternScore + securityScore);
+        const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
+        
+        // Determine effort status
+        let effortStatus = 'genuine';
+        if (effortScore < 25) effortStatus = 'habd';
+        else if (effortScore < 50 && pct > 80) effortStatus = 'suspect';
+        else if (avgTimePerQ < 5 && pct > 70) effortStatus = 'suspect';
+        
+        // ========== END HABD DETECTOR ==========
+
         // Build fresh headers with guaranteed-valid token
         const freshHeaders = {
             'apikey': SUPABASE_ANON_KEY,
@@ -5360,7 +5485,11 @@ async function submitExam(forceSubmit = false) {
                 score,
                 total_points: totalPoints,
                 submitted_at: new Date().toISOString(),
-                security_violations: _tabSwitchWarnings || 0
+                security_violations: violations,
+                effort_status: effortStatus,
+                effort_score: effortScore,
+                time_per_question_avg: Math.round(avgTimePerQ * 10) / 10,
+                answer_pattern_flag: answerPatternFlag
             })
         });
         if (!subRes.ok) throw new Error('Submit failed: ' + await subRes.text());
@@ -5379,7 +5508,7 @@ async function submitExam(forceSubmit = false) {
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
-        showExamResults(score, totalPoints, answers);
+        showExamResults(score, totalPoints, answers, { effortStatus, effortScore, avgTimePerQ, answerPatternFlag, violations });
     } catch (err) {
         console.error('submitExam error:', err);
         const msg = String(err && err.message ? err.message : err);
@@ -5389,7 +5518,8 @@ async function submitExam(forceSubmit = false) {
     }
 }
 
-function showExamResults(score, totalPoints, answers) {
+function showExamResults(score, totalPoints, answers, effortData) {
+    effortData = effortData || { effortStatus: 'genuine', effortScore: 100, avgTimePerQ: 30, answerPatternFlag: false, violations: 0 };
     const pct = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
     
     let gradeLetter, gradeClass, gradeEmoji, gradeColor;
@@ -5476,10 +5606,43 @@ function showExamResults(score, totalPoints, answers) {
     });
     reviewHtml += '</div>';
 
+    // ========== HABD DETECTOR UI ==========
+    let habdBanner = '';
+    if (effortData.effortStatus === 'habd') {
+        habdBanner = '<div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;animation:bounceIn 0.6s cubic-bezier(.68,-.55,.27,1.55);">' +
+            '<div style="font-size:3rem;margin-bottom:8px;">🤡</div>' +
+            '<div style="font-size:1.3rem;font-weight:900;color:white;">يا هبّاد!</div>' +
+            '<div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-top:8px;">نظامنا رصد إنك كنت بتهبد! 😂</div>' +
+            '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">' +
+                '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">⏱ ' + Math.round(effortData.avgTimePerQ) + 's/سؤال</span>' +
+                (effortData.answerPatternFlag ? '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">🔄 نمط متكرر</span>' : '') +
+                '<span style="background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">📊 Effort: ' + effortData.effortScore + '%</span>' +
+            '</div>' +
+            '<div style="font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:12px;">🚫 مفيش شهادة للهابدين!</div>' +
+        '</div>';
+    } else if (effortData.effortStatus === 'suspect') {
+        habdBanner = '<div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">' +
+            '<div style="font-size:2rem;">🔍</div>' +
+            '<div style="font-size:1rem;font-weight:800;color:white;">نتيجة مشكوك فيها</div>' +
+            '<div style="font-size:0.8rem;color:rgba(255,255,255,0.85);margin-top:6px;">نظامنا رصد سرعة غير عادية. تم حجب الشهادة للمراجعة.</div>' +
+            '<div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;">' +
+                '<span style="background:rgba(0,0,0,0.25);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">⏱ ' + Math.round(effortData.avgTimePerQ) + 's/سؤال</span>' +
+                '<span style="background:rgba(0,0,0,0.25);padding:4px 12px;border-radius:8px;color:white;font-size:0.75rem;">📊 Effort: ' + effortData.effortScore + '%</span>' +
+            '</div>' +
+        '</div>';
+    }
+    // Effort score badge for genuine students
+    let effortBadge = '';
+    if (effortData.effortStatus === 'genuine' && effortData.effortScore >= 80) {
+        effortBadge = '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;color:#22c55e;margin-top:8px;">✅ Verified Effort: ' + effortData.effortScore + '%</div>';
+    }
+
     document.getElementById('examResultBody').innerHTML = 
         '<div class="result-card">' +
+            habdBanner +
             '<div style="font-size:3rem;margin-bottom:8px;animation:bounceIn 0.5s cubic-bezier(.68,-.55,.27,1.55);">' + gradeEmoji + '</div>' +
             '<div class="grade-label ' + gradeClass + '" style="animation:bounceIn 0.6s cubic-bezier(.68,-.55,.27,1.55) 0.1s both;">' + gradeLetter + '</div>' +
+            effortBadge +
             scoreRing +
             statsGrid +
             reviewHtml +
@@ -5487,12 +5650,11 @@ function showExamResults(score, totalPoints, answers) {
         '<style>@keyframes bounceIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}</style>';
     document.getElementById('examResultModal').classList.add('show');
 
-    // Confetti for high scores!
-    if (pct >= 70) launchConfetti();
+    // Confetti only for genuine high scorers!
+    if (pct >= 70 && effortData.effortStatus === 'genuine') launchConfetti();
     
-    // Generate certificate for passing students (>= 50%)
-    if (pct >= 50 && _studentInfo && _currentExamData) {
-        // Add certificate button to results
+    // Generate certificate ONLY for genuine passing students (>= 50%)
+    if (pct >= 50 && effortData.effortStatus === 'genuine' && _studentInfo && _currentExamData) {
         setTimeout(() => {
             const resultBody = document.getElementById('examResultBody');
             const certDiv = document.createElement('div');
