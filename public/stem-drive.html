@@ -2171,6 +2171,33 @@ async function openPreview(itemId) {
     const item = StorageManager.getFileFromCache(itemId) || await StorageManager.getFile(itemId);
     if (!item) return;
 
+    const url = item.url || '';
+    const typeLower = (item.type || '').toLowerCase();
+    const ft = (item.fileType || '').toLowerCase();
+    const fn = (item.fileName || '').toLowerCase();
+    const isVideo = typeLower === 'video' || url.includes('youtube.com') || url.includes('youtu.be') || ft.startsWith('video/');
+    const isPdf = ft === 'application/pdf' || fn.endsWith('.pdf');
+    const isLink = typeLower === 'link' || (url && !item.storagePath && !isVideo && !isPdf);
+
+    // Videos: open directly in new tab
+    if (isVideo && url) {
+        window.open(url, '_blank');
+        return;
+    }
+
+    // Links: open directly in new tab
+    if (isLink && url) {
+        window.open(url, '_blank');
+        return;
+    }
+
+    // PDFs from storage: open in built-in PDF viewer
+    // PDFs from URL: open in new tab
+    if (isPdf && url && !item.storagePath) {
+        window.open(url, '_blank');
+        return;
+    }
+
     const modal = document.getElementById('previewModal');
     const previewBody = document.getElementById('previewBody');
     const previewTitle = document.getElementById('previewTitle');
@@ -2179,9 +2206,8 @@ async function openPreview(itemId) {
     previewTitle.textContent = item.fileName || item.title;
     modal.classList.add('show');
 
-    // External link
-    const url = item.url || '';
-    if (url) {
+    // External link (Google Drive etc - fallback)
+    if (url && !item.storagePath) {
         if (url.includes('drive.google.com')) {
             const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
             if (fileId) previewBody.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%;height:100%;border:none;" loading="eager"></iframe>';
