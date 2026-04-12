@@ -8079,9 +8079,18 @@ function openLabLogEditor(existingLog) {
         renderLabLogDataRows();
     }
 
-    // If existing procedure text, start in text mode
+    // If existing procedure text, decide mode
     if (log.procedure_text) {
-        lbSwitchMode('text', document.querySelectorAll('.lb-toggle-btn')[1]);
+        if (log.procedure_text.startsWith('[LB]')) {
+            // Has blocks — stay in blocks mode (lbInit already parsed them)
+            // Extract clean text after ---
+            var parts = log.procedure_text.split('\n---\n');
+            if (parts.length > 1) {
+                document.getElementById('llProcedure').value = parts.slice(1).join('\n---\n');
+            }
+        } else {
+            lbSwitchMode('text', document.querySelectorAll('.lb-toggle-btn')[1]);
+        }
     }
 }
 
