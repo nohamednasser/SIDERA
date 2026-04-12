@@ -1136,34 +1136,45 @@
 
 <div id="adminPanel">
     <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
-        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
-        <button class="control-btn" id="tabExams" onclick="showAdminTab('exams')">📝 Create Exam</button>
-    </div>
+         <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+         <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+         <button class="control-btn" id="tabExams" onclick="showAdminTab('exams')">📝 Create Exam</button>
+         <button class="control-btn" id="tabLOs" onclick="showAdminTab('los')">🎯 Learning Outcomes</button>
+     </div>
 
-    <div id="adminUploadTab">
-        <div class="form-grid">
-            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-            <select id="gradeIn">
-                <option value="G10">Grade 10</option>
-                <option value="G11">Grade 11</option>
-                <option value="G12">Grade 12</option>
-            </select>
-            <select id="semesterIn">
-                <option value="S1">Semester 1</option>
-                <option value="S2">Semester 2</option>
-            </select>
-            <select id="subIn"></select>
-            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
-                <div id="zipPreviewArea"></div>
-                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
-            </div>
-            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
-        </div>
-        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
-    </div>
+     <div id="adminUploadTab">
+         <div class="form-grid">
+             <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+             <select id="gradeIn" onchange="populateLODropdown('loIn', this.value, document.getElementById('subIn').value)">
+                 <option value="G10">Grade 10</option>
+                 <option value="G11">Grade 11</option>
+                 <option value="G12">Grade 12</option>
+             </select>
+             <select id="semesterIn">
+                 <option value="S1">Semester 1</option>
+                 <option value="S2">Semester 2</option>
+             </select>
+             <select id="subIn" onchange="populateLODropdown('loIn', document.getElementById('gradeIn').value, this.value)"></select>
+             <select id="loIn" class="full-w"><option value="">— No LO (General) —</option></select>
+             <select id="matTypeIn">
+                 <option value="Local File">📁 Local File</option>
+                 <option value="Web Link">🔗 Web Link</option>
+                 <option value="LO Summary">📋 LO Summary</option>
+                 <option value="Past Paper">📝 Past Paper</option>
+                 <option value="Self-Assessment">✅ Self-Assessment</option>
+                 <option value="Reference Link">🔗 Reference Link</option>
+                 <option value="Video">🎬 Video</option>
+             </select>
+             <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                 <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
+                 <div id="zipPreviewArea"></div>
+                 <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+             </div>
+             <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+             <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+         </div>
+         <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+     </div>
 
     <div id="adminSubjectsTab" style="display:none;">
         <div class="form-grid">
