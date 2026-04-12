@@ -2594,11 +2594,12 @@ async function _saveUserPrefsNow() {
 async function initApp() {
     try {
         // Parallelize session restore, data loading, and preferences
-        const [_, __, ___, ____] = await Promise.all([
+        await Promise.all([
             restoreSession(),
             StorageManager.init(),
             loadSubjectsFromDB(),
-            loadUserPrefs()
+            loadUserPrefs(),
+            loadLearningOutcomes()
         ]);
         setupApp();
         // Apply saved filters to UI
