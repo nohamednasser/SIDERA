@@ -4348,6 +4348,7 @@ function disableExamSecurity() {
     if (examTakingModal) examTakingModal.removeEventListener('pointerdown', _retryFullscreenOnInteraction, true);
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
+    if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
     hideTabWarning();
     window.removeEventListener('blur', _onScreenCaptureBlur);
     window.removeEventListener('focus', _onScreenCaptureFocus);
