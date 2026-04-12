@@ -8192,7 +8192,8 @@ function lbInit(log) {
     // If log has procedure text, try to parse blocks from it
     if (log && log.procedure_text && log.procedure_text.startsWith('[LB]')) {
         try {
-            _lbBlocks = JSON.parse(log.procedure_text.substring(4));
+            var lbData = log.procedure_text.split('\n---\n')[0].substring(4);
+            _lbBlocks = JSON.parse(lbData);
         } catch(e) { _lbBlocks = []; }
     }
     lbRenderWorkspace();
