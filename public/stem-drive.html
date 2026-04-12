@@ -2017,8 +2017,33 @@ function mapRow(r) {
         url: r.url || '', desc: r.description || '', type: r.type,
         fileName: r.file_name || '', fileSize: r.file_size || 0,
         fileType: r.file_type || '', storagePath: r.storage_path || '',
-        createdAt: r.created_at
+        createdAt: r.created_at, loId: r.lo_id || ''
     };
+}
+
+// === Learning Outcomes Cache ===
+var _loCache = null;
+async function loadLearningOutcomes() {
+    if (_loCache) return _loCache;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes?select=*&order=sort_order.asc,lo_code.asc', { headers: getSbHeaders() });
+        if (!res.ok) throw new Error('LO fetch failed');
+        _loCache = await res.json();
+        return _loCache;
+    } catch(e) { console.error('LO load error:', e); return []; }
+}
+function getLOsForGradeSubject(grade, subject) {
+    if (!_loCache) return [];
+    return _loCache.filter(lo => lo.grade === grade && lo.subject === subject);
+}
+async function populateLODropdown(selectId, grade, subject) {
+    const los = await loadLearningOutcomes();
+    const filtered = los.filter(lo => lo.grade === grade && lo.subject === subject);
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— No LO (General) —</option>' + filtered.map(lo =>
+        '<option value="' + lo.id + '">' + lo.lo_code + ' — ' + lo.title + '</option>'
+    ).join('');
 }
 
 class StorageManager {
