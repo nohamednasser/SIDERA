@@ -255,6 +255,9 @@ export type Database = {
       }
       exam_submissions: {
         Row: {
+          answer_pattern_flag: boolean | null
+          effort_score: number | null
+          effort_status: string
           exam_id: string
           id: string
           score: number | null
@@ -263,9 +266,13 @@ export type Database = {
           student_email: string
           student_name: string
           submitted_at: string | null
+          time_per_question_avg: number | null
           total_points: number | null
         }
         Insert: {
+          answer_pattern_flag?: boolean | null
+          effort_score?: number | null
+          effort_status?: string
           exam_id: string
           id?: string
           score?: number | null
@@ -274,9 +281,13 @@ export type Database = {
           student_email: string
           student_name: string
           submitted_at?: string | null
+          time_per_question_avg?: number | null
           total_points?: number | null
         }
         Update: {
+          answer_pattern_flag?: boolean | null
+          effort_score?: number | null
+          effort_status?: string
           exam_id?: string
           id?: string
           score?: number | null
@@ -285,6 +296,7 @@ export type Database = {
           student_email?: string
           student_name?: string
           submitted_at?: string | null
+          time_per_question_avg?: number | null
           total_points?: number | null
         }
         Relationships: [
