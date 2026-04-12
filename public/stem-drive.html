@@ -8067,6 +8067,9 @@ function openLabLogEditor(existingLog) {
 
     document.getElementById('labLogEditorContent').innerHTML = html;
 
+    // Init Logic Builder
+    lbInit(log);
+
     // Load existing data points
     if (log.id) {
         loadLabLogDataPoints(log.id);
@@ -8074,6 +8077,11 @@ function openLabLogEditor(existingLog) {
         // Start with 3 empty rows
         _labLogDataPoints = [{x:0,y:0},{x:0,y:0},{x:0,y:0}];
         renderLabLogDataRows();
+    }
+
+    // If existing procedure text, start in text mode
+    if (log.procedure_text) {
+        lbSwitchMode('text', document.querySelectorAll('.lb-toggle-btn')[1]);
     }
 }
 
