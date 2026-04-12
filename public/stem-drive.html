@@ -4776,22 +4776,29 @@ function _onFullscreenChange() {
 // === Unified 5-second grace period ===
 var _graceTimer = null;
 var _graceCountdown = 5;
+var _graceCooldown = false; // prevents re-trigger right after cancel
 
 function _startGracePeriod(reason) {
     if (_graceTimer) return; // already running
+    if (_graceCooldown) return; // just cancelled, ignore rapid re-triggers
     _graceCountdown = 5;
     var overlay = document.getElementById('tabWarningOverlay');
+    if (!overlay) return;
     overlay.style.display = 'flex';
-    document.getElementById('tabWarningCount').textContent = _graceCountdown;
-    document.getElementById('graceReason').textContent = reason;
+    var countEl = document.getElementById('tabWarningCount');
+    var reasonEl = document.getElementById('graceReason');
+    if (countEl) countEl.textContent = _graceCountdown;
+    if (reasonEl) reasonEl.textContent = reason;
     showToast(reason + ' عندك 5 ثواني ترجع!', 'warning', 5500);
 
     _graceTimer = setInterval(function() {
         _graceCountdown--;
-        document.getElementById('tabWarningCount').textContent = _graceCountdown;
+        var cEl = document.getElementById('tabWarningCount');
+        if (cEl) cEl.textContent = _graceCountdown;
         if (_graceCountdown <= 0) {
             clearInterval(_graceTimer); _graceTimer = null;
-            overlay.style.display = 'none';
+            var ov = document.getElementById('tabWarningOverlay');
+            if (ov) ov.style.display = 'none';
             showToast('🚫 تم إنهاء الامتحان — ما رجعتش في الوقت!', 'error');
             _forceSubmitExam();
         }
@@ -4801,9 +4808,15 @@ function _startGracePeriod(reason) {
 function _cancelGracePeriod() {
     if (_graceTimer) {
         clearInterval(_graceTimer); _graceTimer = null;
-        document.getElementById('tabWarningOverlay').style.display = 'none';
-        showToast('✅ رجعت بنجاح — كمّل الامتحان!', 'success');
     }
+    var overlay = document.getElementById('tabWarningOverlay');
+    if (overlay) overlay.style.display = 'none';
+    showToast('✅ رجعت بنجاح — كمّل الامتحان!', 'success');
+    
+    // Set cooldown to prevent blur/visibility events from re-triggering immediately
+    _graceCooldown = true;
+    setTimeout(function() { _graceCooldown = false; }, 1500);
+    
     // Re-enter fullscreen if needed
     if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
         requestExamFullscreen();
