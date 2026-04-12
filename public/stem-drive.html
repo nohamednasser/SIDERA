@@ -8582,7 +8582,7 @@ async function saveLabLog() {
         subject: document.getElementById('llSubject').value,
         grade: document.getElementById('llGrade').value,
         hypothesis: document.getElementById('llHypothesis').value.trim(),
-        procedure_text: document.getElementById('llProcedure').value.trim(),
+        procedure_text: typeof lbGetProcedureText === 'function' ? lbGetProcedureText() : document.getElementById('llProcedure').value.trim(),
         conclusion: document.getElementById('llConclusion').value.trim(),
         student_email: getUserEmail(),
         student_name: getUserEmail().split('@')[0],
