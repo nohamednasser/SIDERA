@@ -3071,11 +3071,24 @@ async function render() {
                 card.className = 'card';
                 const sizeStr = item.fileSize ? ' · ' + formatSize(item.fileSize) : '';
 
+                // Determine smart button label based on type
+                const url = item.url || '';
+                const ft = (item.fileType || '').toLowerCase();
+                const fn = (item.fileName || '').toLowerCase();
+                const typeLower = (item.type || '').toLowerCase();
+                const isVideo = typeLower === 'video' || url.includes('youtube.com') || url.includes('youtu.be') || ft.startsWith('video/');
+                const isLink = typeLower === 'link' || (url && !item.storagePath && !isVideo);
+                const isPdf = ft === 'application/pdf' || fn.endsWith('.pdf');
+                let openBtnLabel = '👁️ Preview';
+                if (isVideo) openBtnLabel = '🎬 Open Video';
+                else if (isPdf) openBtnLabel = '📄 Open PDF';
+                else if (isLink) openBtnLabel = '🔗 Open Link';
+
                 card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:flex;align-items:center;justify-content:center' : '') + '" data-id="' + item.id + '" title="Delete">🗑️</button>' +
                     '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
                     '<h3>' + item.title + '</h3>' +
                     '<p>' + (item.desc || 'No additional notes.') + '</p>' +
-                    '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">👁️ Preview</button><button class="btn-dl" data-id="' + item.id + '">📥 Download</button></div>';
+                    '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">' + openBtnLabel + '</button>' + (item.storagePath ? '<button class="btn-dl" data-id="' + item.id + '">📥 Download</button>' : '') + '</div>';
 
                 frag.appendChild(card);
                 count++;
