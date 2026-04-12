@@ -3334,14 +3334,98 @@ function showAdminTab(tab) {
     document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
     document.getElementById('adminSubjectsTab').style.display = tab === 'subjects' ? 'block' : 'none';
     document.getElementById('adminExamsTab').style.display = tab === 'exams' ? 'block' : 'none';
-    document.getElementById('tabUpload').style.borderColor = tab === 'upload' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabUpload').style.color = tab === 'upload' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabSubjects').style.borderColor = tab === 'subjects' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabSubjects').style.color = tab === 'subjects' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabExams').style.borderColor = tab === 'exams' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabExams').style.color = tab === 'exams' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('adminLOsTab').style.display = tab === 'los' ? 'block' : 'none';
+    ['tabUpload','tabSubjects','tabExams','tabLOs'].forEach(id => {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var active = (id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)) ||
+                     (tab === 'upload' && id === 'tabUpload') ||
+                     (tab === 'subjects' && id === 'tabSubjects') ||
+                     (tab === 'exams' && id === 'tabExams') ||
+                     (tab === 'los' && id === 'tabLOs');
+        el.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+        el.style.color = active ? 'var(--accent)' : 'var(--text)';
+    });
     if (tab === 'subjects') renderSubjectsList();
     if (tab === 'exams') populateExamSubjects();
+    if (tab === 'upload') populateLODropdown('loIn', document.getElementById('gradeIn').value, document.getElementById('subIn').value);
+    if (tab === 'los') { populateLOSubjectFilters(); renderLOsList(); populateLOFormSubjects(); }
+}
+
+function populateLOSubjectFilters() {
+    var sel = document.getElementById('loFilterSubject');
+    if (!sel) return;
+    sel.innerHTML = '<option value="All">All Subjects</option>' + subjectData.map(s => '<option value="' + s.name + '">' + s.icon + ' ' + s.name + '</option>').join('');
+}
+function populateLOFormSubjects() {
+    var sel = document.getElementById('loSubjectIn');
+    if (!sel) return;
+    sel.innerHTML = subjectData.map(s => '<option value="' + s.name + '">' + s.icon + ' ' + s.name + '</option>').join('');
+}
+
+async function addLearningOutcome() {
+    var grade = document.getElementById('loGradeIn').value;
+    var subject = document.getElementById('loSubjectIn').value;
+    var loCode = document.getElementById('loCodeIn').value.trim();
+    var title = document.getElementById('loTitleIn').value.trim();
+    var desc = document.getElementById('loDescIn').value.trim();
+    if (!loCode || !title) { showToast('Please enter LO code and title!', 'warning'); return; }
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes', {
+            method: 'POST', headers: getSbHeaders(),
+            body: JSON.stringify({ grade: grade, subject: subject, lo_code: loCode, title: title, description: desc })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        showToast('✅ LO added: ' + loCode, 'success');
+        document.getElementById('loCodeIn').value = '';
+        document.getElementById('loTitleIn').value = '';
+        document.getElementById('loDescIn').value = '';
+        _loCache = null;
+        await loadLearningOutcomes();
+        renderLOsList();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteLO(id) {
+    if (!confirm('Delete this Learning Outcome?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes?id=eq.' + id, { method: 'DELETE', headers: getSbHeaders() });
+        showToast('🗑️ LO deleted', 'success');
+        _loCache = null;
+        await loadLearningOutcomes();
+        renderLOsList();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function renderLOsList() {
+    var container = document.getElementById('losList');
+    if (!container) return;
+    var los = await loadLearningOutcomes();
+    var fg = document.getElementById('loFilterGrade').value;
+    var fs = document.getElementById('loFilterSubject').value;
+    var filtered = los.filter(lo => (fg === 'All' || lo.grade === fg) && (fs === 'All' || lo.subject === fs));
+    if (filtered.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">No Learning Outcomes found. Add one above!</p>'; return; }
+    // Group by grade+subject
+    var groups = {};
+    filtered.forEach(lo => {
+        var key = lo.grade + ' — ' + lo.subject;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(lo);
+    });
+    var html = '';
+    Object.keys(groups).sort().forEach(key => {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:700;font-size:0.85rem;color:var(--accent);margin-bottom:8px;padding:6px 12px;background:rgba(163,64,84,0.08);border-radius:10px;">📚 ' + key + ' (' + groups[key].length + ' LOs)</div>';
+        groups[key].forEach(lo => {
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--input-bg);">' +
+                '<div><span style="font-weight:700;color:var(--accent);font-size:0.85rem;">' + lo.lo_code + '</span> <span style="font-size:0.85rem;color:var(--dark);">' + lo.title + '</span>' +
+                (lo.description ? '<div style="font-size:0.72rem;color:var(--text);margin-top:2px;">' + lo.description + '</div>' : '') +
+                '</div>' +
+                '<button onclick="deleteLO(\'' + lo.id + '\')" style="background:#ff4d4d;color:white;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;flex-shrink:0;">🗑️</button>' +
+            '</div>';
+        });
+        html += '</div>';
+    });
+    container.innerHTML = html;
 }
 
 function renderSubjectsList() {
