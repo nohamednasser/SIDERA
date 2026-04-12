@@ -8014,7 +8014,28 @@ function openLabLogEditor(existingLog) {
             '<div class="lablog-field"><label>Grade</label><select id="llGrade"><option value="G10"' + (log.grade==='G10'?' selected':'') + '>G10</option><option value="G11"' + (log.grade==='G11'?' selected':'') + '>G11</option><option value="G12"' + (log.grade==='G12'?' selected':'') + '>G12</option></select></div>' +
         '</div>' +
         '<div class="lablog-field"><label>Hypothesis (الفرضية)</label><textarea id="llHypothesis" placeholder="If... then... because...">' + escapeHtml(log.hypothesis || '') + '</textarea></div>' +
-        '<div class="lablog-field"><label>Procedure (الخطوات)</label><textarea id="llProcedure" placeholder="Step-by-step procedure...">' + escapeHtml(log.procedure_text || '') + '</textarea></div>' +
+        '<div class="lablog-field">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+                '<label style="font-weight:700;font-size:0.8rem;color:var(--dark);">Procedure (الخطوات)</label>' +
+                '<div class="lb-toggle" id="lbModeToggle">' +
+                    '<button class="lb-toggle-btn active" onclick="lbSwitchMode(\'blocks\',this)">🧩 Blocks</button>' +
+                    '<button class="lb-toggle-btn" onclick="lbSwitchMode(\'text\',this)">📝 Text</button>' +
+                '</div>' +
+            '</div>' +
+            '<div id="lbBlocksView">' +
+                '<div class="lb-container">' +
+                    '<div class="lb-palette" id="lbPalette"></div>' +
+                    '<div class="lb-workspace" id="lbWorkspace"><div class="lb-workspace-title">⬇️ اسحب الـ Blocks هنا لبناء الخطوات</div></div>' +
+                '</div>' +
+                '<div class="lb-gen-bar">' +
+                    '<button class="lablog-btn lablog-btn-primary" onclick="lbGenerateProcedure()" style="font-size:0.78rem;">🤖 Generate Scientific Procedure</button>' +
+                    '<span style="font-size:0.7rem;color:var(--text);opacity:0.6;">AI يحول البلوكات لنص علمي منظم</span>' +
+                '</div>' +
+            '</div>' +
+            '<div id="lbTextView" style="display:none;">' +
+                '<textarea id="llProcedure" placeholder="Step-by-step procedure...">' + escapeHtml(log.procedure_text || '') + '</textarea>' +
+            '</div>' +
+        '</div>' +
 
         '<div style="margin:20px 0;">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
