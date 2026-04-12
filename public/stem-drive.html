@@ -4820,19 +4820,7 @@ function _forceSubmitExam() {
     submitExam(true);
 }
 
-function showTabWarning() {
-    const overlay = document.getElementById('tabWarningOverlay');
-    overlay.style.display = 'flex';
-    updateTabWarning();
-}
-
-function updateTabWarning() {
-    document.getElementById('tabWarningCount').textContent = _tabSwitchCountdown;
-}
-
-function hideTabWarning() {
-    document.getElementById('tabWarningOverlay').style.display = 'none';
-}
+// Duplicate legacy functions removed — using _startGracePeriod/_cancelGracePeriod instead
 
 
 let _allExams = [];
