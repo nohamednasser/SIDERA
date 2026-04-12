@@ -3013,6 +3013,8 @@ async function saveToHub() {
 
     try {
 
+        const matType = document.getElementById('matTypeIn').value;
+        const loVal = document.getElementById('loIn').value;
         const entry = {
             title,
             grade: document.getElementById('gradeIn').value,
@@ -3020,10 +3022,11 @@ async function saveToHub() {
             subject: document.getElementById('subIn').value,
             url: hasLink ? linkValue : '',
             desc: document.getElementById('desc').value,
-            type: hasFile ? 'Local File' : 'Web Link',
+            type: hasFile ? (matType === 'Local File' ? 'Local File' : matType) : (matType !== 'Local File' ? matType : 'Web Link'),
             fileName: uploadedFileName || '',
             fileSize: uploadedFileSize || 0,
             fileType: uploadedFileType || '',
+            loId: loVal || null,
             createdAt: new Date().toISOString()
         };
 
