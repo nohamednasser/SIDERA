@@ -929,6 +929,38 @@
         .lablog-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
         .lablog-btn-secondary { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border); }
         .lablog-btn-danger { background: #ef4444; color: white; }
+
+        /* Logic Builder Blocks */
+        .lb-container { display: flex; gap: 16px; margin-top: 8px; }
+        .lb-palette { width: 200px; min-width: 180px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 12px; max-height: 400px; overflow-y: auto; }
+        .lb-palette-title { font-size: 0.75rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lb-palette-cat { font-size: 0.68rem; font-weight: 700; color: var(--text); margin: 10px 0 6px; opacity: 0.6; }
+        .lb-block { padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; cursor: grab; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; transition: transform 0.15s, box-shadow 0.15s; user-select: none; border: 2px solid transparent; }
+        .lb-block:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .lb-block:active { cursor: grabbing; }
+        .lb-block.cat-setup { background: rgba(59,130,246,0.12); color: #2563eb; border-color: rgba(59,130,246,0.2); }
+        .lb-block.cat-measure { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.2); }
+        .lb-block.cat-action { background: rgba(245,158,11,0.12); color: #d97706; border-color: rgba(245,158,11,0.2); }
+        .lb-block.cat-record { background: rgba(139,92,246,0.12); color: #7c3aed; border-color: rgba(139,92,246,0.2); }
+        .lb-block.cat-safety { background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.2); }
+        .lb-block.cat-control { background: rgba(236,72,153,0.12); color: #db2777; border-color: rgba(236,72,153,0.2); }
+        .lb-workspace { flex: 1; min-height: 200px; background: var(--input-bg); border: 2px dashed var(--border); border-radius: 14px; padding: 14px; position: relative; transition: border-color 0.2s, background-color 0.2s; }
+        .lb-workspace.drag-over { border-color: var(--accent); background: rgba(163,64,84,0.04); }
+        .lb-workspace-title { font-size: 0.72rem; font-weight: 700; color: var(--text); opacity: 0.5; margin-bottom: 10px; text-align: center; }
+        .lb-workspace .lb-block { cursor: move; position: relative; margin-bottom: 4px; }
+        .lb-workspace .lb-block .lb-remove { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.4; transition: opacity 0.15s; padding: 2px 4px; }
+        .lb-workspace .lb-block .lb-remove:hover { opacity: 1; }
+        .lb-workspace .lb-block .lb-edit { flex: 1; background: none; border: none; color: inherit; font: inherit; font-size: 0.78rem; outline: none; padding: 0; min-width: 0; }
+        .lb-connector { height: 8px; display: flex; align-items: center; justify-content: center; }
+        .lb-connector::before { content: ''; width: 2px; height: 100%; background: var(--border); }
+        .lb-gen-bar { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+        .lb-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .lb-toggle-btn { padding: 7px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: var(--input-bg); color: var(--text); transition: all 0.15s; }
+        .lb-toggle-btn.active { background: var(--accent); color: white; }
+        @media(max-width:600px) {
+            .lb-container { flex-direction: column; }
+            .lb-palette { width: 100%; max-height: 180px; }
+        }
         @media (max-width: 600px) {
             .lablog-grid { grid-template-columns: 1fr; }
             .lablog-stats { grid-template-columns: 1fr 1fr; }
