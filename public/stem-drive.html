@@ -1136,34 +1136,45 @@
 
 <div id="adminPanel">
     <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-        <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
-        <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
-        <button class="control-btn" id="tabExams" onclick="showAdminTab('exams')">📝 Create Exam</button>
-    </div>
+         <button class="control-btn" id="tabUpload" onclick="showAdminTab('upload')" style="border-color:var(--accent);color:var(--accent);">📤 Upload Resource</button>
+         <button class="control-btn" id="tabSubjects" onclick="showAdminTab('subjects')">📚 Manage Subjects</button>
+         <button class="control-btn" id="tabExams" onclick="showAdminTab('exams')">📝 Create Exam</button>
+         <button class="control-btn" id="tabLOs" onclick="showAdminTab('los')">🎯 Learning Outcomes</button>
+     </div>
 
-    <div id="adminUploadTab">
-        <div class="form-grid">
-            <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
-            <select id="gradeIn">
-                <option value="G10">Grade 10</option>
-                <option value="G11">Grade 11</option>
-                <option value="G12">Grade 12</option>
-            </select>
-            <select id="semesterIn">
-                <option value="S1">Semester 1</option>
-                <option value="S2">Semester 2</option>
-            </select>
-            <select id="subIn"></select>
-            <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
-                <div id="zipPreviewArea"></div>
-                <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
-            </div>
-            <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
-            <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
-        </div>
-        <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
-    </div>
+     <div id="adminUploadTab">
+         <div class="form-grid">
+             <input type="text" id="title" class="full-w" placeholder="Title (e.g., Biology Chapter 1)">
+             <select id="gradeIn" onchange="populateLODropdown('loIn', this.value, document.getElementById('subIn').value)">
+                 <option value="G10">Grade 10</option>
+                 <option value="G11">Grade 11</option>
+                 <option value="G12">Grade 12</option>
+             </select>
+             <select id="semesterIn">
+                 <option value="S1">Semester 1</option>
+                 <option value="S2">Semester 2</option>
+             </select>
+             <select id="subIn" onchange="populateLODropdown('loIn', document.getElementById('gradeIn').value, this.value)"></select>
+             <select id="loIn" class="full-w"><option value="">— No LO (General) —</option></select>
+             <select id="matTypeIn">
+                 <option value="Local File">📁 Local File</option>
+                 <option value="Web Link">🔗 Web Link</option>
+                 <option value="LO Summary">📋 LO Summary</option>
+                 <option value="Past Paper">📝 Past Paper</option>
+                 <option value="Self-Assessment">✅ Self-Assessment</option>
+                 <option value="Reference Link">🔗 Reference Link</option>
+                 <option value="Video">🎬 Video</option>
+             </select>
+             <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                 <p id="fileNameDisplay">📂 Click or Drop File Here (up to 10GB)</p>
+                 <div id="zipPreviewArea"></div>
+                 <input type="file" id="fileInput" hidden accept="*/*" onchange="processFile(this)">
+             </div>
+             <input type="url" id="linkIn" class="full-w" placeholder="Or Paste External Link (Drive, Mega...)">
+             <textarea id="desc" class="full-w" placeholder="Brief description or notes..." rows="2"></textarea>
+         </div>
+         <button class="btn-pub" id="publishBtn" onclick="saveToHub()">Publish to Hub</button>
+     </div>
 
     <div id="adminSubjectsTab" style="display:none;">
         <div class="form-grid">
@@ -1172,9 +1183,35 @@
         </div>
         <button class="btn-pub" onclick="addSubject()" style="margin-bottom:20px;">➕ Add Subject</button>
         <div id="subjectsList" style="max-height:300px;overflow-y:auto;"></div>
-    </div>
+     </div>
 
-    <div id="adminExamsTab" style="display:none;">
+     <div id="adminLOsTab" style="display:none;">
+         <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+             <div style="font-weight:700;font-size:0.9rem;margin-bottom:12px;">🎯 Add Learning Outcome</div>
+             <div class="form-grid">
+                 <select id="loGradeIn">
+                     <option value="G10">Grade 10</option>
+                     <option value="G11">Grade 11</option>
+                     <option value="G12">Grade 12</option>
+                 </select>
+                 <select id="loSubjectIn"></select>
+                 <input type="text" id="loCodeIn" placeholder="LO Code (e.g., LO1.1, LO2.3)">
+                 <input type="text" id="loTitleIn" class="full-w" placeholder="LO Title (e.g., Newton's Laws of Motion)">
+                 <textarea id="loDescIn" class="full-w" placeholder="LO Description (optional)..." rows="2"></textarea>
+             </div>
+             <button class="btn-pub" onclick="addLearningOutcome()" style="margin-top:12px;">➕ Add LO</button>
+         </div>
+         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+             <select id="loFilterGrade" onchange="renderLOsList()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.82rem;">
+                 <option value="All">All Grades</option><option value="G10">G10</option><option value="G11">G11</option><option value="G12">G12</option>
+             </select>
+             <select id="loFilterSubject" onchange="renderLOsList()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.82rem;">
+                 <option value="All">All Subjects</option>
+             </select>
+         </div>
+         <div id="losList" style="max-height:400px;overflow-y:auto;"></div>
+     </div>
+
         <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
             <div style="font-weight:700;font-size:0.9rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📋 Exam Details</div>
             <div class="form-grid">
@@ -2017,8 +2054,33 @@ function mapRow(r) {
         url: r.url || '', desc: r.description || '', type: r.type,
         fileName: r.file_name || '', fileSize: r.file_size || 0,
         fileType: r.file_type || '', storagePath: r.storage_path || '',
-        createdAt: r.created_at
+        createdAt: r.created_at, loId: r.lo_id || ''
     };
+}
+
+// === Learning Outcomes Cache ===
+var _loCache = null;
+async function loadLearningOutcomes() {
+    if (_loCache) return _loCache;
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes?select=*&order=sort_order.asc,lo_code.asc', { headers: getSbHeaders() });
+        if (!res.ok) throw new Error('LO fetch failed');
+        _loCache = await res.json();
+        return _loCache;
+    } catch(e) { console.error('LO load error:', e); return []; }
+}
+function getLOsForGradeSubject(grade, subject) {
+    if (!_loCache) return [];
+    return _loCache.filter(lo => lo.grade === grade && lo.subject === subject);
+}
+async function populateLODropdown(selectId, grade, subject) {
+    const los = await loadLearningOutcomes();
+    const filtered = los.filter(lo => lo.grade === grade && lo.subject === subject);
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— No LO (General) —</option>' + filtered.map(lo =>
+        '<option value="' + lo.id + '">' + lo.lo_code + ' — ' + lo.title + '</option>'
+    ).join('');
 }
 
 class StorageManager {
@@ -2112,7 +2174,8 @@ class StorageManager {
             title: entry.title, grade: entry.grade, subject: entry.subject, semester: entry.semester || 'S1',
             url: entry.url || '', description: entry.desc || '', type: entry.type,
             file_name: entry.fileName || '', file_size: entry.fileSize || 0,
-            file_type: entry.fileType || '', storage_path: storagePath
+            file_type: entry.fileType || '', storage_path: storagePath,
+            lo_id: entry.loId || null
         };
 
         const res = await fetch(SUPABASE_URL + '/rest/v1/stem_drive_files', {
@@ -2531,11 +2594,12 @@ async function _saveUserPrefsNow() {
 async function initApp() {
     try {
         // Parallelize session restore, data loading, and preferences
-        const [_, __, ___, ____] = await Promise.all([
+        await Promise.all([
             restoreSession(),
             StorageManager.init(),
             loadSubjectsFromDB(),
-            loadUserPrefs()
+            loadUserPrefs(),
+            loadLearningOutcomes()
         ]);
         setupApp();
         // Apply saved filters to UI
@@ -2950,6 +3014,8 @@ async function saveToHub() {
 
     try {
 
+        const matType = document.getElementById('matTypeIn').value;
+        const loVal = document.getElementById('loIn').value;
         const entry = {
             title,
             grade: document.getElementById('gradeIn').value,
@@ -2957,10 +3023,11 @@ async function saveToHub() {
             subject: document.getElementById('subIn').value,
             url: hasLink ? linkValue : '',
             desc: document.getElementById('desc').value,
-            type: hasFile ? 'Local File' : 'Web Link',
+            type: hasFile ? (matType === 'Local File' ? 'Local File' : matType) : (matType !== 'Local File' ? matType : 'Web Link'),
             fileName: uploadedFileName || '',
             fileSize: uploadedFileSize || 0,
             fileType: uploadedFileType || '',
+            loId: loVal || null,
             createdAt: new Date().toISOString()
         };
 
@@ -3110,8 +3177,15 @@ async function render() {
                 else if (isPdf) openBtnLabel = '📄 Open PDF';
                 else if (isLink) openBtnLabel = '🔗 Open Link';
 
+                // Find LO info if linked
+                let loBadge = '';
+                if (item.loId && _loCache) {
+                    const lo = _loCache.find(l => l.id === item.loId);
+                    if (lo) loBadge = '<span style="background:rgba(59,130,246,0.12);color:#3b82f6;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:4px;">🎯 ' + lo.lo_code + '</span>';
+                }
+
                 card.innerHTML = '<button class="del-btn" style="' + (isAdmin ? 'display:flex;align-items:center;justify-content:center' : '') + '" data-id="' + item.id + '" title="Delete">🗑️</button>' +
-                    '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span><span class="type-tag">' + item.type + sizeStr + '</span></div>' +
+                    '<div class="card-header"><span class="subj-tag">' + (sInfo ? sInfo.icon : '') + ' ' + item.subject + '</span>' + loBadge + '<span class="type-tag">' + item.type + sizeStr + '</span></div>' +
                     '<h3>' + item.title + '</h3>' +
                     '<p>' + (item.desc || 'No additional notes.') + '</p>' +
                     '<div class="btn-group"><button class="btn-preview" data-id="' + item.id + '">' + openBtnLabel + '</button>' + (item.storagePath ? '<button class="btn-dl" data-id="' + item.id + '">📥 Download</button>' : '') + '</div>';
@@ -3271,14 +3345,98 @@ function showAdminTab(tab) {
     document.getElementById('adminUploadTab').style.display = tab === 'upload' ? 'block' : 'none';
     document.getElementById('adminSubjectsTab').style.display = tab === 'subjects' ? 'block' : 'none';
     document.getElementById('adminExamsTab').style.display = tab === 'exams' ? 'block' : 'none';
-    document.getElementById('tabUpload').style.borderColor = tab === 'upload' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabUpload').style.color = tab === 'upload' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabSubjects').style.borderColor = tab === 'subjects' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabSubjects').style.color = tab === 'subjects' ? 'var(--accent)' : 'var(--text)';
-    document.getElementById('tabExams').style.borderColor = tab === 'exams' ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('tabExams').style.color = tab === 'exams' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('adminLOsTab').style.display = tab === 'los' ? 'block' : 'none';
+    ['tabUpload','tabSubjects','tabExams','tabLOs'].forEach(id => {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var active = (id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)) ||
+                     (tab === 'upload' && id === 'tabUpload') ||
+                     (tab === 'subjects' && id === 'tabSubjects') ||
+                     (tab === 'exams' && id === 'tabExams') ||
+                     (tab === 'los' && id === 'tabLOs');
+        el.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+        el.style.color = active ? 'var(--accent)' : 'var(--text)';
+    });
     if (tab === 'subjects') renderSubjectsList();
     if (tab === 'exams') populateExamSubjects();
+    if (tab === 'upload') populateLODropdown('loIn', document.getElementById('gradeIn').value, document.getElementById('subIn').value);
+    if (tab === 'los') { populateLOSubjectFilters(); renderLOsList(); populateLOFormSubjects(); }
+}
+
+function populateLOSubjectFilters() {
+    var sel = document.getElementById('loFilterSubject');
+    if (!sel) return;
+    sel.innerHTML = '<option value="All">All Subjects</option>' + subjectData.map(s => '<option value="' + s.name + '">' + s.icon + ' ' + s.name + '</option>').join('');
+}
+function populateLOFormSubjects() {
+    var sel = document.getElementById('loSubjectIn');
+    if (!sel) return;
+    sel.innerHTML = subjectData.map(s => '<option value="' + s.name + '">' + s.icon + ' ' + s.name + '</option>').join('');
+}
+
+async function addLearningOutcome() {
+    var grade = document.getElementById('loGradeIn').value;
+    var subject = document.getElementById('loSubjectIn').value;
+    var loCode = document.getElementById('loCodeIn').value.trim();
+    var title = document.getElementById('loTitleIn').value.trim();
+    var desc = document.getElementById('loDescIn').value.trim();
+    if (!loCode || !title) { showToast('Please enter LO code and title!', 'warning'); return; }
+    try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes', {
+            method: 'POST', headers: getSbHeaders(),
+            body: JSON.stringify({ grade: grade, subject: subject, lo_code: loCode, title: title, description: desc })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        showToast('✅ LO added: ' + loCode, 'success');
+        document.getElementById('loCodeIn').value = '';
+        document.getElementById('loTitleIn').value = '';
+        document.getElementById('loDescIn').value = '';
+        _loCache = null;
+        await loadLearningOutcomes();
+        renderLOsList();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteLO(id) {
+    if (!confirm('Delete this Learning Outcome?')) return;
+    try {
+        await fetch(SUPABASE_URL + '/rest/v1/learning_outcomes?id=eq.' + id, { method: 'DELETE', headers: getSbHeaders() });
+        showToast('🗑️ LO deleted', 'success');
+        _loCache = null;
+        await loadLearningOutcomes();
+        renderLOsList();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function renderLOsList() {
+    var container = document.getElementById('losList');
+    if (!container) return;
+    var los = await loadLearningOutcomes();
+    var fg = document.getElementById('loFilterGrade').value;
+    var fs = document.getElementById('loFilterSubject').value;
+    var filtered = los.filter(lo => (fg === 'All' || lo.grade === fg) && (fs === 'All' || lo.subject === fs));
+    if (filtered.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text);padding:20px;">No Learning Outcomes found. Add one above!</p>'; return; }
+    // Group by grade+subject
+    var groups = {};
+    filtered.forEach(lo => {
+        var key = lo.grade + ' — ' + lo.subject;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(lo);
+    });
+    var html = '';
+    Object.keys(groups).sort().forEach(key => {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:700;font-size:0.85rem;color:var(--accent);margin-bottom:8px;padding:6px 12px;background:rgba(163,64,84,0.08);border-radius:10px;">📚 ' + key + ' (' + groups[key].length + ' LOs)</div>';
+        groups[key].forEach(lo => {
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--input-bg);">' +
+                '<div><span style="font-weight:700;color:var(--accent);font-size:0.85rem;">' + lo.lo_code + '</span> <span style="font-size:0.85rem;color:var(--dark);">' + lo.title + '</span>' +
+                (lo.description ? '<div style="font-size:0.72rem;color:var(--text);margin-top:2px;">' + lo.description + '</div>' : '') +
+                '</div>' +
+                '<button onclick="deleteLO(\'' + lo.id + '\')" style="background:#ff4d4d;color:white;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;flex-shrink:0;">🗑️</button>' +
+            '</div>';
+        });
+        html += '</div>';
+    });
+    container.innerHTML = html;
 }
 
 function renderSubjectsList() {
