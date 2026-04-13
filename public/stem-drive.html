@@ -7942,8 +7942,8 @@ function applyLanguage() {
             authToggle.innerHTML = 'ليس لديك حساب؟ <span onclick="toggleAuthMode()">إنشاء حساب</span>';
         else if (isAr && authToggle.textContent.includes("Already"))
             authToggle.innerHTML = 'عندك حساب؟ <span onclick="toggleAuthMode()">تسجيل الدخول</span>';
-        else if (!isAr && authToggle.textContent.includes('ليس'))
-            authToggle.innerHTML = "Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span>";
+        else if (!isAr && authToggle.textContent.includes('\u0644\u064a\u0633'))
+            authToggle.innerHTML = 'Don\'t have an account? <span onclick="toggleAuthMode()">Sign Up</span>';
         else if (!isAr && authToggle.textContent.includes('عندك'))
             authToggle.innerHTML = 'Already a member? <span onclick="toggleAuthMode()">Login</span>';
     }
