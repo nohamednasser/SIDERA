@@ -7873,13 +7873,13 @@ function initFeatures() {
     loadReviews();
 }
 
-// Hook into auth completion
+// Hook into auth completion (check less frequently to save CPU)
 var _checkAuthInterval = setInterval(function() {
     if (document.getElementById('authOverlay') && document.getElementById('authOverlay').style.display === 'none') {
         initFeatures();
         clearInterval(_checkAuthInterval);
     }
-}, 500);
+}, 1500);
 
 // Also patch render to update virtual labs when subject changes
 var _origFilterSub;
