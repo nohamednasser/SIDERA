@@ -5044,15 +5044,19 @@ function _cancelGracePeriod() {
     }
     var overlay = document.getElementById('tabWarningOverlay');
     if (overlay) overlay.style.display = 'none';
+    
+    // Remove screen-capture-blocked immediately so content is visible
+    document.body.classList.remove('screen-capture-blocked');
+    
     showToast('✅ رجعت بنجاح — كمّل الامتحان!', 'success');
     
     // Set cooldown to prevent blur/visibility events from re-triggering immediately
     _graceCooldown = true;
     setTimeout(function() { _graceCooldown = false; }, 1500);
     
-    // Re-enter fullscreen if needed
+    // Re-enter fullscreen after a tiny delay so the UI updates first
     if (_examSecurityActive && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        requestExamFullscreen();
+        setTimeout(function() { requestExamFullscreen(); }, 100);
     }
 }
 
