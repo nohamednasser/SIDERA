@@ -33,9 +33,9 @@
         .control-btn:active { transform: scale(0.98); }
 
         /* Floating Language Button */
-        .lang-float-btn { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--card-bg); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s; }
-        .lang-float-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
-        .lang-float-btn:active { transform: scale(0.95); }
+        .lang-float-btn { position: fixed !important; top: 16px; right: 16px; z-index: 99999 !important; background: var(--card-bg); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s; transform: translateZ(0); will-change: transform; }
+        .lang-float-btn:hover { transform: translateZ(0) scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+        .lang-float-btn:active { transform: translateZ(0) scale(0.95); }
         .lang-float-btn .lang-tooltip { position: absolute; right: 52px; background: var(--dark); color: var(--bg); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .lang-float-btn:hover .lang-tooltip { opacity: 1; }
         [dir="rtl"] .lang-float-btn { right: auto; left: 16px; }
@@ -5122,8 +5122,13 @@ function renderExams(exams) {
             '</div>' +
         '</div>';
     }).join('');
-    // Load mini leaderboards
-    exams.forEach(exam => loadMiniLeaderboard(exam.id, exam.title));
+    // Load mini leaderboards in batches to avoid flooding network
+    (async function() {
+        for (let i = 0; i < exams.length; i += 3) {
+            const batch = exams.slice(i, i + 3);
+            await Promise.all(batch.map(exam => loadMiniLeaderboard(exam.id, exam.title)));
+        }
+    })();
 }
 
 // Student Registration
@@ -8113,15 +8118,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(applyLanguage, 500);
 });
 
-// Auto-refresh Arabic when DOM changes
+// Auto-refresh Arabic when DOM changes (throttled to avoid performance issues)
 var _langRefreshTimer = null;
-var _langObserver = new MutationObserver(function() {
+var _langRefreshCount = 0;
+var _langObserver = new MutationObserver(function(mutations) {
     if (_currentLang !== 'ar') return;
+    // Skip mutations from language application itself
+    var dominated = mutations.every(function(m) { return m.type === 'characterData'; });
+    if (dominated) return;
+    _langRefreshCount++;
     if (_langRefreshTimer) clearTimeout(_langRefreshTimer);
-    _langRefreshTimer = setTimeout(applyLanguage, 400);
+    // Increase debounce time as more mutations fire to prevent cascading
+    var delay = Math.min(1500, 600 + _langRefreshCount * 100);
+    _langRefreshTimer = setTimeout(function() {
+        _langRefreshCount = 0;
+        applyLanguage();
+    }, delay);
 });
 document.addEventListener('DOMContentLoaded', function() {
-    _langObserver.observe(document.body, { childList: true, subtree: true });
+    _langObserver.observe(document.body, { childList: true, subtree: false });
 });
 
 </script>
