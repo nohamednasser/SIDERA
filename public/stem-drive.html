@@ -5012,7 +5012,7 @@ var _graceCooldown = false; // prevents re-trigger right after cancel
 
 function _startGracePeriod(reason) {
     if (_graceTimer) return; // already running
-    if (_graceCooldown) return; // just cancelled, ignore rapid re-triggers
+    // Cooldown does NOT block fullscreen exit — that's always critical
     _graceCountdown = 5;
     var overlay = document.getElementById('tabWarningOverlay');
     if (!overlay) return;
