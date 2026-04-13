@@ -9755,7 +9755,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         _ideCurrentId = s.id;
         document.getElementById('ideTitle').value = s.title;
         document.getElementById('ideLang').value = s.language;
-        var monacoLang = s.language === 'cpp' ? 'cpp' : s.language;
+        var monacoLang = MONACO_LANG_MAP[s.language] || s.language;
         monaco.editor.setModelLanguage(_ideEditor.getModel(), monacoLang);
         _ideEditor.setValue(s.code);
         renderIdeTemplates();
