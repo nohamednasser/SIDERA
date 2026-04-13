@@ -485,7 +485,7 @@
          .exam-secure-mode { overflow: hidden !important; position: fixed !important; width: 100% !important; height: 100% !important; -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
          /* Screenshot prevention: blur content when window loses focus OR screen capture detected */
          .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(50px) !important; transition: filter 0.05s; }
-         .exam-secure-mode.screen-capture-blocked * { visibility: hidden !important; }
+         .exam-secure-mode.screen-capture-blocked #examTakingModal *:not(#tabWarningOverlay):not(#tabWarningOverlay *) { visibility: hidden !important; }
          /* Block ALL screenshots via DRM-like protection */
          .exam-secure-mode #examTakingModal { -webkit-filter: none; }
          .exam-secure-mode video, .exam-secure-mode canvas.exam-shield { display: block !important; }
