@@ -32,6 +32,15 @@
         .control-btn:hover { border-color: var(--accent); transform: scale(1.05); }
         .control-btn:active { transform: scale(0.98); }
 
+        /* Floating Language Button */
+        .lang-float-btn { position: fixed; top: 16px; right: 16px; z-index: 999; background: var(--card-bg); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s; }
+        .lang-float-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+        .lang-float-btn:active { transform: scale(0.95); }
+        .lang-float-btn .lang-tooltip { position: absolute; right: 52px; background: var(--dark); color: var(--bg); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .lang-float-btn:hover .lang-tooltip { opacity: 1; }
+        [dir="rtl"] .lang-float-btn { right: auto; left: 16px; }
+        [dir="rtl"] .lang-float-btn .lang-tooltip { right: auto; left: 52px; }
+
         header h1 { margin: 0; font-weight: 300; font-size: 2.5rem; letter-spacing: 3px; transition: color 0.15s ease; }
         
         #searchBar { width: 90%; max-width: 550px; padding: 14px 22px; border-radius: 30px; border: 1px solid var(--border); margin-top: -35px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); outline: none; z-index: 10; position: relative; background: var(--card-bg); color: var(--dark); font-size: 0.95rem; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
@@ -1007,6 +1016,12 @@
 </head>
 <body>
 
+<!-- Floating Language Button -->
+<button class="lang-float-btn" id="langBtn" onclick="toggleLanguage()" title="Switch Language">
+    🌐
+    <span class="lang-tooltip" id="langTooltip">عربي</span>
+</button>
+
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
     <div class="auth-container" style="position:relative;">
@@ -1043,7 +1058,7 @@
         <a class="control-btn" href="https://stemcalculator.lovable.app" target="_blank" style="text-decoration:none;">🧮 Calculator</a>
         <a class="control-btn" href="/scanner" style="text-decoration:none;">📱 Scanner</a>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 Mode</button>
-        <button class="control-btn" id="langBtn" onclick="toggleLanguage()">🌐 عربي</button>
+        
         <button class="control-btn notif-bell" id="notifBtn" onclick="requestNotifPermission()" style="display:none;">🔔 Alerts<span class="notif-dot" id="notifDot" style="display:none;"></span></button>
         <button class="control-btn" id="snippetsBtn" onclick="toggleSnippets()" style="display:none;">📝 Notes</button>
         <button class="control-btn" id="dashBtn" onclick="openDashboard()" style="display:none;">📊 Dashboard</button>
@@ -3736,36 +3751,89 @@ function renderStudentsTab() {
         return;
     }
 
-    // Unique students by email
+    // Unique students by email with trust level
     const studentMap = {};
     submissions.forEach(s => {
         if (!studentMap[s.student_email]) {
-            studentMap[s.student_email] = { name: s.student_name, email: s.student_email, count: 0, totalPct: 0 };
+            studentMap[s.student_email] = { name: s.student_name, email: s.student_email, count: 0, totalPct: 0, worstEffort: 'genuine' };
         }
         studentMap[s.student_email].count++;
         studentMap[s.student_email].totalPct += s.total_points > 0 ? (s.score / s.total_points) * 100 : 0;
+        // Track worst effort status
+        if (s.effort_status === 'habd') studentMap[s.student_email].worstEffort = 'habd';
+        else if (s.effort_status === 'suspect' && studentMap[s.student_email].worstEffort !== 'habd') studentMap[s.student_email].worstEffort = 'suspect';
     });
     const students = Object.values(studentMap).sort((a, b) => b.count - a.count);
     const maxCount = students[0]?.count || 1;
 
-    let html = '<div class="dash-stat-grid" style="margin-bottom:16px;">' +
-        '<div class="stat-card" style="grid-column:span 2;"><div class="stat-icon">👥</div><div class="stat-value">' + students.length + '</div><div class="stat-label">Unique Students</div></div>' +
-        '<div class="stat-card" style="grid-column:span 2;"><div class="stat-icon">📝</div><div class="stat-value">' + submissions.length + '</div><div class="stat-label">Total Submissions</div></div>' +
+    // Filter toggle
+    let html = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">';
+    html += '<div class="dash-stat-grid" style="flex:1;min-width:200px;">' +
+        '<div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">' + students.length + '</div><div class="stat-label">Unique Students</div></div>' +
+        '<div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value">' + submissions.length + '</div><div class="stat-label">Total Submissions</div></div>' +
+    '</div></div>';
+
+    html += '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">' +
+        '<button class="dash-filter-btn active" onclick="filterStudentsTrust(\'all\',this)" style="padding:6px 14px;border-radius:12px;border:1px solid var(--border);background:var(--accent);color:white;font-size:0.75rem;font-weight:700;cursor:pointer;">All</button>' +
+        '<button class="dash-filter-btn" onclick="filterStudentsTrust(\'genuine\',this)" style="padding:6px 14px;border-radius:12px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Genuine</button>' +
+        '<button class="dash-filter-btn" onclick="filterStudentsTrust(\'suspect\',this)" style="padding:6px 14px;border-radius:12px;border:1px solid #f59e0b;background:transparent;color:#f59e0b;font-size:0.75rem;font-weight:700;cursor:pointer;">⚠️ Suspect</button>' +
+        '<button class="dash-filter-btn" onclick="filterStudentsTrust(\'habd\',this)" style="padding:6px 14px;border-radius:12px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:0.75rem;font-weight:700;cursor:pointer;">🤡 Habd Only</button>' +
     '</div>';
 
-    html += '<div class="dash-section-title">🏆 Most Active Students</div>';
-    students.slice(0, 10).forEach(st => {
+    html += '<div class="dash-section-title">🏆 Students & Trust Level</div>';
+    html += '<div id="studentsListContainer">';
+    html += buildStudentsList(students, 'all');
+    html += '</div>';
+
+    document.getElementById('dashTabStudents').innerHTML = html;
+}
+
+function buildStudentsList(students, filter) {
+    let html = '';
+    const filtered = filter === 'all' ? students : students.filter(s => s.worstEffort === filter);
+    if (filtered.length === 0) return '<div class="dash-empty">No students match this filter</div>';
+    filtered.forEach(st => {
         const avgPct = Math.round(st.totalPct / st.count);
+        let trustBadge = '';
+        if (st.worstEffort === 'habd') trustBadge = '<span style="background:#ef4444;color:white;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">🗑️ Habd</span>';
+        else if (st.worstEffort === 'suspect') trustBadge = '<span style="background:#f59e0b;color:white;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">⚠️ Suspect</span>';
+        else trustBadge = '<span style="background:#22c55e;color:white;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">✅ Genuine</span>';
         html += '<div class="dash-exam-card">' +
             '<div class="dash-exam-info"><h4>👤 ' + st.name + '</h4><p>' + st.email + '</p></div>' +
             '<div class="dash-exam-stats">' +
                 '<div class="dash-exam-stat"><div class="val">' + st.count + '</div><div class="lbl">Exams</div></div>' +
                 '<div class="dash-exam-stat"><div class="val">' + avgPct + '%</div><div class="lbl">Avg</div></div>' +
+                '<div class="dash-exam-stat">' + trustBadge + '<div class="lbl" style="margin-top:4px;">Trust</div></div>' +
             '</div>' +
         '</div>';
     });
+    return html;
+}
 
-    document.getElementById('dashTabStudents').innerHTML = html;
+function filterStudentsTrust(filter, btn) {
+    // Update active button
+    document.querySelectorAll('.dash-filter-btn').forEach(b => {
+        b.style.background = 'transparent';
+        b.classList.remove('active');
+    });
+    btn.style.background = filter === 'all' ? 'var(--accent)' : (filter === 'genuine' ? '#22c55e' : filter === 'suspect' ? '#f59e0b' : '#ef4444');
+    btn.style.color = 'white';
+    btn.classList.add('active');
+
+    // Rebuild students list
+    const submissions = _dashData.submissions || [];
+    const studentMap = {};
+    submissions.forEach(s => {
+        if (!studentMap[s.student_email]) {
+            studentMap[s.student_email] = { name: s.student_name, email: s.student_email, count: 0, totalPct: 0, worstEffort: 'genuine' };
+        }
+        studentMap[s.student_email].count++;
+        studentMap[s.student_email].totalPct += s.total_points > 0 ? (s.score / s.total_points) * 100 : 0;
+        if (s.effort_status === 'habd') studentMap[s.student_email].worstEffort = 'habd';
+        else if (s.effort_status === 'suspect' && studentMap[s.student_email].worstEffort !== 'habd') studentMap[s.student_email].worstEffort = 'suspect';
+    });
+    const students = Object.values(studentMap).sort((a, b) => b.count - a.count);
+    document.getElementById('studentsListContainer').innerHTML = buildStudentsList(students, filter);
 }
 
 function renderActivityTab() {
@@ -7811,7 +7879,8 @@ function toggleLanguage() {
 function applyLanguage() {
     var isAr = _currentLang === 'ar';
     var btn = document.getElementById('langBtn');
-    if (btn) btn.innerHTML = isAr ? '🌐 English' : '🌐 عربي';
+    var tooltip = document.getElementById('langTooltip');
+    if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
     // Set direction
     document.body.dir = isAr ? 'rtl' : 'ltr';
