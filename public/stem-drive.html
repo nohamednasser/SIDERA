@@ -9484,25 +9484,53 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             { name: '🔢 Hello World', code: 'print("Hello, STEM World! 🌍")' },
             { name: '📊 Loop & Math', code: 'import math\n\nfor i in range(1, 11):\n    print(f"sqrt({i}) = {math.sqrt(i):.4f}")' },
             { name: '📈 Fibonacci', code: 'def fibonacci(n):\n    a, b = 0, 1\n    result = []\n    for _ in range(n):\n        result.append(a)\n        a, b = b, a + b\n    return result\n\nprint("First 15 Fibonacci numbers:")\nprint(fibonacci(15))' },
-            { name: '🧪 Chemistry', code: '# Molarity Calculator\nmass = 58.44  # NaCl molar mass (g/mol)\ngrams = 29.22  # grams dissolved\nvolume_L = 0.5  # liters of solution\n\nmoles = grams / mass\nmolarity = moles / volume_L\nprint(f"Mass: {grams}g NaCl")\nprint(f"Volume: {volume_L}L")\nprint(f"Moles: {moles:.4f} mol")\nprint(f"Molarity: {molarity:.4f} M")' }
+            { name: '🧪 Chemistry', code: '# Molarity Calculator\nmass = 58.44  # NaCl molar mass (g/mol)\ngrams = 29.22  # grams dissolved\nvolume_L = 0.5  # liters of solution\n\nmoles = grams / mass\nmolarity = moles / volume_L\nprint(f"Mass: {grams}g NaCl")\nprint(f"Volume: {volume_L}L")\nprint(f"Moles: {moles:.4f} mol")\nprint(f"Molarity: {molarity:.4f} M")' },
+            { name: '📥 Input Example', code: 'name = input("Enter your name: ")\nage = int(input("Enter your age: "))\nprint(f"Hello {name}! You will be {age + 10} in 10 years.")' }
         ],
         javascript: [
             { name: '🔢 Hello World', code: 'console.log("Hello, STEM World! 🌍");' },
             { name: '📊 Array Methods', code: 'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n\nconst evens = numbers.filter(n => n % 2 === 0);\nconst squares = numbers.map(n => n ** 2);\nconst sum = numbers.reduce((a, b) => a + b, 0);\n\nconsole.log("Numbers:", numbers);\nconsole.log("Evens:", evens);\nconsole.log("Squares:", squares);\nconsole.log("Sum:", sum);' },
-            { name: '🧬 DNA', code: 'function complementDNA(strand) {\n  const pairs = { A: "T", T: "A", C: "G", G: "C" };\n  return strand.split("").map(b => pairs[b]).join("");\n}\n\nconst dna = "ATCGATCG";\nconsole.log("Original:", dna);\nconsole.log("Complement:", complementDNA(dna));' }
+            { name: '🧬 DNA', code: 'function complementDNA(strand) {\n  const pairs = { A: "T", T: "A", C: "G", G: "C" };\n  return strand.split("").map(b => pairs[b]).join("");\n}\n\nconst dna = "ATCGATCG";\nconsole.log("Original:", dna);\nconsole.log("Complement:", complementDNA(dna));' },
+            { name: '🎲 Random Game', code: '// Number guessing game\nconst secret = Math.floor(Math.random() * 100) + 1;\nconsole.log("I picked a number between 1-100!");\nconsole.log("The secret number is:", secret);\n\nfor (let guess = 50, low = 1, high = 100, i = 0; i < 7; i++) {\n  console.log(`Guess ${i+1}: ${guess}`);\n  if (guess === secret) { console.log("🎉 Found it!"); break; }\n  if (guess < secret) { low = guess + 1; console.log("Too low!"); }\n  else { high = guess - 1; console.log("Too high!"); }\n  guess = Math.floor((low + high) / 2);\n}' }
         ],
         cpp: [
             { name: '🔢 Hello World', code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, STEM World! 🌍" << endl;\n    return 0;\n}' },
             { name: '📊 Sorting', code: '#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    vector<int> nums = {64, 34, 25, 12, 22, 11, 90};\n    cout << "Before: ";\n    for(int n : nums) cout << n << " ";\n    cout << endl;\n    \n    sort(nums.begin(), nums.end());\n    \n    cout << "After:  ";\n    for(int n : nums) cout << n << " ";\n    cout << endl;\n    return 0;\n}' },
-            { name: '🔬 Physics', code: '#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    // Projectile Motion Calculator\n    double v0 = 20.0;  // initial velocity (m/s)\n    double angle = 45.0; // launch angle (degrees)\n    double g = 9.81;\n    \n    double rad = angle * M_PI / 180.0;\n    double t_flight = 2 * v0 * sin(rad) / g;\n    double range = v0 * v0 * sin(2 * rad) / g;\n    double max_h = v0 * v0 * sin(rad) * sin(rad) / (2 * g);\n    \n    cout << "=== Projectile Motion ===" << endl;\n    cout << "Initial velocity: " << v0 << " m/s" << endl;\n    cout << "Angle: " << angle << "°" << endl;\n    cout << "Flight time: " << t_flight << " s" << endl;\n    cout << "Range: " << range << " m" << endl;\n    cout << "Max height: " << max_h << " m" << endl;\n    return 0;\n}' }
+            { name: '🔬 Physics', code: '#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    double v0 = 20.0, angle = 45.0, g = 9.81;\n    double rad = angle * M_PI / 180.0;\n    double t = 2 * v0 * sin(rad) / g;\n    double range = v0 * v0 * sin(2*rad) / g;\n    double h = v0*v0*sin(rad)*sin(rad)/(2*g);\n    cout << "=== Projectile Motion ===" << endl;\n    cout << "Flight: " << t << "s | Range: " << range << "m | Height: " << h << "m" << endl;\n    return 0;\n}' },
+            { name: '📥 Input', code: '#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string name;\n    int age;\n    cout << "Name: "; cin >> name;\n    cout << "Age: "; cin >> age;\n    cout << "Hello " << name << "! In 10 years you\\'ll be " << age+10 << endl;\n    return 0;\n}' }
+        ],
+        java: [
+            { name: '🔢 Hello World', code: 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, STEM World! 🌍");\n    }\n}' },
+            { name: '📊 Arrays', code: 'import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {64, 34, 25, 12, 22, 11, 90};\n        System.out.println("Before: " + Arrays.toString(nums));\n        Arrays.sort(nums);\n        System.out.println("After:  " + Arrays.toString(nums));\n        System.out.println("Sum: " + Arrays.stream(nums).sum());\n    }\n}' },
+            { name: '🧮 Calculator', code: 'import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.print("Enter two numbers: ");\n        double a = sc.nextDouble(), b = sc.nextDouble();\n        System.out.println("Sum: " + (a+b));\n        System.out.println("Product: " + (a*b));\n        System.out.println("Average: " + ((a+b)/2));\n    }\n}' }
+        ],
+        csharp: [
+            { name: '🔢 Hello World', code: 'using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, STEM World! 🌍");\n    }\n}' },
+            { name: '📊 LINQ', code: 'using System;\nusing System.Linq;\n\nclass Program {\n    static void Main() {\n        int[] nums = {3,1,4,1,5,9,2,6,5,3};\n        var sorted = nums.OrderBy(x=>x).ToArray();\n        Console.WriteLine("Sorted: " + string.Join(", ", sorted));\n        Console.WriteLine("Sum: " + nums.Sum());\n        Console.WriteLine("Avg: " + nums.Average().ToString("F2"));\n        Console.WriteLine("Distinct: " + string.Join(", ", nums.Distinct()));\n    }\n}' }
+        ],
+        go: [
+            { name: '🔢 Hello World', code: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, STEM World! 🌍")\n}' },
+            { name: '📊 Slices', code: 'package main\n\nimport (\n    "fmt"\n    "sort"\n)\n\nfunc main() {\n    nums := []int{64, 34, 25, 12, 22, 11, 90}\n    fmt.Println("Before:", nums)\n    sort.Ints(nums)\n    fmt.Println("After: ", nums)\n    sum := 0\n    for _, n := range nums { sum += n }\n    fmt.Println("Sum:   ", sum)\n}' }
+        ],
+        rust: [
+            { name: '🔢 Hello World', code: 'fn main() {\n    println!("Hello, STEM World! 🌍");\n}' },
+            { name: '📊 Vectors', code: 'fn main() {\n    let mut nums = vec![64, 34, 25, 12, 22, 11, 90];\n    println!("Before: {:?}", nums);\n    nums.sort();\n    println!("After:  {:?}", nums);\n    let sum: i32 = nums.iter().sum();\n    println!("Sum: {}", sum);\n}' }
         ]
     };
 
-    // Piston API language mapping
     var PISTON_LANGS = {
         python: { language: 'python', version: '3.10.0' },
         javascript: { language: 'javascript', version: '18.15.0' },
-        cpp: { language: 'c++', version: '10.2.0' }
+        cpp: { language: 'c++', version: '10.2.0' },
+        java: { language: 'java', version: '15.0.2' },
+        csharp: { language: 'csharp.net', version: '5.0.201' },
+        go: { language: 'go', version: '1.16.2' },
+        rust: { language: 'rust', version: '1.68.2' }
+    };
+
+    var MONACO_LANG_MAP = {
+        python: 'python', javascript: 'javascript', cpp: 'cpp',
+        java: 'java', csharp: 'csharp', go: 'go', rust: 'rust'
     };
 
     function initIDE() {
@@ -9523,10 +9551,15 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 wordWrap: 'on',
                 tabSize: 4,
                 suggestOnTriggerCharacters: true,
-                quickSuggestions: true
+                quickSuggestions: true,
+                bracketPairColorization: { enabled: true },
+                guides: { bracketPairs: true },
+                smoothScrolling: true,
+                cursorBlinking: 'smooth',
+                cursorSmoothCaretAnimation: 'on',
+                formatOnPaste: true
             });
 
-            // Ctrl+Enter to run
             _ideEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { ideRunCode(); });
             // Ctrl+S to save
             _ideEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function() { ideSaveSnippet(); });
