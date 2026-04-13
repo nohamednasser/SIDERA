@@ -4786,6 +4786,7 @@ function disableExamSecurity() {
     window.removeEventListener('blur', _onScreenCaptureBlur);
     window.removeEventListener('focus', _onScreenCaptureFocus);
     document.body.classList.remove('screen-capture-blocked');
+    _removeDRMShield();
 
     // Remove mobile security listeners
     document.removeEventListener('touchstart', _onMobileTouchStart, true);
