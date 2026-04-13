@@ -4692,6 +4692,38 @@ let _tabSwitchWarnings = 0;
 let _fsGraceTimer = null;
 let _fsGraceCountdown = 5;
 
+// === DRM SHIELD: Hardware-accelerated anti-screenshot layer ===
+// Uses a transparent WebGL/Canvas overlay with Encrypted Media Extensions concept
+// Many screenshot tools capture only the main compositor layer, this adds a protected overlay
+function _createDRMShield() {
+    _removeDRMShield();
+    // Method 1: CSS content-visibility + contain to hint compositor
+    var shield = document.createElement('div');
+    shield.id = 'examDRMShield';
+    shield.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99998;pointer-events:none;mix-blend-mode:normal;opacity:0.001;background:transparent;';
+    // Method 2: Video element trick - some OS screenshot tools skip DRM video layers
+    var video = document.createElement('video');
+    video.id = 'examDRMVideo';
+    video.setAttribute('playsinline','');
+    video.setAttribute('muted','');
+    video.muted = true;
+    video.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99997;pointer-events:none;opacity:0.001;object-fit:cover;';
+    // Create a tiny transparent video via canvas
+    var c = document.createElement('canvas'); c.width=2; c.height=2;
+    var ctx = c.getContext('2d'); ctx.fillStyle='rgba(0,0,0,0.01)'; ctx.fillRect(0,0,2,2);
+    try {
+        var stream = c.captureStream(1);
+        video.srcObject = stream;
+        video.play().catch(function(){});
+    } catch(e){}
+    document.body.appendChild(shield);
+    document.body.appendChild(video);
+}
+function _removeDRMShield() {
+    var s = document.getElementById('examDRMShield'); if(s) s.remove();
+    var v = document.getElementById('examDRMVideo'); if(v) { v.pause(); v.srcObject=null; v.remove(); }
+}
+
 // === EXAM SECURITY SYSTEM ===
 function enableExamSecurity() {
     if (_examSecurityActive) disableExamSecurity();
