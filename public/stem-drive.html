@@ -4720,6 +4720,48 @@ let _tabSwitchCountdown = 10;
 let _tabSwitchWarnings = 0;
 let _fsGraceTimer = null;
 let _fsGraceCountdown = 5;
+let _isSubmittingExam = false;
+
+function resetExamRuntimeState(options) {
+    options = options || {};
+    if (_examTimer) { clearInterval(_examTimer); _examTimer = null; }
+    if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
+    if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
+    if (typeof _graceTimer !== 'undefined' && _graceTimer) { clearInterval(_graceTimer); _graceTimer = null; }
+    _examTimeLeft = 0;
+    _tabSwitchWarnings = 0;
+    if (typeof _graceCountdown !== 'undefined') _graceCountdown = 5;
+    if (typeof _graceCooldown !== 'undefined') _graceCooldown = false;
+    if (typeof _currentQIdx !== 'undefined') _currentQIdx = 0;
+    if (typeof _examAnswers !== 'undefined') _examAnswers = {};
+    if (typeof _examStartedAt !== 'undefined') _examStartedAt = 0;
+    _isSubmittingExam = false;
+
+    const overlay = document.getElementById('tabWarningOverlay');
+    if (overlay) overlay.style.display = 'none';
+    document.body.classList.remove('screen-capture-blocked');
+
+    const timerEl = document.getElementById('examTimerDisplay');
+    if (timerEl) {
+        timerEl.style.display = 'none';
+        timerEl.classList.remove('warning');
+        timerEl.textContent = '⏱ 00:00';
+    }
+
+    const submitBtn = document.getElementById('examSubmitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ Submit Exam';
+    }
+
+    if (!options.keepExamData) {
+        _currentExamData = null;
+        _currentExamQuestions = [];
+    }
+    if (!options.keepExamRef) {
+        _currentExamId = null;
+    }
+}
 
 // === DRM SHIELD: Hardware-accelerated anti-screenshot layer ===
 // Uses a transparent WebGL/Canvas overlay with Encrypted Media Extensions concept
@@ -4843,6 +4885,9 @@ function disableExamSecurity() {
 
     if (_tabSwitchTimer) { clearInterval(_tabSwitchTimer); _tabSwitchTimer = null; }
     if (_fsGraceTimer) { clearInterval(_fsGraceTimer); _fsGraceTimer = null; }
+    if (_graceTimer) { clearInterval(_graceTimer); _graceTimer = null; }
+    _graceCountdown = 5;
+    _graceCooldown = false;
     hideTabWarning();
     window.removeEventListener('blur', _onScreenCaptureBlur);
     window.removeEventListener('focus', _onScreenCaptureFocus);
@@ -5099,7 +5144,8 @@ function updateTabWarning() { document.getElementById('tabWarningCount').textCon
 function hideTabWarning() { document.getElementById('tabWarningOverlay').style.display = 'none'; }
 
 function _forceSubmitExam() {
-    if (_examTimer) clearInterval(_examTimer);
+    if (_isSubmittingExam || !_currentExamId || !_currentExamQuestions.length) return;
+    if (_examTimer) { clearInterval(_examTimer); _examTimer = null; }
     submitExam(true);
 }
 
@@ -5341,6 +5387,9 @@ function _showExamWarningModal() {
 
 async function loadAndStartExam(examId) {
     try {
+        resetExamRuntimeState({ keepExamRef: true });
+        document.getElementById('examTakingModal').classList.remove('show');
+
         if (!(await ensureStudentSession())) {
             showToast('سجّل دخولك كطالب قبل بدء الامتحان.', 'warning');
             showAuthForGuest();
@@ -5351,9 +5400,11 @@ async function loadAndStartExam(examId) {
             fetch(SUPABASE_URL + '/rest/v1/exams?id=eq.' + examId + '&select=*', { headers: getSbHeaders() }),
             fetch(SUPABASE_URL + '/rest/v1/exam_questions?exam_id=eq.' + examId + '&select=*&order=sort_order.asc', { headers: getSbHeaders() })
         ]);
+        if (!examRes.ok || !qRes.ok) throw new Error('Failed to load exam data');
         const exams = await examRes.json();
         const questions = await qRes.json();
         if (!exams.length) { showToast('Exam not found.', 'error'); return; }
+        if (!questions || questions.length === 0) { showToast('الامتحان ده لسه مفيهوش أسئلة.', 'warning'); return; }
         
         _currentExamData = exams[0];
         _currentExamQuestions = questions;
@@ -5460,6 +5511,12 @@ function examNav(dir) {
 
 function updateExamNav() {
     const total = _currentExamQuestions.length;
+    if (!total) {
+        document.getElementById('examPrevBtn').disabled = true;
+        document.getElementById('examNextBtn').style.display = 'none';
+        document.getElementById('examSubmitBtn').style.display = 'none';
+        return;
+    }
     const isLast = _currentQIdx === total - 1;
     const isFirst = _currentQIdx === 0;
     document.getElementById('examPrevBtn').disabled = isFirst;
@@ -5472,20 +5529,24 @@ function saveCurrentAnswer() {
     const q = _currentExamQuestions[_currentQIdx];
     if (!q) return;
     const body = document.getElementById('examTakingBody');
+    let value = '';
 
     if (q.question_type === 'mcq') {
         const selected = body.querySelector('input[name="q_' + q.id + '"]:checked');
-        if (selected) _examAnswers[q.id] = selected.value;
+        value = selected ? selected.value : '';
     } else if (q.question_type === 'tf') {
         const selected = body.querySelector('.tf-option.selected');
-        if (selected) _examAnswers[q.id] = selected.dataset.value;
+        value = selected ? selected.dataset.value : '';
     } else if (q.question_type === 'fill') {
         const input = body.querySelector('.fill-blank-input[data-qid="' + q.id + '"]');
-        if (input && input.value.trim()) _examAnswers[q.id] = input.value.trim();
+        value = input ? input.value.trim() : '';
     } else {
         const textarea = body.querySelector('textarea[data-qid="' + q.id + '"]');
-        if (textarea && textarea.value.trim()) _examAnswers[q.id] = textarea.value.trim();
+        value = textarea ? textarea.value.trim() : '';
     }
+
+    if (value) _examAnswers[q.id] = value;
+    else delete _examAnswers[q.id];
     updateQDots();
 }
 
@@ -5494,6 +5555,13 @@ function renderCurrentQuestion() {
     const q = _currentExamQuestions[_currentQIdx];
     const idx = _currentQIdx;
     const total = _currentExamQuestions.length;
+
+    if (!q) {
+        body.innerHTML = '<div class="question-block" style="margin-bottom:0;text-align:center;color:var(--text);">لا توجد أسئلة متاحة حالياً.</div>';
+        updateQDots();
+        updateExamNav();
+        return;
+    }
 
     let html = '<div class="question-block" data-qid="' + q.id + '" style="margin-bottom:0;">';
     html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + total + '</div>';
@@ -5543,16 +5611,20 @@ function selectTF(el) {
 
 async function confirmExitExam() {
     if (await sideraConfirm('Are you sure you want to leave?', {desc:'Your progress will be lost.', icon:'🚪', confirmText:'Leave', danger:true})) {
-        if (_examTimer) clearInterval(_examTimer);
         disableExamSecurity();
         document.getElementById('examTakingModal').classList.remove('show');
-        document.getElementById('examTimerDisplay').style.display = 'none';
-        document.getElementById('examTimerDisplay').classList.remove('warning');
+        resetExamRuntimeState();
     }
 }
 
 async function submitExam(forceSubmit = false) {
+    if (_isSubmittingExam) return;
     saveCurrentAnswer();
+
+    if (!_currentExamId || !_currentExamQuestions.length) {
+        showToast('مفيش امتحان مفتوح دلوقتي.', 'warning');
+        return;
+    }
 
     if (!hasStudentSession() || !(await ensureStudentSession({ forceRefresh: true }))) {
         showToast('سجّل دخولك كطالب ثم حاول مرة تانية.', 'error');
@@ -5575,10 +5647,13 @@ async function submitExam(forceSubmit = false) {
         if (!(await sideraConfirm('You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : ''), {desc:'Submit anyway?', icon:'📝', confirmText:'Submit', danger:false}))) return;
     }
 
-    if (_examTimer) clearInterval(_examTimer);
+    _isSubmittingExam = true;
+    if (_examTimer) { clearInterval(_examTimer); _examTimer = null; }
     const btn = document.getElementById('examSubmitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Submitting...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Submitting...';
+    }
 
     try {
         let totalPoints = 0;
@@ -5711,13 +5786,17 @@ async function submitExam(forceSubmit = false) {
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
+        _isSubmittingExam = false;
         showExamResults(score, totalPoints, answers, { effortStatus, effortScore, avgTimePerQ, answerPatternFlag, violations });
     } catch (err) {
         console.error('submitExam error:', err);
         const msg = String(err && err.message ? err.message : err);
         showToast(/jwt|permission|row-level|401|403/i.test(msg) ? 'سجّل دخولك من جديد ثم أعد المحاولة.' : 'Failed to submit exam. Try again.', 'error');
-        btn.disabled = false;
-        btn.textContent = '✅ Submit Exam';
+        _isSubmittingExam = false;
+        if (btn) {
+            btn.disabled = false;
+        }
+        updateExamNav();
     }
 }
 
@@ -5925,7 +6004,10 @@ function launchConfetti() {
     requestAnimationFrame(draw);
 }
 
-function closeExamResult() { document.getElementById('examResultModal').classList.remove('show'); }
+function closeExamResult() {
+    document.getElementById('examResultModal').classList.remove('show');
+    resetExamRuntimeState();
+}
 
 // === DIGITAL CERTIFICATE SYSTEM ===
 let _lastCertData = null;
