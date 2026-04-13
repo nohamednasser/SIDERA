@@ -9615,8 +9615,12 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     window.ideRunCode = async function() {
         if (_ideRunning || !_ideEditor) return;
         _ideRunning = true;
+        var runBtn = document.getElementById('ideRunBtn');
+        runBtn.classList.add('running');
+        runBtn.innerHTML = '⏳ Running...';
         var outWrap = document.getElementById('ideOutputWrap');
         var outPre = document.getElementById('ideOutput');
+        var execTimeEl = document.getElementById('ideExecTime');
         outWrap.style.display = 'block';
         outPre.className = 'running';
         outPre.textContent = '⏳ Running...';
@@ -9624,6 +9628,8 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         var lang = document.getElementById('ideLang').value;
         var code = _ideEditor.getValue();
         var pistonCfg = PISTON_LANGS[lang];
+        var stdin = document.getElementById('ideStdin')?.value || '';
+        var startTime = performance.now();
 
         try {
             var resp = await fetch('https://emkc.org/api/v2/piston/execute', {
@@ -9632,9 +9638,11 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 body: JSON.stringify({
                     language: pistonCfg.language,
                     version: pistonCfg.version,
-                    files: [{ content: code }]
+                    files: [{ content: code }],
+                    stdin: stdin
                 })
             });
+            var elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
             var data = await resp.json();
             var output = '';
             if (data.run) {
@@ -9647,13 +9655,18 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             } else {
                 output = 'Error: Unexpected response';
             }
-            outPre.className = (data.run && data.run.code !== 0) || (data.compile && data.compile.code !== 0) ? 'error' : '';
+            var isError = (data.run && data.run.code !== 0) || (data.compile && data.compile.code !== 0);
+            outPre.className = isError ? 'error' : '';
             outPre.textContent = output;
+            if (execTimeEl) execTimeEl.textContent = (isError ? '❌' : '✅') + ' ' + elapsed + 's';
         } catch (e) {
             outPre.className = 'error';
             outPre.textContent = '❌ Network error: ' + e.message;
+            if (execTimeEl) execTimeEl.textContent = '';
         }
         _ideRunning = false;
+        runBtn.classList.remove('running');
+        runBtn.innerHTML = '▶ Run';
     };
 
     window.ideClearOutput = function() {
