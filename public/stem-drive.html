@@ -2076,9 +2076,7 @@ async function restoreSession() {
         return;
     }
 
-    // Optimistic: set admin immediately from cache while refreshing token in background
-    const cachedAdmin = localStorage.getItem('isSideraAdmin');
-    if (cachedAdmin) { isAdmin = true; }
+    // Admin status is ONLY set after server-side verification below
 
     try {
         const session = JSON.parse(storedSession);
@@ -2113,8 +2111,9 @@ async function restoreSession() {
                 localStorage.removeItem('isSideraAdmin');
             }
         } catch(adminErr) {
-            // Fallback to cached value
-            isAdmin = !!localStorage.getItem('isSideraAdmin');
+            // No fallback - if we can't verify, deny admin access
+            isAdmin = false;
+            localStorage.removeItem('isSideraAdmin');
         }
         localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
     } catch (e) {
