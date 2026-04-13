@@ -1391,6 +1391,19 @@
     <p>اكتب كود Python أو JavaScript أو C++ وجرّبه مباشرة — بدون تنزيل أي برنامج</p>
 </div>
 <div class="ide-section" id="ideSection">
+    <div class="ide-header-bar">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.4rem;">💻</span>
+            <div>
+                <h3 style="margin:0;font-size:1rem;font-weight:800;color:var(--dark);">Code IDE</h3>
+                <span style="font-size:0.7rem;color:var(--text);opacity:0.6;">Write, run & save code instantly</span>
+            </div>
+        </div>
+        <div class="ide-shortcuts-hint">
+            <span>⌘/Ctrl+Enter = Run</span>
+            <span>⌘/Ctrl+S = Save</span>
+        </div>
+    </div>
     <div class="ide-templates" id="ideTemplates">
         <span style="font-size:0.75rem;font-weight:700;color:var(--dark);padding:6px 0;">📋 Templates:</span>
     </div>
@@ -1399,20 +1412,37 @@
             <option value="python">🐍 Python</option>
             <option value="javascript">⚡ JavaScript</option>
             <option value="cpp">⚙️ C++</option>
+            <option value="java">☕ Java</option>
+            <option value="csharp">🔷 C#</option>
+            <option value="go">🐹 Go</option>
+            <option value="rust">🦀 Rust</option>
         </select>
         <input type="text" id="ideTitle" placeholder="Snippet title..." value="Untitled" style="flex:1;min-width:120px;">
-        <button class="ide-btn ide-btn-run" onclick="ideRunCode()">▶ Run</button>
+        <button class="ide-btn ide-btn-run" onclick="ideRunCode()" id="ideRunBtn">▶ Run</button>
         <button class="ide-btn ide-btn-save" onclick="ideSaveSnippet()" id="ideSaveBtn" style="display:none;">💾 Save</button>
         <button class="ide-btn ide-btn-outline" onclick="ideNewSnippet()">📄 New</button>
         <button class="ide-btn ide-btn-outline" onclick="ideToggleSaved()" id="ideSavedToggle" style="display:none;">📂 My Code</button>
+        <button class="ide-btn ide-btn-outline" onclick="ideToggleInput()" title="Toggle stdin input">⌨️ Input</button>
+        <button class="ide-btn ide-btn-outline" onclick="ideFormatCode()" title="Format / prettify code">🧹 Format</button>
     </div>
     <div class="ide-editor-wrap">
-        <div id="ideEditorContainer" style="height:350px;"></div>
+        <div id="ideEditorContainer" style="height:400px;"></div>
+    </div>
+    <!-- Stdin Input Area -->
+    <div class="ide-stdin-wrap" id="ideStdinWrap" style="display:none;">
+        <div class="ide-output-header">
+            <span>⌨️ Input (stdin)</span>
+            <button class="ide-btn ide-btn-outline" onclick="document.getElementById('ideStdin').value=''" style="padding:4px 10px;font-size:0.72rem;">Clear</button>
+        </div>
+        <textarea id="ideStdin" placeholder="Enter program input here (one value per line)..." style="width:100%;min-height:60px;max-height:120px;background:#1a1a2e;color:#e0e0e0;border:none;padding:12px 16px;font-family:'Fira Code','Cascadia Code','JetBrains Mono',monospace;font-size:0.82rem;resize:vertical;box-sizing:border-box;outline:none;"></textarea>
     </div>
     <div class="ide-output" id="ideOutputWrap" style="display:none;">
         <div class="ide-output-header">
             <span>📤 Output</span>
-            <button class="ide-btn ide-btn-outline" onclick="ideClearOutput()" style="padding:4px 10px;font-size:0.72rem;">Clear</button>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <span id="ideExecTime" style="font-size:0.68rem;color:#a0a0c0;"></span>
+                <button class="ide-btn ide-btn-outline" onclick="ideClearOutput()" style="padding:4px 10px;font-size:0.72rem;">Clear</button>
+            </div>
         </div>
         <pre id="ideOutput"></pre>
     </div>
