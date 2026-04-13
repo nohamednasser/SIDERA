@@ -4905,9 +4905,8 @@ function _onFullscreenChange() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         _tabSwitchWarnings++;
         _startGracePeriod('⚠️ خرجت من الفول سكرين!');
-    } else {
-        _cancelGracePeriod();
     }
+    // Do NOT auto-cancel when fullscreen re-enters - user must click button
 }
 
 // === Unified 5-second grace period ===
