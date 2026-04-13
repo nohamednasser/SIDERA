@@ -4698,8 +4698,9 @@ function enableExamSecurity() {
     _examSecurityActive = true;
     _tabSwitchWarnings = 0;
 
-    // 1. Prevent screenshots (CSS-based + key blocking)
+    // 1. Prevent screenshots (CSS-based + key blocking + DRM shield)
     document.body.classList.add('exam-secure-mode');
+    _createDRMShield();
 
     // 1.5 Show watermark with student info
     showExamWatermark();
