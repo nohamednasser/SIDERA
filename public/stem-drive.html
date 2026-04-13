@@ -2880,9 +2880,12 @@ function setupApp() {
         document.getElementById('dashBtn').style.display = 'flex';
     } else {
         // Explicitly hide admin-only elements for non-admin users
-        document.getElementById('adminPanel').style.display = 'none';
-        document.getElementById('dashBtn').style.display = 'none';
-        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('adminPanel').style.cssText = 'display:none !important';
+        document.getElementById('dashBtn').style.cssText = 'display:none !important';
+        document.getElementById('loginBtn').style.cssText = 'display:none !important';
+        // Also clear any admin login overlay
+        var loginOverlay = document.getElementById('loginOverlay');
+        if (loginOverlay) loginOverlay.style.display = 'none';
     }
 
     if (localStorage.getItem('theme') === 'dark') {
