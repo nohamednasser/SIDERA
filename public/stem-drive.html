@@ -5788,15 +5788,18 @@ function showExamResults(score, totalPoints, answers, effortData) {
     // Confetti only for genuine high scorers!
     if (pct >= 70 && effortData.effortStatus === 'genuine') launchConfetti();
     
-    // Generate certificate ONLY for genuine passing students (>= 50%)
+    // Generate certificate ONLY for genuine passing students (>= 50%) — prevent duplicates
     if (pct >= 50 && effortData.effortStatus === 'genuine' && _studentInfo && _currentExamData) {
         setTimeout(() => {
             const resultBody = document.getElementById('examResultBody');
-            const certDiv = document.createElement('div');
-            certDiv.style.cssText = 'text-align:center;margin-top:16px;';
-            certDiv.innerHTML = '<button onclick="generateCertificate(\'' + _studentInfo.name.replace(/'/g, "\\'") + '\', \'' + _currentExamData.title.replace(/'/g, "\\'") + '\', ' + score + ', ' + totalPoints + ', \'' + _currentExamId + '\')" style="background:linear-gradient(135deg,#a34054,#c2556a);color:white;border:none;padding:12px 24px;border-radius:14px;font-size:0.9rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform 0.15s;"><span style="font-size:1.2rem;">📜</span> احصل على شهادة الإنجاز</button>';
             const resultCard = resultBody.querySelector('.result-card');
-            if (resultCard) resultCard.appendChild(certDiv);
+            // Don't add if one already exists
+            if (resultCard && !resultCard.querySelector('.cert-generate-btn')) {
+                const certDiv = document.createElement('div');
+                certDiv.style.cssText = 'text-align:center;margin-top:16px;';
+                certDiv.innerHTML = '<button class="cert-generate-btn" onclick="generateCertificate(\'' + _studentInfo.name.replace(/'/g, "\\'") + '\', \'' + _currentExamData.title.replace(/'/g, "\\'") + '\', ' + score + ', ' + totalPoints + ', \'' + _currentExamId + '\')" style="background:linear-gradient(135deg,#a34054,#c2556a);color:white;border:none;padding:12px 24px;border-radius:14px;font-size:0.9rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform 0.15s;"><span style="font-size:1.2rem;">📜</span> احصل على شهادة الإنجاز</button>';
+                resultCard.appendChild(certDiv);
+            }
         }, 500);
     }
 }
