@@ -7879,7 +7879,8 @@ function toggleLanguage() {
 function applyLanguage() {
     var isAr = _currentLang === 'ar';
     var btn = document.getElementById('langBtn');
-    if (btn) btn.innerHTML = isAr ? '🌐 English' : '🌐 عربي';
+    var tooltip = document.getElementById('langTooltip');
+    if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
     // Set direction
     document.body.dir = isAr ? 'rtl' : 'ltr';
