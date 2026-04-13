@@ -9591,7 +9591,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     window.ideChangeLang = function() {
         var lang = document.getElementById('ideLang').value;
         if (_ideEditor) {
-            var monacoLang = lang === 'cpp' ? 'cpp' : lang;
+            var monacoLang = MONACO_LANG_MAP[lang] || lang;
             monaco.editor.setModelLanguage(_ideEditor.getModel(), monacoLang);
             var templates = IDE_TEMPLATES[lang];
             if (templates && templates.length) _ideEditor.setValue(templates[0].code);
@@ -9599,6 +9599,17 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         _ideCurrentId = null;
         document.getElementById('ideTitle').value = 'Untitled';
         renderIdeTemplates();
+    };
+
+    window.ideToggleInput = function() {
+        var wrap = document.getElementById('ideStdinWrap');
+        wrap.style.display = wrap.style.display === 'none' ? '' : 'none';
+    };
+
+    window.ideFormatCode = function() {
+        if (!_ideEditor) return;
+        _ideEditor.getAction('editor.action.formatDocument')?.run();
+        showToast('🧹 Code formatted!', 'success');
     };
 
     window.ideRunCode = async function() {
