@@ -4964,12 +4964,12 @@ function _blockContextMenu(e) {
 // Screenshot prevention: blur content when not focused
 function _onScreenCaptureBlur() {
     if (!_examSecurityActive) return;
+    if (_graceCooldown) return; // Don't re-block during cooldown after returning
     document.body.classList.add('screen-capture-blocked');
 }
 function _onScreenCaptureFocus() {
     if (!_examSecurityActive) return;
     document.body.classList.remove('screen-capture-blocked');
-    // Do NOT auto-cancel grace period - user must click the return button
 }
 
 function _retryFullscreenOnInteraction() {
