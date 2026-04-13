@@ -7989,6 +7989,20 @@ function applyLanguage() {
     
     // Mini leaderboard labels
     document.querySelectorAll('.mini-lb-label, .mini-lb span').forEach(function(el) { _trEl(el, dict); });
+    
+    // IDE section elements
+    document.querySelectorAll('.ide-btn').forEach(function(el) { _trEl(el, dict); });
+    var ideTitle = document.getElementById('ideTitle');
+    if (ideTitle) { var p = ideTitle.placeholder.trim(); if (dict[p]) ideTitle.placeholder = dict[p]; }
+    document.querySelectorAll('.ide-output-header span, #ideSavedPanel h3').forEach(function(el) { _trEl(el, dict); });
+    
+    // Translate all p tags in exam-section-title
+    document.querySelectorAll('.exam-section-title p, .ide-section p, #ideSavedList p').forEach(function(el) {
+        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
+        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
+        emoji = emoji ? emoji[1] : '';
+        if (dict[text]) el.textContent = emoji + dict[text];
+    });
 }
 
 // Apply on load
