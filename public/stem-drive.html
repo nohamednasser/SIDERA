@@ -2942,6 +2942,11 @@ function setupApp() {
         document.getElementById('loginBtn').onclick = logout;
         document.getElementById('loginBtn').style.display = 'flex';
         document.getElementById('dashBtn').style.display = 'flex';
+    } else {
+        // Explicitly hide admin-only elements for non-admin users
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('dashBtn').style.display = 'none';
+        document.getElementById('loginBtn').style.display = 'none';
     }
 
     if (localStorage.getItem('theme') === 'dark') {
