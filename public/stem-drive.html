@@ -7784,87 +7784,82 @@ if (typeof filterSub === 'function') {
 var _currentLang = localStorage.getItem('sideraLang') || 'en';
 
 var _translations = {
-    // Header buttons
-    'Calculator': 'الآلة الحاسبة',
-    'Scanner': 'الماسح',
-    'Mode': 'الوضع',
-    'Alerts': 'التنبيهات',
-    'Notes': 'الملاحظات',
-    'Dashboard': 'لوحة التحكم',
-    'Admin': 'الأدمن',
-    'Logout': 'تسجيل خروج',
-    'Sign In': 'تسجيل دخول',
-    // Navigation
-    'All Grades': 'كل الصفوف',
-    'Grade 10': 'الصف العاشر',
-    'Grade 11': 'الصف الحادي عشر',
-    'Grade 12': 'الصف الثاني عشر',
-    'All Semesters': 'كل الفصول',
-    'Semester 1': 'الفصل الأول',
-    'Semester 2': 'الفصل الثاني',
-    // Section nav
-    'Exams': 'الامتحانات',
-    'Materials': 'المواد',
-    'Capstone': 'المشاريع',
-    'Lab Logs': 'سجل المختبر',
-    'Learning Paths': 'مسارات التعلم',
-    'Code IDE': 'محرر الأكواد',
-    'Reviews': 'التقييمات',
-    // Search
+    'Calculator': 'الآلة الحاسبة', 'Scanner': 'الماسح الضوئي', 'Mode': 'الوضع',
+    'Alerts': 'التنبيهات', 'Notes': 'الملاحظات', 'Dashboard': 'لوحة التحكم',
+    'Admin': 'الأدمن', 'Logout': 'تسجيل خروج', 'Sign In': 'تسجيل دخول',
+    'All Grades': 'كل الصفوف', 'Grade 10': 'الصف العاشر', 'Grade 11': 'الصف الحادي عشر',
+    'Grade 12': 'الصف الثاني عشر', 'All Semesters': 'كل الفصول',
+    'Semester 1': 'الفصل الأول', 'Semester 2': 'الفصل الثاني',
+    'Exams': 'الامتحانات', 'Materials': 'المواد', 'Capstone': 'المشاريع',
+    'Lab Logs': 'سجل المختبر', 'Learning Paths': 'مسارات التعلم',
+    'Code IDE': 'محرر الأكواد', 'Reviews': 'التقييمات',
     'Search for files, subjects, or notes...': 'ابحث عن ملفات، مواد، أو ملاحظات...',
-    // Exam section
     'Exams & Assessments': 'الامتحانات والتقييمات',
-    'All': 'الكل',
-    'Physics': 'الفيزياء',
-    'Chemistry': 'الكيمياء',
-    'Math': 'الرياضيات',
-    'Biology': 'الأحياء',
-    'Computer Science': 'علوم الحاسوب',
-    'SAT': 'SAT',
-    'ACT': 'ACT',
-    // Materials
-    'Educational Materials': 'المواد التعليمية',
-    'No resources found': 'لا توجد موارد',
-    'No exams available': 'لا توجد امتحانات',
-    // Cards
-    'Open': 'فتح',
-    'View': 'عرض',
-    'Download': 'تحميل',
-    'Start Exam': 'ابدأ الامتحان',
-    'Submit': 'إرسال',
-    'Next': 'التالي',
-    'Previous': 'السابق',
-    // Reviews
-    'Student Reviews': 'تقييمات الطلاب',
-    'Write a review...': 'اكتب تقييم...',
+    'Exams & Quizzes': 'الامتحانات والاختبارات',
+    'Test your knowledge and track your progress': 'اختبر معلوماتك وتابع تقدمك',
+    'All': 'الكل', 'Physics': 'الفيزياء', 'Chemistry': 'الكيمياء',
+    'Math': 'الرياضيات', 'Biology': 'الأحياء', 'Computer Science': 'علوم الحاسوب',
+    'SAT': 'SAT', 'ACT': 'ACT',
+    'Educational Materials': 'المواد التعليمية', 'Materials & Resources': 'المواد والموارد',
+    'Browse study materials, notes, and resources for all grades': 'تصفح المواد الدراسية والملاحظات والموارد لجميع الصفوف',
+    'No resources found': 'لا توجد موارد', 'No exams available': 'لا توجد امتحانات',
+    'No resources found. Admin can start uploading!': 'لا توجد موارد. يمكن للأدمن البدء بالرفع!',
+    'No resources match current filters.': 'لا توجد موارد تطابق الفلاتر الحالية.',
+    'Open': 'فتح', 'View': 'عرض', 'Download': 'تحميل', 'Preview': 'معاينة',
+    'Start Exam': 'ابدأ الامتحان', 'Submit': 'إرسال', 'Submit Exam': 'إرسال الامتحان',
+    'Next': 'التالي', 'Previous': 'السابق', 'Publish to Hub': 'نشر في المنصة',
+    'Build Your Capstone PDF': 'ابني ملف مشروعك',
+    'Login': 'تسجيل الدخول', 'Sign Up': 'إنشاء حساب',
+    'Login to access your files.': 'سجّل دخولك للوصول لملفاتك.',
+    'Create your account to get started.': 'أنشئ حسابك للبدء.',
+    'Username': 'اسم المستخدم', 'Password': 'كلمة المرور',
+    'Enter your username': 'أدخل اسم المستخدم',
+    'Continue as Guest →': 'دخول كزائر ←',
+    'Student Reviews': 'تقييمات الطلاب', 'Write a review...': 'اكتب تقييمك...',
     'Submit Review': 'إرسال التقييم',
-    // Capstone
-    'Capstone Projects': 'مشاريع التخرج',
-    // Lab
-    'Lab Logs & Reports': 'سجلات وتقارير المختبر',
-    // Learning paths
-    'Learning Paths': 'مسارات التعلم',
-    // General
-    'Loading...': 'جاري التحميل...',
-    'Error': 'خطأ',
-    'Success': 'نجاح',
-    'Cancel': 'إلغاء',
-    'Save': 'حفظ',
-    'Delete': 'حذف',
-    'Edit': 'تعديل',
-    'Close': 'إغلاق',
-    'Welcome back!': 'أهلاً بعودتك!',
-    'Top Students': 'أفضل الطلاب',
-    'No submissions yet': 'لا توجد إجابات بعد',
-    'questions': 'أسئلة',
-    'minutes': 'دقائق',
-    'Score': 'النتيجة',
-    'Time Left': 'الوقت المتبقي',
-    'Question': 'سؤال',
-    'of': 'من',
+    'Share your learning experience': 'شارك تجربتك التعليمية',
+    'No reviews yet. Be the first to share your experience!': 'لا توجد تقييمات. كن أول من يشارك!',
+    'Capstone Projects': 'مشاريع التخرج', 'Capstone Project Builder': 'منشئ مشاريع التخرج',
+    'Generate a professional PDF report for your capstone project in minutes': 'أنشئ تقرير PDF احترافي لمشروعك في دقائق',
+    'Lab Logs & Reports': 'سجلات وتقارير المختبر', 'Smart Lab Log': 'سجل المختبر الذكي',
+    'Record observations, data, and conclusions from your lab experiments': 'سجل الملاحظات والبيانات والاستنتاجات من تجاربك',
+    'Cloud IDE for STEM': 'محرر أكواد سحابي للعلوم',
+    'Write, run, and save code snippets in Python, JavaScript, and more': 'اكتب وشغّل واحفظ أكوادك بايثون وجافاسكريبت وغيرها',
+    'Alumni Insights': 'آراء الخريجين',
+    'Virtual Labs & Simulations': 'المعامل والمحاكاة الافتراضية',
+    'Explore interactive simulations': 'استكشف المحاكاة التفاعلية',
+    'Your Results': 'نتائجك', 'Register to Take Exam': 'سجّل لأداء الامتحان',
+    'Admin Login': 'دخول الأدمن', 'Admin Dashboard': 'لوحة تحكم الأدمن',
+    'Correct': 'صحيح', 'Wrong': 'خاطئ', 'Points': 'النقاط', 'Violations': 'المخالفات',
+    'Question Review': 'مراجعة الأسئلة', 'SCORE': 'النتيجة',
+    'Important Instructions Before the Exam': 'تعليمات مهمة قبل الامتحان',
+    'Loading...': 'جاري التحميل...', 'Error': 'خطأ', 'Success': 'نجاح',
+    'Cancel': 'إلغاء', 'Save': 'حفظ', 'Delete': 'حذف', 'Edit': 'تعديل', 'Close': 'إغلاق',
+    'Welcome back!': 'أهلاً بعودتك!', 'Top Students': 'أفضل الطلاب',
+    'No submissions yet': 'لا توجد إجابات بعد', 'questions': 'أسئلة', 'minutes': 'دقائق',
+    'Score': 'النتيجة', 'Time Left': 'الوقت المتبقي', 'Question': 'سؤال', 'of': 'من',
+    'Publish Exam': 'نشر الامتحان', 'Submitting...': 'جاري الإرسال...',
+    'Open in new tab': 'فتح في تاب جديد', 'Download instead': 'حمّل بدلاً من ذلك',
+    'Your answer:': 'إجابتك:', 'No answer': 'بدون إجابة', 'pts': 'نقاط',
+    'True': 'صح', 'False': 'خطأ',
+    'Explore interactive STEM simulations from PhET and more': 'استكشف محاكاة STEM التفاعلية',
+    'Open Lab': 'فتح المعمل',
+    'Your Name': 'اسمك', 'Your Email': 'بريدك الإلكتروني',
+    'Enter your name': 'أدخل اسمك', 'Enter your email': 'أدخل بريدك',
+    'Start': 'ابدأ', 'Retry': 'إعادة المحاولة',
+    'Get Certificate': 'احصل على الشهادة',
+    'No exams created yet': 'لم يتم إنشاء امتحانات بعد',
+    'No student submissions yet': 'لا توجد إجابات طلاب بعد',
+    'Unique Students': 'طلاب فريدين', 'Total Submissions': 'إجمالي الإجابات',
+    'Most Active Students': 'أنشط الطلاب', 'Avg': 'المتوسط',
+    'Genuine': 'مجتهد', 'Suspect': 'مشكوك فيه', 'Habd': 'هابد',
+    'Trust': 'الثقة', 'All Students': 'كل الطلاب', 'Habd Only': 'الهابدين فقط',
+    'Overview': 'نظرة عامة', 'Students': 'الطلاب', 'Activity': 'النشاط',
+    'Labs': 'المعامل', 'Alumni': 'الخريجين', 'XP': 'النقاط', 'Chat': 'الدردشة',
+    'Learning Outcomes': 'نواتج التعلم',
+    'Habd Leaderboard': 'لوحة شرف الهابدين',
 };
 
-// Build reverse map
 var _reverseTranslations = {};
 Object.keys(_translations).forEach(function(k) {
     _reverseTranslations[_translations[k]] = k;
@@ -7876,66 +7871,130 @@ function toggleLanguage() {
     applyLanguage();
 }
 
+function _trEl(el, dict) {
+    if (!el) return;
+    var text = el.textContent.replace(/^[^\w؀-ۿ]+/, '').trim();
+    var emoji = el.textContent.match(/^([^\w؀-ۿ]+)/);
+    emoji = emoji ? emoji[1] : '';
+    if (dict[text]) el.textContent = emoji + dict[text];
+}
+
 function applyLanguage() {
     var isAr = _currentLang === 'ar';
-    var btn = document.getElementById('langBtn');
     var tooltip = document.getElementById('langTooltip');
     if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
-    // Set direction
     document.body.dir = isAr ? 'rtl' : 'ltr';
     document.body.style.textAlign = isAr ? 'right' : '';
     
-    // Translate text nodes
     var dict = isAr ? _translations : _reverseTranslations;
     
-    // Translate nav spans
-    document.querySelectorAll('#gradeNav span, #semesterNav span, #sectionNav a').forEach(function(el) {
-        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
-        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
-        emoji = emoji ? emoji[1] : '';
-        if (dict[text]) {
-            el.textContent = emoji + dict[text];
-        }
-    });
+    // Nav spans
+    document.querySelectorAll('#gradeNav span, #semesterNav span, #sectionNav a').forEach(function(el) { _trEl(el, dict); });
     
-    // Translate control buttons
+    // Control buttons
     document.querySelectorAll('.control-btn').forEach(function(el) {
         if (el.id === 'langBtn') return;
-        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
-        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
-        emoji = emoji ? emoji[1] : '';
-        if (dict[text]) {
-            el.textContent = emoji + dict[text];
-        }
+        _trEl(el, dict);
     });
     
-    // Translate search placeholder
+    // Search placeholder
     var search = document.getElementById('searchBar');
-    if (search) {
-        search.placeholder = isAr ? 'ابحث عن ملفات، مواد، أو ملاحظات...' : 'Search for files, subjects, or notes...';
-    }
+    if (search) search.placeholder = isAr ? 'ابحث عن ملفات، مواد، أو ملاحظات...' : 'Search for files, subjects, or notes...';
     
-    // Translate section headings
-    document.querySelectorAll('h2, h3').forEach(function(el) {
-        var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
-        var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
-        emoji = emoji ? emoji[1] : '';
-        if (dict[text]) {
-            el.textContent = emoji + dict[text];
-        }
+    // ALL headings
+    document.querySelectorAll('h2, h3, h4').forEach(function(el) { _trEl(el, dict); });
+    
+    // Section subtitle paragraphs
+    document.querySelectorAll('.exam-section-title p').forEach(function(el) {
+        var text = el.textContent.trim();
+        if (dict[text]) el.textContent = dict[text];
     });
     
-    // Translate exam filter buttons  
+    // Exam filter buttons  
     document.querySelectorAll('.exam-filter-btn').forEach(function(el) {
         var text = el.textContent.trim();
         if (dict[text]) el.textContent = dict[text];
     });
+    
+    // All buttons
+    document.querySelectorAll('.btn-preview, .btn-dl, .btn-pub, .auth-btn, .exam-nav-btn, .capstone-builder-btn, .review-submit-btn, .exam-card-btn').forEach(function(el) {
+        _trEl(el, dict);
+    });
+    
+    // Auth labels & placeholders
+    document.querySelectorAll('.auth-input-group label').forEach(function(el) {
+        var text = el.textContent.trim();
+        if (dict[text]) el.textContent = dict[text];
+    });
+    document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(function(el) {
+        if (el.placeholder) { var p = el.placeholder.trim(); if (dict[p]) el.placeholder = dict[p]; }
+    });
+    
+    // Auth sub text
+    var authSub = document.getElementById('authSub');
+    if (authSub) { var t = authSub.textContent.trim(); if (dict[t]) authSub.textContent = dict[t]; }
+    
+    // Auth toggle
+    var authToggle = document.getElementById('authToggle');
+    if (authToggle) {
+        if (isAr && authToggle.textContent.includes("Don't"))
+            authToggle.innerHTML = 'ليس لديك حساب؟ <span onclick="toggleAuthMode()">إنشاء حساب</span>';
+        else if (isAr && authToggle.textContent.includes("Already"))
+            authToggle.innerHTML = 'عندك حساب؟ <span onclick="toggleAuthMode()">تسجيل الدخول</span>';
+        else if (!isAr && authToggle.textContent.includes('ليس'))
+            authToggle.innerHTML = "Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span>";
+        else if (!isAr && authToggle.textContent.includes('عندك'))
+            authToggle.innerHTML = 'Already a member? <span onclick="toggleAuthMode()">Login</span>';
+    }
+    
+    // Guest link
+    var guestLink = document.querySelector('.auth-guest');
+    if (guestLink) guestLink.textContent = isAr ? 'دخول كزائر ←' : 'Continue as Guest →';
+    
+    // Card buttons
+    document.querySelectorAll('.card .btn-group button, .card .btn-group a').forEach(function(el) { _trEl(el, dict); });
+    
+    // No resources
+    document.querySelectorAll('.no-resources').forEach(function(el) { _trEl(el, dict); });
+    
+    // Review textarea
+    var reviewArea = document.querySelector('.review-input-area textarea');
+    if (reviewArea) reviewArea.placeholder = isAr ? 'اكتب تقييمك...' : 'Write a review...';
+    
+    // Dashboard tabs
+    document.querySelectorAll('.dash-tab').forEach(function(el) { _trEl(el, dict); });
+    
+    // Dashboard stat labels
+    document.querySelectorAll('.stat-label, .lbl').forEach(function(el) {
+        var text = el.textContent.trim();
+        if (dict[text]) el.textContent = dict[text];
+    });
+    
+    // Dashboard section titles
+    document.querySelectorAll('.dash-section-title').forEach(function(el) { _trEl(el, dict); });
+    
+    // Dashboard filter buttons
+    document.querySelectorAll('.dash-filter-btn').forEach(function(el) { _trEl(el, dict); });
+    
+    // Mini leaderboard labels
+    document.querySelectorAll('.mini-lb-label, .mini-lb span').forEach(function(el) { _trEl(el, dict); });
 }
 
 // Apply on load
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(applyLanguage, 500);
+});
+
+// Auto-refresh Arabic when DOM changes
+var _langRefreshTimer = null;
+var _langObserver = new MutationObserver(function() {
+    if (_currentLang !== 'ar') return;
+    if (_langRefreshTimer) clearTimeout(_langRefreshTimer);
+    _langRefreshTimer = setTimeout(applyLanguage, 400);
+});
+document.addEventListener('DOMContentLoaded', function() {
+    _langObserver.observe(document.body, { childList: true, subtree: true });
 });
 
 </script>
