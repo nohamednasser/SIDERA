@@ -4983,7 +4983,7 @@ function _onVisibilityChange() {
     if (!_examSecurityActive) return;
     if (document.hidden) {
         _tabSwitchWarnings++;
-        _startGracePeriod('🚫 فتحت تاب تانية!');
+        if (!_graceCooldown) _startGracePeriod('🚫 فتحت تاب تانية!');
         return;
     }
     // Do NOT auto-cancel grace period when page becomes visible
@@ -4992,6 +4992,7 @@ function _onVisibilityChange() {
 
 function _onWindowBlur() {
     if (!_examSecurityActive) return;
+    if (_graceCooldown) return;
     _tabSwitchWarnings++;
     _startGracePeriod('⚠️ خرجت من الصفحة!');
 }
