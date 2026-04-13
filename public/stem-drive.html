@@ -7873,8 +7873,8 @@ function toggleLanguage() {
 
 function _trEl(el, dict) {
     if (!el) return;
-    var text = el.textContent.replace(/^[^\w؀-ۿ]+/, '').trim();
-    var emoji = el.textContent.match(/^([^\w؀-ۿ]+)/);
+    var text = el.textContent.replace(/^[^\w\u0600-\u06FF]+/, '').trim();
+    var emoji = el.textContent.match(/^([^\w\u0600-\u06FF]+)/);
     emoji = emoji ? emoji[1] : '';
     if (dict[text]) el.textContent = emoji + dict[text];
 }
