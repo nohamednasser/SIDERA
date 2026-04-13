@@ -767,7 +767,11 @@
         .alumni-card .alumni-quote { font-style: italic; border-left: 3px solid var(--accent); padding-left: 12px; margin-top: 10px; font-size: 0.82rem; color: var(--dark); }
 
         /* Cloud IDE Section */
-        .ide-section { width: 90%; max-width: 1400px; margin: 0 auto; padding: 0 0 30px; }
+        .ide-section { width: 90%; max-width: 1400px; margin: 0 auto; padding: 0 0 30px; direction: ltr !important; text-align: left !important; }
+        [dir="rtl"] .ide-section { direction: ltr !important; text-align: left !important; }
+        [dir="rtl"] .ide-editor-wrap, [dir="rtl"] .ide-output { direction: ltr !important; text-align: left !important; }
+        [dir="rtl"] .ide-toolbar { direction: rtl; text-align: right; }
+        [dir="rtl"] .ide-templates { direction: rtl; }
         .ide-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
         .ide-toolbar select, .ide-toolbar input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); color: var(--dark); font-size: 0.82rem; font-family: inherit; }
         .ide-toolbar select:focus, .ide-toolbar input:focus { border-color: var(--accent); outline: none; }
