@@ -4889,9 +4889,9 @@ function _onVisibilityChange() {
         _tabSwitchWarnings++;
         _startGracePeriod('🚫 فتحت تاب تانية!');
         return;
-    } else {
-        _cancelGracePeriod();
     }
+    // Do NOT auto-cancel grace period when page becomes visible
+    // User must click the return button to dismiss the overlay
 }
 
 function _onWindowBlur() {
