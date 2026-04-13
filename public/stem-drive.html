@@ -2076,9 +2076,7 @@ async function restoreSession() {
         return;
     }
 
-    // Optimistic: set admin immediately from cache while refreshing token in background
-    const cachedAdmin = localStorage.getItem('isSideraAdmin');
-    if (cachedAdmin) { isAdmin = true; }
+    // Admin status is ONLY set after server-side verification below
 
     try {
         const session = JSON.parse(storedSession);
@@ -2113,8 +2111,9 @@ async function restoreSession() {
                 localStorage.removeItem('isSideraAdmin');
             }
         } catch(adminErr) {
-            // Fallback to cached value
-            isAdmin = !!localStorage.getItem('isSideraAdmin');
+            // No fallback - if we can't verify, deny admin access
+            isAdmin = false;
+            localStorage.removeItem('isSideraAdmin');
         }
         localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
     } catch (e) {
@@ -2779,8 +2778,23 @@ async function handleAuth() {
             if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
 
             if (isAdminUser) {
-                // Admin login — set admin session
+                // Verify admin from database before granting access
                 authAccessToken = data.access_token;
+                let verified = false;
+                try {
+                    const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/rpc/is_admin', {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + data.access_token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ _user_id: data.user?.id || '' })
+                    });
+                    verified = (await adminCheck.json()) === true;
+                } catch(e) {}
+                if (!verified) {
+                    isAdmin = false;
+                    authAccessToken = null;
+                    localStorage.removeItem('isSideraAdmin');
+                    throw new Error('Access denied. Not an admin account.');
+                }
                 isAdmin = true;
                 localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
                 localStorage.setItem('isSideraAdmin', 'true');
@@ -3329,6 +3343,23 @@ async function checkAuth() {
 
         const data = await res.json();
         authAccessToken = data.access_token;
+        // Verify admin from database
+        let verified = false;
+        try {
+            const adminCheck = await fetch(SUPABASE_URL + '/rest/v1/rpc/is_admin', {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + data.access_token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ _user_id: data.user?.id || '' })
+            });
+            verified = (await adminCheck.json()) === true;
+        } catch(e) {}
+        if (!verified) {
+            isAdmin = false;
+            authAccessToken = null;
+            errEl.textContent = '❌ Access denied. Not an admin account.';
+            errEl.style.display = 'block';
+            return;
+        }
         isAdmin = true;
         localStorage.setItem('sideraAuthSession', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
         localStorage.setItem('isSideraAdmin', 'true');
