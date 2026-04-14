@@ -1264,11 +1264,19 @@
 
 <!-- Exams Section -->
 <div class="exam-section" id="examsSection">
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="examFilters">
+    <!-- Grade filters -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="examFilters">
         <span class="exam-filter-btn active" data-filter="all" onclick="filterExams('all',this)">All</span>
         <span class="exam-filter-btn" data-filter="G10" onclick="filterExams('G10',this)">Grade 10</span>
         <span class="exam-filter-btn" data-filter="G11" onclick="filterExams('G11',this)">Grade 11</span>
         <span class="exam-filter-btn" data-filter="G12" onclick="filterExams('G12',this)">Grade 12</span>
+    </div>
+    <!-- Category filters -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="examCategoryFilters">
+        <span class="exam-filter-btn active" data-cat="all" onclick="filterExamCategory('all',this)" style="font-size:0.72rem;">📚 All Categories</span>
+        <span class="exam-filter-btn" data-cat="SAT" onclick="filterExamCategory('SAT',this)" style="font-size:0.72rem;">🎯 SAT</span>
+        <span class="exam-filter-btn" data-cat="ACT" onclick="filterExamCategory('ACT',this)" style="font-size:0.72rem;">📝 ACT</span>
+        <span class="exam-filter-btn" data-cat="STEM" onclick="filterExamCategory('STEM',this)" style="font-size:0.72rem;">🔬 STEM</span>
     </div>
     <div class="exam-grid" id="examsGrid">
         <p class="no-resources" style="grid-column:1/-1;" id="examsLoading"></p>
