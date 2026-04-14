@@ -89,7 +89,7 @@
         .btn-dl:hover { filter: brightness(1.12); }
         .btn-dl:active { transform: scale(0.97); }
         
-        .del-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-weight: bold; display: none; transition: all 0.2s ease; font-size: 0.85rem; backdrop-filter: blur(4px); z-index: 2; }
+        .del-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,77,77,0.15); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.25); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-weight: bold; display: none; transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease; font-size: 0.85rem; z-index: 2; }
         .del-btn:hover { background: #ff4d4d; color: white; transform: scale(1.08); box-shadow: 0 4px 14px rgba(255,77,77,0.35); }
         .delete-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; }
         .delete-modal.show { opacity: 1; visibility: visible; }
@@ -99,7 +99,7 @@
         .delete-modal-content p { font-size: 0.85rem; color: var(--text); margin-bottom: 20px; line-height: 1.5; }
         .delete-modal-content .del-title { color: var(--accent); font-weight: 600; }
         .del-actions { display: flex; gap: 10px; }
-        .del-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.15s ease; }
+        .del-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none; transition: background-color 0.15s ease, transform 0.1s ease; }
         .del-cancel { background: var(--input-bg); color: var(--dark); border: 1px solid var(--border) !important; }
         .del-cancel:hover { background: var(--border); }
         .del-confirm { background: #ff4d4d; color: white; }
@@ -150,12 +150,12 @@
         footer a { color: var(--accent); text-decoration: none; font-weight: bold; }
 
         /* Admin Dashboard Modal */
-        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1002; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .dash-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1002; justify-content: center; align-items: center; }
         .dash-modal.show { display: flex; }
         .dash-content { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); width: 92%; max-width: 800px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s ease, border-color 0.15s ease; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
         .dash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, var(--accent), #ff6b8a); border-radius: 24px 24px 0 0; }
         .dash-header h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: white; }
-        .dash-close { background: rgba(255,255,255,0.2); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: all 0.15s ease; backdrop-filter: blur(4px); }
+        .dash-close { background: rgba(255,255,255,0.25); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: background-color 0.15s ease; }
         .dash-close:hover { transform: scale(1.1); background: rgba(255,255,255,0.3); }
         .dash-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 20px; gap: 2px; overflow-x: auto; background: var(--input-bg); scrollbar-width: none; -ms-overflow-style: none; }
         .dash-tabs::-webkit-scrollbar { display: none; }
@@ -406,11 +406,8 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--accent), #a78bfa, #c0526a, var(--accent));
-            background-size: 200% 100%;
-            animation: examCardGradient 4s ease infinite;
+            background: linear-gradient(90deg, var(--accent), #a78bfa, #c0526a);
         }
-        @keyframes examCardGradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
         .exam-card:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 12px 40px rgba(163,64,84,0.12), 0 4px 12px rgba(0,0,0,0.06); }
         .exam-card-body { padding: 24px 24px 0; position: relative; z-index: 1; }
         .exam-card-footer { padding: 16px 24px 24px; position: relative; z-index: 1; }
@@ -421,7 +418,7 @@
             font-size: 0.62rem; font-weight: 800;
             padding: 5px 12px; border-radius: 20px;
             text-transform: uppercase; letter-spacing: 0.3px;
-            backdrop-filter: blur(8px);
+        
         }
         .exam-card .exam-badge.grade { background: rgba(163,64,84,0.12); color: var(--accent); }
         .exam-card .exam-badge.subject { background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }
@@ -460,13 +457,13 @@
 
         /* Admin buttons on card */
         .exam-card .exam-admin-btns { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; z-index: 3; }
-        .exam-card .exam-del-btn { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.2); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; backdrop-filter: blur(8px); }
+        .exam-card .exam-del-btn { background: rgba(255,77,77,0.15); color: #ff4d4d; border: 1.5px solid rgba(255,77,77,0.2); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; transition: background-color 0.15s, color 0.15s, transform 0.1s; }
         .exam-card .exam-del-btn:hover { background: #ff4d4d; color: white; transform: scale(1.1); }
-        .exam-card .exam-export-btn { background: rgba(34,197,94,0.1); color: #22c55e; border: 1.5px solid rgba(34,197,94,0.2); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; backdrop-filter: blur(8px); }
+        .exam-card .exam-export-btn { background: rgba(34,197,94,0.15); color: #22c55e; border: 1.5px solid rgba(34,197,94,0.2); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; transition: background-color 0.15s, color 0.15s, transform 0.1s; }
         .exam-card .exam-export-btn:hover { background: #22c55e; color: white; transform: scale(1.1); }
 
         /* ── Exam Modal (taking exam) — Dark/Cyan Theme ── */
-        .exam-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1003; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 0; backdrop-filter: blur(12px); }
+        .exam-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1003; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 0; }
         .exam-modal.show { display: flex; }
         .exam-modal-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 720px; margin: auto; animation: examSlideUp 0.35s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s, border-color 0.15s; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         @keyframes examSlideUp { from { opacity:0; transform: translateY(30px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
@@ -511,7 +508,7 @@
          @media (display-mode: picture-in-picture) { .exam-secure-mode #examTakingModal { filter: blur(100px) !important; } }
         
         /* Certificate styles */
-        .cert-modal { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(8px); }
+        .cert-modal { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .cert-modal.show { opacity: 1; pointer-events: all; }
         .cert-container { background: white; border-radius: 20px; padding: 20px; max-width: 95vw; max-height: 95vh; overflow: auto; position: relative; }
         .cert-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
