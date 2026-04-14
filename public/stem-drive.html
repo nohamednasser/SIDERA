@@ -499,13 +499,16 @@
          .exam-secure-mode img, .exam-secure-mode video, .exam-secure-mode canvas { pointer-events: none !important; -webkit-touch-callout: none !important; }
          /* Prevent pull-to-refresh */
          .exam-secure-mode { overflow: hidden !important; position: fixed !important; width: 100% !important; height: 100% !important; -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
-         /* Screenshot prevention */
-         .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(50px) !important; transition: filter 0.05s; }
+         /* Screenshot prevention — always blur during exam when not focused */
+         .exam-secure-mode.screen-capture-blocked #examTakingModal { filter: blur(80px) brightness(0.1) !important; transition: filter 0.01s; }
          .exam-secure-mode.screen-capture-blocked #examTakingModal *:not(.tab-warning-overlay):not(.tab-warning-overlay *) { visibility: hidden !important; }
          .exam-secure-mode.screen-capture-blocked .tab-warning-overlay { visibility: visible !important; }
          /* Anti-screenshot: prevent content from being captured */
          .exam-secure-mode #examTakingModal { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); }
+         /* Block printing */
          @media print { .exam-secure-mode { display: none !important; } body.exam-secure-mode * { display: none !important; } }
+         /* CSS media query to detect screen capture and blur content */
+         @media (display-mode: picture-in-picture) { .exam-secure-mode #examTakingModal { filter: blur(100px) !important; } }
         
         /* Certificate styles */
         .cert-modal { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(8px); }
