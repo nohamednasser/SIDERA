@@ -465,17 +465,33 @@
         .exam-card .exam-export-btn { background: rgba(34,197,94,0.1); color: #22c55e; border: 1.5px solid rgba(34,197,94,0.2); width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; backdrop-filter: blur(8px); }
         .exam-card .exam-export-btn:hover { background: #22c55e; color: white; transform: scale(1.1); }
 
-        /* ── Exam Modal (taking exam) ── */
-        .exam-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1003; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 20px; backdrop-filter: blur(8px); }
+        /* ── Exam Modal (taking exam) — Dark/Cyan Theme ── */
+        .exam-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1003; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 0; backdrop-filter: blur(12px); }
         .exam-modal.show { display: flex; }
         .exam-modal-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 720px; margin: auto; animation: examSlideUp 0.35s cubic-bezier(.4,0,.2,1); transition: background-color 0.15s, border-color 0.15s; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         @keyframes examSlideUp { from { opacity:0; transform: translateY(30px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
-        .exam-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(163,64,84,0.04), transparent); border-radius: 24px 24px 0 0; }
+        .exam-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(6,182,212,0.06), transparent); border-radius: 24px 24px 0 0; }
         .exam-modal-header h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }
         .exam-modal-body { padding: 24px; }
-        .exam-timer { background: linear-gradient(135deg, rgba(163,64,84,0.08), rgba(163,64,84,0.04)); color: var(--accent); padding: 8px 18px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; border: 1px solid rgba(163,64,84,0.15); }
-        .exam-timer.warning { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08)); color: #ef4444; border-color: rgba(239,68,68,0.3); animation: timerPulse 0.8s infinite; }
-        @keyframes timerPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.7; transform:scale(1.05); } }
+
+        /* ── Exam Taking Full-Screen Layout ── */
+        #examTakingModal.exam-modal { padding: 0; }
+        #examTakingModal .exam-modal-content { max-width: 100%; width: 100%; min-height: 100vh; border-radius: 0; background: #0c1222; color: #e2e8f0; border: none; display: flex; flex-direction: column; }
+        #examTakingModal .exam-modal-header { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 1px solid rgba(6,182,212,0.15); border-radius: 0; padding: 14px 20px; }
+        #examTakingModal .exam-modal-header h2 { color: #e2e8f0; font-size: 1rem; }
+        #examTakingModal .exam-modal-body { flex: 1; padding: 20px; background: #0c1222; overflow-y: auto; }
+        #examTakingModal .exam-nav-btns { background: #0f172a; border-top: 1px solid rgba(6,182,212,0.12); border-radius: 0; }
+
+        /* ── Circular Timer (sticky) ── */
+        .exam-timer-circle { position: fixed; top: 16px; right: 16px; z-index: 1010; width: 72px; height: 72px; border-radius: 50%; background: #1e293b; border: 3px solid #06b6d4; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(6,182,212,0.25); transition: all 0.3s; }
+        .exam-timer-circle .timer-val { font-size: 0.95rem; font-weight: 900; color: #06b6d4; line-height: 1; }
+        .exam-timer-circle .timer-lbl { font-size: 0.55rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .exam-timer-circle.warning { border-color: #ef4444; background: rgba(239,68,68,0.15); animation: timerPulseRed 0.8s infinite; box-shadow: 0 4px 24px rgba(239,68,68,0.4); }
+        .exam-timer-circle.warning .timer-val { color: #ef4444; }
+        @keyframes timerPulseRed { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+        /* Legacy timer hidden in new layout */
+        .exam-timer { display: none !important; }
         
         /* Exam Security Styles */
          .exam-secure-mode { -webkit-user-select: none !important; user-select: none !important; touch-action: manipulation !important; overscroll-behavior: none !important; }
@@ -508,79 +524,90 @@
         .exam-watermark-inner { position: absolute; inset: -15%; display: grid; grid-template-columns: repeat(6, minmax(180px, 1fr)); gap: 28px 40px; align-content: center; justify-items: center; transform: rotate(-24deg) scale(1.08); }
         .exam-watermark-inner span { color: rgba(163, 64, 84, 0.18); font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
         
-        .tab-warning-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; gap: 16px; backdrop-filter: blur(12px); }
+        .tab-warning-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; gap: 20px; backdrop-filter: blur(20px); }
         .tab-warning-overlay .warn-icon { font-size: 4rem; animation: warnShake 0.4s infinite; }
         @keyframes warnShake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
-        .tab-warning-overlay h2 { color: #ff4d4d; font-size: 1.6rem; font-weight: 800; text-align: center; }
-        .tab-warning-overlay .countdown { font-size: 4rem; font-weight: 900; color: #ff4d4d; background: rgba(255,77,77,0.15); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #ff4d4d; animation: countdownPulse 1s infinite; }
+        .tab-warning-overlay h2 { color: #ff4d4d; font-size: 1.4rem; font-weight: 800; text-align: center; line-height: 1.5; }
+        .tab-warning-overlay .countdown { font-size: 4rem; font-weight: 900; color: #ff4d4d; background: rgba(255,77,77,0.15); width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #ff4d4d; animation: countdownPulse 1s infinite; }
         @keyframes countdownPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-        .tab-warning-overlay p { color: #ccc; font-size: 0.95rem; text-align: center; max-width: 320px; }
+        .tab-warning-overlay p { color: #94a3b8; font-size: 0.9rem; text-align: center; max-width: 340px; line-height: 1.6; }
+        .tab-warning-overlay .warn-subtitle { color: #ef4444; font-size: 1rem; font-weight: 700; text-align: center; }
 
         /* Progress bar */
-        .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(163,64,84,0.02); }
-        .exam-progress-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
-        .exam-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a855f7); border-radius: 5px; transition: width 0.4s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 12px rgba(163,64,84,0.3); }
-        .exam-progress-text { font-size: 0.78rem; font-weight: 800; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; }
+        .exam-progress-bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid rgba(6,182,212,0.1); background: #0f172a; }
+        .exam-progress-track { flex: 1; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
+        .exam-progress-fill { height: 100%; background: linear-gradient(90deg, #06b6d4, #8b5cf6); border-radius: 4px; transition: width 0.4s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 10px rgba(6,182,212,0.3); }
+        .exam-progress-text { font-size: 0.78rem; font-weight: 800; color: #06b6d4; white-space: nowrap; min-width: 60px; text-align: right; }
 
-        /* Question dots */
-        .exam-q-dots { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 24px; border-bottom: 1px solid var(--border); justify-content: center; background: rgba(163,64,84,0.01); }
-        .exam-q-dot { width: 34px; height: 34px; border-radius: 10px; border: 2px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(.4,0,.2,1); }
-        .exam-q-dot:hover { border-color: var(--accent); transform: scale(1.1); }
-        .exam-q-dot.active { background: linear-gradient(135deg, var(--accent), #a855f7); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(163,64,84,0.3); transform: scale(1.08); }
-        .exam-q-dot.answered { background: rgba(34,197,94,0.12); border-color: #22c55e; color: #22c55e; }
-        .exam-q-dot.active.answered { background: linear-gradient(135deg, var(--accent), #a855f7); color: white; border-color: transparent; }
+        /* Question Grid Sidebar */
+        .exam-q-sidebar { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; padding: 14px 20px; border-bottom: 1px solid rgba(6,182,212,0.1); background: #0f172a; }
+        .exam-q-dot { width: 36px; height: 36px; border-radius: 10px; border: 2px solid #334155; background: #1e293b; color: #94a3b8; font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(.4,0,.2,1); position: relative; }
+        .exam-q-dot:hover { border-color: #06b6d4; transform: scale(1.1); color: #e2e8f0; }
+        .exam-q-dot.active { background: #06b6d4; color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(6,182,212,0.4); transform: scale(1.08); }
+        .exam-q-dot.answered { background: rgba(34,197,94,0.2); border-color: #22c55e; color: #22c55e; }
+        .exam-q-dot.active.answered { background: #06b6d4; color: white; border-color: transparent; }
+        .exam-q-dot.flagged { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.3); }
+        .exam-q-dot.flagged::after { content: '🚩'; position: absolute; top: -6px; right: -6px; font-size: 0.5rem; }
+        /* Hide old dots container */
+        .exam-q-dots { display: none; }
 
         /* Navigation buttons */
-        .exam-nav-btns { display: flex; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(163,64,84,0.02); border-radius: 0 0 24px 24px; }
-        .exam-nav-btn { flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; background: var(--input-bg); color: var(--dark); display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .exam-nav-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .exam-nav-btns { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid rgba(6,182,212,0.12); background: #0f172a; border-radius: 0; }
+        .exam-nav-btn { flex: 1; padding: 13px; border: 1.5px solid #334155; border-radius: 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; background: #1e293b; color: #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .exam-nav-btn:hover { border-color: #06b6d4; transform: translateY(-1px); }
         .exam-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-        .exam-nav-btn.primary { background: linear-gradient(135deg, var(--accent), #a855f7); color: white; border-color: transparent; box-shadow: 0 4px 16px rgba(163,64,84,0.25); }
+        .exam-nav-btn.primary { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border-color: transparent; box-shadow: 0 4px 16px rgba(6,182,212,0.3); }
         .exam-nav-btn.primary:hover { filter: brightness(1.1); }
+        .exam-nav-btn.flag { background: transparent; border-color: #f97316; color: #f97316; flex: 0 0 auto; padding: 13px 16px; }
+        .exam-nav-btn.flag.flagged { background: rgba(249,115,22,0.15); }
         .exam-nav-btn.submit { background: linear-gradient(135deg, #22c55e, #10b981); color: white; border-color: transparent; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
         .exam-nav-btn.submit:hover { filter: brightness(1.1); }
 
-        /* Question block */
+        /* Question block — Dark theme */
         .question-block {
-            background: var(--input-bg); border: 1.5px solid var(--border);
+            background: #1e293b; border: 1.5px solid #334155;
             border-radius: 18px; padding: 24px; margin-bottom: 16px;
-            transition: all 0.2s;
-            animation: questionFadeIn 0.3s ease;
+            transition: all 0.3s ease;
+            animation: questionSlideIn 0.35s cubic-bezier(.4,0,.2,1);
         }
-        @keyframes questionFadeIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
-        .question-block .q-num { font-size: 0.7rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-        .question-block .q-num::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0.3; }
-        .question-block .q-text { font-size: 1rem; font-weight: 700; margin-bottom: 16px; line-height: 1.6; }
-        .question-block .q-points { font-size: 0.72rem; color: var(--text); margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px; background: rgba(163,64,84,0.06); padding: 4px 12px; border-radius: 8px; }
+        .question-block.slide-left { animation: questionSlideLeft 0.35s cubic-bezier(.4,0,.2,1); }
+        .question-block.slide-right { animation: questionSlideRight 0.35s cubic-bezier(.4,0,.2,1); }
+        @keyframes questionSlideIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+        @keyframes questionSlideLeft { from { opacity:0; transform: translateX(-30px); } to { opacity:1; transform: translateX(0); } }
+        @keyframes questionSlideRight { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+        .question-block .q-num { font-size: 0.7rem; font-weight: 800; color: #06b6d4; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .question-block .q-num::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, #06b6d4, transparent); opacity: 0.3; }
+        .question-block .q-text { font-size: 1rem; font-weight: 700; margin-bottom: 16px; line-height: 1.6; color: #e2e8f0; }
+        .question-block .q-points { font-size: 0.72rem; color: #94a3b8; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px; background: rgba(6,182,212,0.08); padding: 4px 12px; border-radius: 8px; }
 
-        /* MCQ Options */
+        /* MCQ Options — Dark/Cyan */
         .mcq-option {
             display: flex; align-items: center; gap: 12px;
-            padding: 14px 18px; border: 2px solid var(--border);
+            padding: 14px 18px; border: 2px solid #334155;
             border-radius: 14px; margin-bottom: 10px; cursor: pointer;
             transition: all 0.2s cubic-bezier(.4,0,.2,1);
-            font-size: 0.9rem; font-weight: 500;
-            position: relative; overflow: hidden;
+            font-size: 0.9rem; font-weight: 500; color: #e2e8f0;
+            position: relative; overflow: hidden; background: #1e293b;
         }
-        .mcq-option::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(163,64,84,0.05), transparent); opacity: 0; transition: opacity 0.2s; }
-        .mcq-option:hover { border-color: var(--accent); transform: translateX(6px); }
+        .mcq-option::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(6,182,212,0.08), transparent); opacity: 0; transition: opacity 0.2s; }
+        .mcq-option:hover { border-color: #06b6d4; transform: translateX(6px); }
         .mcq-option:hover::before { opacity: 1; }
-        .mcq-option.selected { border-color: var(--accent); background: rgba(163,64,84,0.06); box-shadow: 0 4px 16px rgba(163,64,84,0.12); }
-        .mcq-option input[type="radio"] { accent-color: var(--accent); width: 18px; height: 18px; }
+        .mcq-option.selected { border-color: #06b6d4; background: rgba(6,182,212,0.1); box-shadow: 0 4px 16px rgba(6,182,212,0.15); }
+        .mcq-option input[type="radio"] { accent-color: #06b6d4; width: 18px; height: 18px; }
 
-        /* True/False */
+        /* True/False — Dark */
         .tf-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .tf-option { padding: 20px; border: 2px solid var(--border); border-radius: 16px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1.1rem; transition: all 0.2s cubic-bezier(.4,0,.2,1); }
+        .tf-option { padding: 20px; border: 2px solid #334155; border-radius: 16px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1.1rem; transition: all 0.2s cubic-bezier(.4,0,.2,1); color: #94a3b8; background: #1e293b; }
         .tf-option:hover { transform: translateY(-3px); }
-        .tf-option.true-opt:hover, .tf-option.true-opt.selected { border-color: #22c55e; background: rgba(34,197,94,0.08); color: #22c55e; box-shadow: 0 6px 20px rgba(34,197,94,0.15); }
-        .tf-option.false-opt:hover, .tf-option.false-opt.selected { border-color: #ef4444; background: rgba(239,68,68,0.08); color: #ef4444; box-shadow: 0 6px 20px rgba(239,68,68,0.15); }
+        .tf-option.true-opt:hover, .tf-option.true-opt.selected { border-color: #22c55e; background: rgba(34,197,94,0.12); color: #22c55e; box-shadow: 0 6px 20px rgba(34,197,94,0.15); }
+        .tf-option.false-opt:hover, .tf-option.false-opt.selected { border-color: #ef4444; background: rgba(239,68,68,0.12); color: #ef4444; box-shadow: 0 6px 20px rgba(239,68,68,0.15); }
 
-        /* Fill blank */
-        .fill-blank-input { width: 100%; padding: 16px 20px; border: 2px solid var(--border); border-radius: 14px; background: var(--card-bg); color: var(--dark); font-size: 1.05rem; font-weight: 600; outline: none; transition: all 0.2s; font-family: inherit; text-align: center; letter-spacing: 1px; }
-        .fill-blank-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163,64,84,0.08); }
+        /* Fill blank — Dark */
+        .fill-blank-input { width: 100%; padding: 16px 20px; border: 2px solid #334155; border-radius: 14px; background: #0f172a; color: #e2e8f0; font-size: 1.05rem; font-weight: 600; outline: none; transition: all 0.2s; font-family: inherit; text-align: center; letter-spacing: 1px; }
+        .fill-blank-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.12); }
 
-        .essay-input { width: 100%; min-height: 120px; padding: 16px; border: 2px solid var(--border); border-radius: 14px; background: var(--card-bg); color: var(--dark); font-size: 0.9rem; resize: vertical; outline: none; transition: all 0.2s; font-family: inherit; }
-        .essay-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163,64,84,0.08); }
+        .essay-input { width: 100%; min-height: 120px; padding: 16px; border: 2px solid #334155; border-radius: 14px; background: #0f172a; color: #e2e8f0; font-size: 0.9rem; resize: vertical; outline: none; transition: all 0.2s; font-family: inherit; }
+        .essay-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.12); }
 
         /* Student registration */
         .student-reg { max-width: 400px; margin: 0 auto; }
@@ -1421,30 +1448,37 @@
     </div>
 </div>
 
-<!-- Exam Taking Modal -->
+<!-- Exam Taking Modal — Dark/Cyan Full-Screen -->
 <div id="examTakingModal" class="exam-modal">
     <div class="exam-watermark" id="examWatermark" aria-hidden="true">
         <div class="exam-watermark-inner" id="examWatermarkInner"></div>
     </div>
-    <div class="exam-modal-content" style="max-width:750px;">
+    <!-- Circular Timer (fixed position) -->
+    <div class="exam-timer-circle" id="examTimerCircle" style="display:none;">
+        <span class="timer-val" id="examTimerVal">00:00</span>
+        <span class="timer-lbl">TIME</span>
+    </div>
+    <span class="exam-timer" id="examTimerDisplay" style="display:none;">⏱ 00:00</span>
+    <div class="exam-modal-content">
         <div class="exam-modal-header">
-            <h2 id="examTakingTitle">Exam</h2>
             <div style="display:flex;align-items:center;gap:10px;">
                 <span class="exam-secure-badge" id="examSecureBadge" style="display:none;">🔒 Secure</span>
-                <span class="exam-timer" id="examTimerDisplay" style="display:none;">⏱ 00:00</span>
-                <button class="dash-close" onclick="confirmExitExam()">✕</button>
+                <h2 id="examTakingTitle">Exam</h2>
             </div>
+            <button class="dash-close" onclick="confirmExitExam()" style="color:#94a3b8;">✕</button>
         </div>
         <div class="exam-progress-bar" id="examProgressBar">
             <div class="exam-progress-track"><div class="exam-progress-fill" id="examProgressFill" style="width:0%"></div></div>
             <span class="exam-progress-text" id="examProgressText">0/0</span>
         </div>
+        <div class="exam-q-sidebar" id="examQSidebar"></div>
         <div class="exam-q-dots" id="examQDots"></div>
         <div class="exam-modal-body" id="examTakingBody">
             <!-- Questions rendered here -->
         </div>
         <div class="exam-nav-btns" id="examNavBtns">
             <button class="exam-nav-btn" id="examPrevBtn" onclick="examNav(-1)">◀ Previous</button>
+            <button class="exam-nav-btn flag" id="examFlagBtn" onclick="toggleFlagQuestion()">🚩 Flag</button>
             <button class="exam-nav-btn primary" id="examNextBtn" onclick="examNav(1)">Next ▶</button>
             <button class="exam-nav-btn submit" id="examSubmitBtn" onclick="submitExam()" style="display:none;">✅ Submit Exam</button>
         </div>
@@ -4633,6 +4667,9 @@ function resetExamRuntimeState(options) {
         timerEl.classList.remove('warning');
         timerEl.textContent = '⏱ 00:00';
     }
+    const circleTimer = document.getElementById('examTimerCircle');
+    if (circleTimer) { circleTimer.style.display = 'none'; circleTimer.classList.remove('warning'); }
+    if (typeof _flaggedQuestions !== 'undefined') _flaggedQuestions = new Set();
 
     const submitBtn = document.getElementById('examSubmitBtn');
     if (submitBtn) {
@@ -4915,8 +4952,9 @@ function _blockScreenshotKeys(e) {
     if ((e.ctrlKey || e.metaKey) && ['p','P'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
     if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
     if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); return; }
-    // Block F12
+    // Block F12, Ctrl+C/V/U
     if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.ctrlKey || e.metaKey) && ['c','C','v','V','u','U'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); return; }
 }
 
 function _blockContextMenu(e) {
@@ -5317,7 +5355,7 @@ async function loadAndStartExam(examId) {
         // Start timer if needed
         if (_currentExamData.time_limit_minutes > 0) {
             _examTimeLeft = _currentExamData.time_limit_minutes * 60;
-            document.getElementById('examTimerDisplay').style.display = 'inline-flex';
+            document.getElementById('examTimerCircle').style.display = 'flex';
             updateTimerDisplay();
             _examTimer = setInterval(() => {
                 _examTimeLeft--;
@@ -5338,45 +5376,143 @@ async function loadAndStartExam(examId) {
 function updateTimerDisplay() {
     const m = Math.floor(_examTimeLeft / 60);
     const s = _examTimeLeft % 60;
-    const el = document.getElementById('examTimerDisplay');
-    el.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    const timeStr = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    
+    // Update circular timer
+    const circle = document.getElementById('examTimerCircle');
+    const valEl = document.getElementById('examTimerVal');
+    if (circle) circle.style.display = 'flex';
+    if (valEl) valEl.textContent = timeStr;
+    
     // Warning state when less than 2 minutes
     if (_examTimeLeft <= 120) {
-        el.classList.add('warning');
+        if (circle) circle.classList.add('warning');
         if (_examTimeLeft === 120) showToast('⚠️ باقي دقيقتين!', 'warning');
         if (_examTimeLeft === 30) showToast('🚨 باقي 30 ثانية!', 'error');
     } else {
-        el.classList.remove('warning');
+        if (circle) circle.classList.remove('warning');
     }
+    
+    // Persist time every 5 seconds
+    if (_examTimeLeft % 5 === 0) _saveExamState();
 }
 
 let _currentQIdx = 0;
 let _examAnswers = {}; // Store answers by question id
 let _examStartedAt = 0; // Timestamp when exam started
+let _flaggedQuestions = new Set(); // Flagged questions
+let _lastNavDir = 1; // Track direction for animation
+
+// === localStorage Persistence ===
+function _examPersistKey() { return 'sideraExamState_' + _currentExamId; }
+
+function _saveExamState() {
+    if (!_currentExamId) return;
+    try {
+        localStorage.setItem(_examPersistKey(), JSON.stringify({
+            answers: _examAnswers,
+            currentQ: _currentQIdx,
+            timeLeft: _examTimeLeft,
+            startedAt: _examStartedAt,
+            flagged: Array.from(_flaggedQuestions),
+            savedAt: Date.now()
+        }));
+    } catch(e) {}
+}
+
+function _loadExamState() {
+    if (!_currentExamId) return null;
+    try {
+        const raw = localStorage.getItem(_examPersistKey());
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+        // Only restore if saved less than 4 hours ago
+        if (Date.now() - state.savedAt > 4 * 60 * 60 * 1000) {
+            localStorage.removeItem(_examPersistKey());
+            return null;
+        }
+        return state;
+    } catch(e) { return null; }
+}
+
+function _clearExamState() {
+    if (!_currentExamId) return;
+    try { localStorage.removeItem(_examPersistKey()); } catch(e) {}
+}
+
+// === Flag System ===
+function toggleFlagQuestion() {
+    const q = _currentExamQuestions[_currentQIdx];
+    if (!q) return;
+    if (_flaggedQuestions.has(q.id)) {
+        _flaggedQuestions.delete(q.id);
+    } else {
+        _flaggedQuestions.add(q.id);
+    }
+    updateQSidebar();
+    updateFlagBtn();
+    _saveExamState();
+}
+
+function updateFlagBtn() {
+    const btn = document.getElementById('examFlagBtn');
+    if (!btn) return;
+    const q = _currentExamQuestions[_currentQIdx];
+    if (q && _flaggedQuestions.has(q.id)) {
+        btn.classList.add('flagged');
+        btn.textContent = '🚩 Flagged';
+    } else {
+        btn.classList.remove('flagged');
+        btn.textContent = '🚩 Flag';
+    }
+}
 
 function renderExamQuestions() {
-    _currentQIdx = 0;
-    _examAnswers = {};
-    renderQDots();
+    // Check for persisted state
+    const saved = _loadExamState();
+    if (saved) {
+        _examAnswers = saved.answers || {};
+        _currentQIdx = saved.currentQ || 0;
+        _flaggedQuestions = new Set(saved.flagged || []);
+        if (saved.timeLeft > 0 && _currentExamData && _currentExamData.time_limit_minutes > 0) {
+            _examTimeLeft = saved.timeLeft;
+        }
+        if (saved.startedAt) _examStartedAt = saved.startedAt;
+    } else {
+        _currentQIdx = 0;
+        _examAnswers = {};
+        _flaggedQuestions = new Set();
+    }
+    renderQSidebar();
     renderCurrentQuestion();
     updateExamNav();
 }
 
-function renderQDots() {
-    const dots = document.getElementById('examQDots');
-    dots.innerHTML = _currentExamQuestions.map((q, idx) =>
-        '<button class="exam-q-dot' + (idx === 0 ? ' active' : '') + '" onclick="goToQuestion(' + idx + ')" title="Question ' + (idx+1) + '">' + (idx+1) + '</button>'
-    ).join('');
+function renderQSidebar() {
+    const sidebar = document.getElementById('examQSidebar');
+    if (!sidebar) return;
+    sidebar.innerHTML = _currentExamQuestions.map((q, idx) => {
+        let cls = 'exam-q-dot';
+        if (idx === _currentQIdx) cls += ' active';
+        if (_examAnswers[q.id]) cls += ' answered';
+        if (_flaggedQuestions.has(q.id)) cls += ' flagged';
+        return '<button class="' + cls + '" onclick="goToQuestion(' + idx + ')" title="Question ' + (idx+1) + '">' + (idx+1) + '</button>';
+    }).join('');
 }
 
-function updateQDots() {
-    const dots = document.querySelectorAll('.exam-q-dot');
+// Kept for backward compat
+function renderQDots() { renderQSidebar(); }
+
+function updateQSidebar() {
+    const dots = document.querySelectorAll('.exam-q-sidebar .exam-q-dot');
     dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === _currentQIdx);
         const q = _currentExamQuestions[idx];
-        dot.classList.toggle('answered', !!_examAnswers[q.id]);
+        if (q) {
+            dot.classList.toggle('answered', !!_examAnswers[q.id]);
+            dot.classList.toggle('flagged', _flaggedQuestions.has(q.id));
+        }
     });
-    // Update progress
     const answered = Object.keys(_examAnswers).length;
     const total = _currentExamQuestions.length;
     const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
@@ -5384,20 +5520,27 @@ function updateQDots() {
     document.getElementById('examProgressText').textContent = answered + '/' + total;
 }
 
+// Keep old name as alias
+function updateQDots() { updateQSidebar(); }
+
 function goToQuestion(idx) {
     saveCurrentAnswer();
+    _lastNavDir = idx > _currentQIdx ? 1 : -1;
     _currentQIdx = idx;
     renderCurrentQuestion();
     updateExamNav();
+    _saveExamState();
 }
 
 function examNav(dir) {
     saveCurrentAnswer();
+    _lastNavDir = dir;
     _currentQIdx += dir;
     if (_currentQIdx < 0) _currentQIdx = 0;
     if (_currentQIdx >= _currentExamQuestions.length) _currentQIdx = _currentExamQuestions.length - 1;
     renderCurrentQuestion();
     updateExamNav();
+    _saveExamState();
 }
 
 function updateExamNav() {
@@ -5414,6 +5557,7 @@ function updateExamNav() {
     document.getElementById('examNextBtn').style.display = isLast ? 'none' : 'flex';
     document.getElementById('examSubmitBtn').style.display = total > 0 ? 'flex' : 'none';
     document.getElementById('examSubmitBtn').textContent = isLast ? '✅ Submit Exam' : '✅ Submit Now';
+    updateFlagBtn();
 }
 
 function saveCurrentAnswer() {
@@ -5438,7 +5582,8 @@ function saveCurrentAnswer() {
 
     if (value) _examAnswers[q.id] = value;
     else delete _examAnswers[q.id];
-    updateQDots();
+    updateQSidebar();
+    _saveExamState();
 }
 
 function renderCurrentQuestion() {
@@ -5448,13 +5593,14 @@ function renderCurrentQuestion() {
     const total = _currentExamQuestions.length;
 
     if (!q) {
-        body.innerHTML = '<div class="question-block" style="margin-bottom:0;text-align:center;color:var(--text);">لا توجد أسئلة متاحة حالياً.</div>';
-        updateQDots();
+        body.innerHTML = '<div class="question-block" style="margin-bottom:0;text-align:center;color:#94a3b8;">لا توجد أسئلة متاحة حالياً.</div>';
+        updateQSidebar();
         updateExamNav();
         return;
     }
 
-    let html = '<div class="question-block" data-qid="' + q.id + '" style="margin-bottom:0;">';
+    const slideClass = _lastNavDir >= 0 ? 'slide-right' : 'slide-left';
+    let html = '<div class="question-block ' + slideClass + '" data-qid="' + q.id + '" style="margin-bottom:0;">';
     html += '<div class="q-num">Question ' + (idx + 1) + ' of ' + total + '</div>';
     html += '<div class="q-text">' + q.question_text + '</div>';
     if (q.image_url) html += '<img class="q-img-exam" src="' + q.image_url + '" alt="Question image" loading="lazy">';
@@ -5503,7 +5649,10 @@ function selectTF(el) {
 async function confirmExitExam() {
     if (await sideraConfirm('Are you sure you want to leave?', {desc:'Your progress will be lost.', icon:'🚪', confirmText:'Leave', danger:true})) {
         disableExamSecurity();
+        _clearExamState();
         document.getElementById('examTakingModal').classList.remove('show');
+        const _tc = document.getElementById('examTimerCircle');
+        if (_tc) { _tc.style.display = 'none'; _tc.classList.remove('warning'); }
         resetExamRuntimeState();
     }
 }
@@ -5674,9 +5823,12 @@ async function submitExam(forceSubmit = false) {
         if (!answersRes.ok) throw new Error('Answers save failed: ' + await answersRes.text());
 
         disableExamSecurity();
+        _clearExamState();
         document.getElementById('examTakingModal').classList.remove('show');
         document.getElementById('examTimerDisplay').style.display = 'none';
         document.getElementById('examTimerDisplay').classList.remove('warning');
+        const _tc = document.getElementById('examTimerCircle');
+        if (_tc) { _tc.style.display = 'none'; _tc.classList.remove('warning'); }
         _isSubmittingExam = false;
         showExamResults(score, totalPoints, answers, { effortStatus, effortScore, avgTimePerQ, answerPatternFlag, violations });
     } catch (err) {
