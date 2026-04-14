@@ -33,13 +33,13 @@
         .control-btn:active { transform: scale(0.98); }
 
         /* Floating Language Button */
-         .lang-float-btn { position: fixed !important; top: 16px; left: 16px !important; right: auto !important; z-index: 99999 !important; background: var(--card-bg); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s; transform: translateZ(0); will-change: transform; }
+         .lang-float-btn { position: fixed !important; top: 16px; right: 16px !important; left: auto !important; z-index: 99999 !important; background: var(--card-bg); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s, background-color 0.15s; transform: translateZ(0); will-change: transform; }
          .lang-float-btn:hover { transform: translateZ(0) scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
          .lang-float-btn:active { transform: translateZ(0) scale(0.95); }
-         .lang-float-btn .lang-tooltip { position: absolute; left: 52px; background: var(--dark); color: var(--bg); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+         .lang-float-btn .lang-tooltip { position: absolute; right: 52px; left: auto; background: var(--dark); color: var(--bg); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
          .lang-float-btn:hover .lang-tooltip { opacity: 1; }
-         [dir="rtl"] .lang-float-btn { left: 16px !important; right: auto !important; }
-         [dir="rtl"] .lang-float-btn .lang-tooltip { left: 52px; right: auto; }
+         [dir="rtl"] .lang-float-btn { right: 16px !important; left: auto !important; }
+         [dir="rtl"] .lang-float-btn .lang-tooltip { right: 52px; left: auto; }
 
         header h1 { margin: 0; font-weight: 300; font-size: 2.5rem; letter-spacing: 3px; transition: color 0.15s ease; }
         
@@ -1599,10 +1599,11 @@
     </div>
 </div>
 
-<!-- Promo Video Section -->
+<!-- Promo Video & Meme Section -->
 <div style="width:100%;max-width:900px;margin:60px auto 40px;padding:0 20px;text-align:center;">
-    <h2 style="font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:8px;">🎬 شوف إيه اللي بنعمله</h2>
-    <p style="color:var(--text);font-size:0.95rem;margin-bottom:20px;">فيديو قصير عن المنصة وإزاي بتساعدك</p>
+    <h2 style="font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:8px;" data-translate="promoTitle">🎬 ليه SIDERA؟</h2>
+    <p style="color:var(--text);font-size:0.95rem;margin-bottom:20px;" data-translate="promoDesc">عشان متبقاش زي صاحبنا ده 👇😂</p>
+    <img src="/images/meme.png" alt="STEM Meme" style="width:100%;max-width:500px;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,0.12);margin-bottom:24px;">
     <video controls playsinline preload="metadata" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,0.12);">
         <source src="/videos/promo.mp4" type="video/mp4">
         المتصفح بتاعك مش بيدعم الفيديو
