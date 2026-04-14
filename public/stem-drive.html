@@ -6701,17 +6701,25 @@ function formatAIResponse(text) {
         .replace(/\n/g, '<br>');
 }
 
-async function askBot(question) {
-    addUserMsg(question);
-    document.getElementById('chatSuggestions').innerHTML = '';
+var _chatRetryCount = 0;
+var _maxChatRetries = 2;
+
+async function askBot(question, isRetry) {
+    if (!isRetry) {
+        addUserMsg(question);
+        document.getElementById('chatSuggestions').innerHTML = '';
+        _chatRetryCount = 0;
+    }
     const sendBtn = document.querySelector('.chat-send-btn');
     const input = document.getElementById('chatInput');
     sendBtn.disabled = true;
     input.disabled = true;
     showTyping();
 
-    chatHistory.push({ role: 'user', content: question });
-    saveChatMsg('user', question);
+    if (!isRetry) {
+        chatHistory.push({ role: 'user', content: question });
+        saveChatMsg('user', question);
+    }
 
     try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
@@ -6720,16 +6728,20 @@ async function askBot(question) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
             },
-            body: JSON.stringify({ message: question, history: chatHistory.slice(-12) }),
+            body: JSON.stringify({ message: question, history: chatHistory.slice(-20) }),
         });
 
         if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
             removeTyping();
             if (res.status === 429) {
                 addBotMsg('⏳ في ضغط دلوقتي، جرب تاني كمان شوية!');
             } else if (res.status === 402) {
                 addBotMsg('⚠️ الرصيد خلص، تواصل مع الأدمن.');
+            } else if (_chatRetryCount < _maxChatRetries) {
+                _chatRetryCount++;
+                removeTyping();
+                setTimeout(function() { askBot(question, true); }, 1500 * _chatRetryCount);
+                return;
             } else {
                 addBotMsg('⚠️ حصل مشكلة. جرب تاني! 🔄');
             }
@@ -6752,40 +6764,77 @@ async function askBot(question) {
         const decoder = new TextDecoder();
         let fullText = '';
         let textBuffer = '';
+        let streamDone = false;
 
-        while (true) {
+        while (!streamDone) {
             const { done, value } = await reader.read();
             if (done) break;
             textBuffer += decoder.decode(value, { stream: true });
 
-            let newlineIdx;
+            var newlineIdx;
             while ((newlineIdx = textBuffer.indexOf('\n')) !== -1) {
-                let line = textBuffer.slice(0, newlineIdx);
+                var line = textBuffer.slice(0, newlineIdx);
                 textBuffer = textBuffer.slice(newlineIdx + 1);
                 if (line.endsWith('\r')) line = line.slice(0, -1);
+                if (line.startsWith(':') || line.trim() === '') continue;
                 if (!line.startsWith('data: ')) continue;
-                const jsonStr = line.slice(6).trim();
-                if (jsonStr === '[DONE]') break;
+                var jsonStr = line.slice(6).trim();
+                if (jsonStr === '[DONE]') { streamDone = true; break; }
                 try {
-                    const parsed = JSON.parse(jsonStr);
-                    const content = parsed.choices?.[0]?.delta?.content;
+                    var parsed = JSON.parse(jsonStr);
+                    var content = parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content;
                     if (content) {
                         fullText += content;
                         botDiv.innerHTML = formatAIResponse(fullText) + '<span class="streaming-cursor">▍</span>';
                         msgs.scrollTop = msgs.scrollHeight;
                     }
-                } catch(e) {}
+                } catch(e) {
+                    // Partial JSON — put it back and wait for more data
+                    textBuffer = line + '\n' + textBuffer;
+                    break;
+                }
             }
         }
 
+        // Flush remaining buffer
+        if (textBuffer.trim()) {
+            textBuffer.split('\n').forEach(function(raw) {
+                if (!raw || !raw.startsWith('data: ')) return;
+                var js = raw.slice(6).trim();
+                if (js === '[DONE]') return;
+                try {
+                    var p = JSON.parse(js);
+                    var c = p.choices && p.choices[0] && p.choices[0].delta && p.choices[0].delta.content;
+                    if (c) fullText += c;
+                } catch(e) {}
+            });
+        }
+
         // Final render without cursor
-        botDiv.innerHTML = formatAIResponse(fullText);
-        msgs.scrollTop = msgs.scrollHeight;
-        chatHistory.push({ role: 'assistant', content: fullText });
-        saveChatMsg('assistant', fullText);
+        if (!fullText.trim()) {
+            // Empty response — retry
+            botDiv.remove();
+            if (_chatRetryCount < _maxChatRetries) {
+                _chatRetryCount++;
+                setTimeout(function() { askBot(question, true); }, 1500);
+                return;
+            }
+            addBotMsg('⚠️ مقدرتش أرد دلوقتي. جرب تاني! 🔄');
+        } else {
+            botDiv.innerHTML = formatAIResponse(fullText);
+            msgs.scrollTop = msgs.scrollHeight;
+            chatHistory.push({ role: 'assistant', content: fullText });
+            saveChatMsg('assistant', fullText);
+        }
     } catch (err) {
         console.error('AI error:', err);
         removeTyping();
+        // Auto-retry on network errors
+        if (_chatRetryCount < _maxChatRetries) {
+            _chatRetryCount++;
+            setTimeout(function() { askBot(question, true); }, 2000 * _chatRetryCount);
+            return;
+        }
         addBotMsg('⚠️ حصل مشكلة في الاتصال. جرب تاني كمان شوية! 🔄');
     }
 
