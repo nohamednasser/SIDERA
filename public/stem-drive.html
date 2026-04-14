@@ -9249,8 +9249,8 @@ async function lbGenerateProcedure() {
     try {
         var resp = await fetch(SUPABASE_URL + '/functions/v1/ai-chat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken(), 'apikey': SUPABASE_ANON_KEY },
-            body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+            body: JSON.stringify({ message: prompt, history: [] })
         });
         var data = await resp.json();
         var text = data.choices?.[0]?.message?.content || data.reply || data.text || '';
