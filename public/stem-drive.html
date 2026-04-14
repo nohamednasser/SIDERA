@@ -5126,17 +5126,41 @@ async function loadExams() {
     }
 }
 
+var _examCategoryFilter = 'all';
+var _stemSubjects = ['physics','chemistry','biology','math','computer science','mechanics','engineering'];
+
 function filterExams(filter, el) {
     _examFilter = filter;
-    document.querySelectorAll('.exam-filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#examFilters .exam-filter-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    applyExamFilter();
+}
+
+function filterExamCategory(cat, el) {
+    _examCategoryFilter = cat;
+    document.querySelectorAll('#examCategoryFilters .exam-filter-btn').forEach(b => b.classList.remove('active'));
     if (el) el.classList.add('active');
     applyExamFilter();
 }
 
 function applyExamFilter() {
     let filtered = _allExams;
+    // Grade filter
     if (_examFilter !== 'all') {
-        filtered = _allExams.filter(e => e.grade === _examFilter);
+        filtered = filtered.filter(e => e.grade === _examFilter);
+    }
+    // Category filter
+    if (_examCategoryFilter !== 'all') {
+        if (_examCategoryFilter === 'SAT') {
+            filtered = filtered.filter(e => e.subject && e.subject.toUpperCase().includes('SAT'));
+        } else if (_examCategoryFilter === 'ACT') {
+            filtered = filtered.filter(e => e.subject && e.subject.toUpperCase().includes('ACT'));
+        } else if (_examCategoryFilter === 'STEM') {
+            filtered = filtered.filter(e => {
+                const subj = (e.subject || '').toLowerCase();
+                return _stemSubjects.some(s => subj.includes(s));
+            });
+        }
     }
     renderExams(filtered);
 }
