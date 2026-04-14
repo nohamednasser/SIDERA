@@ -1633,42 +1633,46 @@
 </div>
 
 <footer>
-    <div style="position:relative;display:inline-block;">
-        Developed by <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank">Mohamed Nasser</a> <a href="https://mohamed-portfoli.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:4px;color:var(--accent);text-decoration:none;font-weight:600;font-size:0.75rem;padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);margin:0 4px;transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼 Portfolio</a> & 
-        <span id="teamToggle" style="cursor:pointer;color:var(--accent);font-weight:bold;text-decoration:underline;" onclick="toggleTeam()">Team</span>
-        <div id="teamDropdown" style="display:none;position:absolute;bottom:35px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.2);white-space:nowrap;z-index:100;text-align:center;min-width:220px;">
-            <div style="font-weight:800;font-size:0.95rem;color:var(--accent);margin-bottom:14px;letter-spacing:0.5px;">👥 Our Team</div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-                <a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);text-decoration:none;color:var(--dark);font-size:0.85rem;font-weight:600;transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
-                    <span style="font-size:1.2rem;">🧑‍💻</span> Youssef Salama
-                    <span style="margin-left:auto;font-size:0.65rem;color:var(--accent);">🔗</span>
-                </a>
-                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
-                    <span style="font-size:1.2rem;">👩‍💻</span> Jina Hany
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
-                    <span style="font-size:1.2rem;">👩‍💻</span> Mariam Moamen
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--dark);">
-                    <span style="font-size:1.2rem;">🧑‍💻</span> Eyad Atef
-                </div>
-                <a href="https://www.linkedin.com/in/ahmed-waleed-hagar-8261293a2/" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);text-decoration:none;color:var(--dark);font-size:0.85rem;font-weight:600;transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
-                    <span style="font-size:1.2rem;">🧑‍💻</span> Ahmed Waleed
-                    <span style="margin-left:auto;font-size:0.65rem;color:var(--accent);">🔗</span>
-                </a>
+    <div style="max-width:680px;margin:0 auto;padding:0 20px;">
+        <!-- Brand -->
+        <div style="margin-bottom:20px;">
+            <div style="font-size:1.6rem;font-weight:900;letter-spacing:-0.5px;color:var(--dark);margin-bottom:4px;">SIDERA</div>
+            <p style="font-size:0.8rem;color:var(--text);margin:0;">Built for STEM students, by STEM students 🚀</p>
+        </div>
+
+        <!-- Links Row -->
+        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+            <a href="https://siderdev.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-weight:600;font-size:0.78rem;padding:6px 14px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';this.style.transform='none'">🌐 Sider Platform</a>
+            <a href="https://stemcalculator.lovable.app" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-weight:600;font-size:0.78rem;padding:6px 14px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';this.style.transform='none'">🧮 STEM Calculator</a>
+        </div>
+
+        <!-- Divider -->
+        <div style="height:1px;background:var(--border);margin-bottom:20px;"></div>
+
+        <!-- Team Section -->
+        <div style="margin-bottom:16px;">
+            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text);opacity:0.6;margin-bottom:12px;font-weight:700;">The Team</div>
+            <div style="display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;">
+                <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:700;padding:5px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.2);transition:all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(139,92,246,0.15)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">👑 Mohamed Nasser</a>
+                <a href="https://mohamed-portfoli.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;text-decoration:none;color:var(--accent);font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:16px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼</a>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">🧑‍💻 Youssef Salama</a>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">👩‍💻 Jina Hany</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">👩‍💻 Mariam Moamen</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">🧑‍💻 Eyad Atef</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <a href="https://www.linkedin.com/in/ahmed-waleed-hagar-8261293a2/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">🧑‍💻 Ahmed Waleed</a>
             </div>
         </div>
+
+        <!-- Sponsor + Copyright -->
+        <div style="font-size:0.72rem;color:var(--text);opacity:0.7;">
+            Sponsored by <span style="font-weight:bold;color:var(--accent);">A.C.I.S Team</span> · © 2025 SIDERA
+        </div>
     </div>
-    </div>
-    <div style="margin-top:12px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-        <a href="https://siderdev.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-weight:600;font-size:0.85rem;padding:6px 16px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
-            🌐 Sider Platform
-        </a>
-        <a href="https://stemcalculator.lovable.app" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-weight:600;font-size:0.85rem;padding:6px 16px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);transition:border-color 0.15s ease,transform 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
-            🧮 STEM Calculator
-        </a>
-    </div>
-    <div style="margin-top:8px;font-size:0.8rem;color:var(--text);">Sponsored by <span style="font-weight:bold;color:var(--accent);">A.C.I.S Team</span></div>
 </footer>
 
 <!-- Toast Container -->
