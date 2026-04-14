@@ -9252,10 +9252,27 @@ async function lbGenerateProcedure() {
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
             body: JSON.stringify({ message: prompt, history: [] })
         });
-        var data = await resp.json();
-        var text = data.choices?.[0]?.message?.content || data.reply || data.text || '';
-        if (text) {
-            textarea.value = text.trim();
+        // Parse SSE stream to extract full text
+        var fullText = '';
+        var reader = resp.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+        while (true) {
+            var chunk = await reader.read();
+            if (chunk.done) break;
+            buf += decoder.decode(chunk.value, { stream: true });
+            var ni;
+            while ((ni = buf.indexOf('\n')) !== -1) {
+                var ln = buf.slice(0, ni).replace(/\r$/, '');
+                buf = buf.slice(ni + 1);
+                if (!ln.startsWith('data: ')) continue;
+                var js = ln.slice(6).trim();
+                if (js === '[DONE]') break;
+                try { var p = JSON.parse(js); var c = p.choices && p.choices[0] && p.choices[0].delta && p.choices[0].delta.content; if (c) fullText += c; } catch(e) {}
+            }
+        }
+        if (fullText.trim()) {
+            textarea.value = fullText.trim();
             showToast('✅ تم توليد الـ Procedure!', 'success');
         } else {
             textarea.value = steps;
