@@ -729,8 +729,11 @@
         @keyframes typeBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
         @media (max-width: 768px) {
-            .chatbot-panel { right: 10px; left: 10px; bottom: 88px; width: auto; max-height: 65vh; }
+            .chatbot-panel { right: 0; left: 0; bottom: 0; top: auto; width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; border-bottom: none; animation: slideUpMobile 0.25s ease; }
+            @keyframes slideUpMobile { from { transform: translateY(100%); } to { transform: translateY(0); } }
             .chat-fab { bottom: 16px; right: 16px; width: 54px; height: 54px; font-size: 1.4rem; }
+            .chat-messages { max-height: 50vh; }
+            .chat-input-bar input { font-size: 16px; }
         }
 
         /* Student Auth Overlay */
@@ -1657,6 +1660,7 @@
                 <a href="https://mohamed-portfoli.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;text-decoration:none;color:var(--accent);font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:16px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼</a>
                 <span style="color:var(--border);font-size:0.6rem;">•</span>
                 <a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">🧑‍💻 Youssef Salama</a>
+                <a href="https://youssefsalama.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;text-decoration:none;color:var(--accent);font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:16px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼</a>
                 <span style="color:var(--border);font-size:0.6rem;">•</span>
                 <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">👩‍💻 Jina Hany</span>
                 <span style="color:var(--border);font-size:0.6rem;">•</span>
@@ -2729,7 +2733,18 @@ async function handleAuth() {
                 body: JSON.stringify({ email, password: pass })
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+            if (!res.ok) {
+                const errMsg = data.error_description || data.msg || '';
+                if (/invalid.*credentials|wrong.*password|invalid.*password/i.test(errMsg)) {
+                    throw new Error('🔑 كلمة السر غلط! تأكد منها وجرب تاني.');
+                } else if (/email.*not.*confirmed/i.test(errMsg)) {
+                    throw new Error('📧 الإيميل لسه مش متأكد. شيك على الإنبوكس.');
+                } else if (/user.*not.*found/i.test(errMsg)) {
+                    throw new Error('❌ الاسم ده مش موجود. اعمل حساب جديد!');
+                } else {
+                    throw new Error(errMsg || 'فشل تسجيل الدخول. جرب تاني.');
+                }
+            }
 
             if (isAdminUser) {
                 // Verify admin from database before granting access
@@ -2803,7 +2818,13 @@ async function handleAuth() {
             }
         }
     } catch (err) {
-        showAuthError(err.message);
+        let friendlyMsg = err.message;
+        if (/fetch|network|failed to fetch|ERR_INTERNET|offline/i.test(err.message)) {
+            friendlyMsg = '📶 مفيش نت! اتأكد من الاتصال وجرب تاني.';
+        } else if (/already registered|already exists|duplicate/i.test(err.message)) {
+            friendlyMsg = '👤 الاسم ده مسجل قبل كده. جرب تسجل دخول!';
+        }
+        showAuthError(friendlyMsg);
     }
     btn.disabled = false;
     btn.textContent = _authIsLogin ? 'Login' : 'Create Account';
@@ -5892,7 +5913,17 @@ async function submitExam(forceSubmit = false) {
     } catch (err) {
         console.error('submitExam error:', err);
         const msg = String(err && err.message ? err.message : err);
-        showToast(/jwt|permission|row-level|401|403/i.test(msg) ? 'سجّل دخولك من جديد ثم أعد المحاولة.' : 'Failed to submit exam. Try again.', 'error');
+        let userMsg;
+        if (/jwt|permission|row-level|401|403/i.test(msg)) {
+            userMsg = '🔐 الجلسة انتهت! سجّل دخولك تاني وكمل الامتحان.';
+        } else if (/fetch|network|failed to fetch|ERR_INTERNET|offline/i.test(msg)) {
+            userMsg = '📶 يا بطل، اتأكد من النت وكمل امتحانك! إجاباتك محفوظة عندك.';
+        } else if (/timeout|ETIMEDOUT/i.test(msg)) {
+            userMsg = '⏱ السيرفر بطيء. استنى شوية وجرب تسلّم تاني!';
+        } else {
+            userMsg = '⚠️ حصلت مشكلة في التسليم. جرب تاني — إجاباتك محفوظة! 🔄';
+        }
+        showToast(userMsg, 'error', 6000);
         _isSubmittingExam = false;
         if (btn) {
             btn.disabled = false;
@@ -6783,19 +6814,39 @@ async function askBot(question, isRetry) {
     }
 
     try {
+        // Use auth token if available, fallback to anon key
+        const chatAuthToken = getAuthToken();
+        const isGuest = !hasStudentSession() && !localStorage.getItem('isSideraAdmin');
+        
+        if (isGuest || chatAuthToken === SUPABASE_ANON_KEY) {
+            // Guest users — try refreshing session first
+            const refreshed = await ensureStudentSession();
+            if (!refreshed) {
+                removeTyping();
+                addBotMsg('🔐 لازم تسجل دخول الأول عشان تستخدم الشات بوت.<br><br>اعمل حساب أو سجل دخول من الزرار اللي فوق! 👆');
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+                return;
+            }
+        }
+        
+        const finalToken = getAuthToken();
         const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${finalToken}`,
             },
             body: JSON.stringify({ message: question, history: chatHistory.slice(-20) }),
         });
 
         if (!res.ok) {
             removeTyping();
-            if (res.status === 429) {
-                addBotMsg('⏳ في ضغط دلوقتي، جرب تاني كمان شوية!');
+            if (res.status === 401) {
+                addBotMsg('🔐 الجلسة انتهت! سجل دخول تاني من فوق وارجع كلمني 😊');
+            } else if (res.status === 429) {
+                addBotMsg('⏳ في ضغط دلوقتي، استنى دقيقة وجرب تاني!');
             } else if (res.status === 402) {
                 addBotMsg('⚠️ الرصيد خلص، تواصل مع الأدمن.');
             } else if (_chatRetryCount < _maxChatRetries) {
@@ -6804,7 +6855,7 @@ async function askBot(question, isRetry) {
                 setTimeout(function() { askBot(question, true); }, 1500 * _chatRetryCount);
                 return;
             } else {
-                addBotMsg('⚠️ حصل مشكلة. جرب تاني! 🔄');
+                addBotMsg('⚠️ حصل مشكلة في السيرفر. جرب تاني كمان شوية! 🔄');
             }
             sendBtn.disabled = false;
             input.disabled = false;
