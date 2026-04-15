@@ -1013,6 +1013,42 @@
             .xp-bar-container { padding: 4px 10px; }
             .radar-container { max-width: 250px; }
         }
+        /* Cursor Storytelling */
+        .cursor-circle {
+            position: fixed; width: 28px; height: 28px; border-radius: 50%;
+            border: 2px solid var(--accent); pointer-events: none; z-index: 99990;
+            transition: width 0.35s cubic-bezier(.4,0,.2,1), height 0.35s cubic-bezier(.4,0,.2,1), 
+                        border-color 0.3s, background 0.3s, opacity 0.3s;
+            transform: translate(-50%, -50%); opacity: 0.7; mix-blend-mode: difference;
+            display: none;
+        }
+        .cursor-circle.lens-active {
+            width: 120px; height: 120px; opacity: 1;
+            border: 2.5px solid var(--accent);
+            background: radial-gradient(circle, rgba(163,64,84,0.08) 0%, transparent 70%);
+            box-shadow: 0 0 30px rgba(163,64,84,0.2), inset 0 0 20px rgba(163,64,84,0.05);
+        }
+        .discovery-word {
+            position: relative; cursor: default; display: inline-block;
+            transition: color 0.3s;
+        }
+        .discovery-word .hidden-layer {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            pointer-events: none; opacity: 0; transition: opacity 0.4s;
+            font-family: 'Courier New', monospace; font-size: 0.55rem; color: var(--accent);
+            white-space: nowrap; letter-spacing: 1px; text-shadow: 0 0 8px rgba(163,64,84,0.5);
+        }
+        .discovery-word.revealed .hidden-layer { opacity: 1; }
+        .discovery-word.revealed { color: transparent !important; }
+        .discovery-strip {
+            display: flex; justify-content: center; gap: 40px; padding: 8px 0 2px;
+            font-size: 0.78rem; font-weight: 700; color: var(--text); opacity: 0.5;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        @media (max-width: 768px) {
+            .cursor-circle { display: none !important; }
+            .discovery-strip { font-size: 0.65rem; gap: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -1022,6 +1058,7 @@
     🌐
     <span class="lang-tooltip" id="langTooltip">عربي</span>
 </button>
+<div class="cursor-circle" id="cursorCircle"></div>
 
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
@@ -1068,6 +1105,13 @@
         <button class="control-btn" id="guestSignInBtn" onclick="showAuthForGuest()" style="display:none;">🔑 Sign In</button>
     </div>
     <h1 ondblclick="showLogin()" title="Double click for admin login">SIDERA</h1>
+    <div class="discovery-strip">
+        <span class="discovery-word" data-hidden="∫ f(x)dx = F(x)+C">معرفة<span class="hidden-layer">∫ f(x)dx = F(x)+C</span></span>
+        <span class="discovery-word" data-hidden="E = mc²  ⚡">ابتكار<span class="hidden-layer">E = mc²  ⚡</span></span>
+        <span class="discovery-word" data-hidden="print('hello world')">تقنية<span class="hidden-layer">print('hello world')</span></span>
+        <span class="discovery-word" data-hidden="ΔG = ΔH − TΔS">علم<span class="hidden-layer">ΔG = ΔH − TΔS</span></span>
+        <span class="discovery-word" data-hidden="F = ma  🚀">إبداع<span class="hidden-layer">F = ma  🚀</span></span>
+    </div>
 </header>
 
 <div style="position:relative;width:90%;max-width:600px;margin:0 auto;z-index:10;margin-top:-35px;display:flex;gap:8px;align-items:center;">
@@ -9851,6 +9895,32 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     }, 2000);
 })();
 
+// === Cursor Storytelling ===
+(function() {
+    var circle = document.getElementById('cursorCircle');
+    if (!circle || 'ontouchstart' in window) return;
+    circle.style.display = 'block';
+    var words = document.querySelectorAll('.discovery-word');
+    var isLens = false;
+    document.addEventListener('mousemove', function(e) {
+        circle.style.left = e.clientX + 'px';
+        circle.style.top = e.clientY + 'px';
+    });
+    words.forEach(function(w) {
+        w.addEventListener('mouseenter', function() {
+            circle.classList.add('lens-active');
+            w.classList.add('revealed');
+            isLens = true;
+        });
+        w.addEventListener('mouseleave', function() {
+            circle.classList.remove('lens-active');
+            w.classList.remove('revealed');
+            isLens = false;
+        });
+    });
+    document.addEventListener('mouseleave', function() { circle.style.opacity = '0'; });
+    document.addEventListener('mouseenter', function() { circle.style.opacity = '0.7'; });
+})();
 </script>
 
 <!-- Cloud IDE -->
