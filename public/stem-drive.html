@@ -10393,6 +10393,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
 
         // Touch events
         var _touchStart = null;
+        var _touchDragNode = -1;
         canvas.addEventListener('touchstart', function(e) {
             if (e.touches.length === 1) {
                 var t = e.touches[0];
@@ -10401,6 +10402,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 var hit = getNodeAtPos(mx, my);
                 if (hit >= 0) {
                     _touchStart = { node: hit, x: t.clientX, y: t.clientY };
+                    _touchDragNode = hit;
                 } else {
                     _kgDragging = true;
                     _kgDragStart = { x: t.clientX, y: t.clientY };
@@ -10409,31 +10411,45 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         }, { passive: true });
 
         canvas.addEventListener('touchmove', function(e) {
-            if (_kgDragging && e.touches.length === 1) {
-                var t = e.touches[0];
+            if (e.touches.length !== 1) return;
+            var t = e.touches[0];
+            if (_touchDragNode >= 0) {
+                // Dragging a node on mobile
+                var rect = canvas.getBoundingClientRect();
+                nodes[_touchDragNode].x = t.clientX - rect.left - _kgPan.x;
+                nodes[_touchDragNode].y = t.clientY - rect.top - _kgPan.y;
+                _touchStart = null; // no longer a tap
+            } else if (_kgDragging) {
                 _kgPan.x += t.clientX - _kgDragStart.x;
                 _kgPan.y += t.clientY - _kgDragStart.y;
                 _kgDragStart = { x: t.clientX, y: t.clientY };
             }
-            _touchStart = null;
         }, { passive: true });
 
         canvas.addEventListener('touchend', function(e) {
             _kgDragging = false;
-            if (_touchStart && _touchStart.node >= 0) {
-                var n = nodes[_touchStart.node];
-                if (!n.unlocked && !n.completed) {
-                    showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
-                } else {
-                    var grade = document.getElementById('kgGradeSelect').value;
-                    toggleComplete(grade, n.lo.id);
-                    if (!n.completed) {
-                        showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
-                        awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+            if (_touchDragNode >= 0) {
+                var n = nodes[_touchDragNode];
+                if (_touchStart && _touchStart.node >= 0) {
+                    // Was a tap (no drag)
+                    if (!n.unlocked && !n.completed) {
+                        showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
+                    } else {
+                        var grade = document.getElementById('kgGradeSelect').value;
+                        toggleComplete(grade, n.lo.id);
+                        if (!n.completed) {
+                            showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
+                            awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+                        }
+                        rebuildGraph();
                     }
-                    rebuildGraph();
+                } else {
+                    // Was a drag — save position
+                    var grade = document.getElementById('kgGradeSelect').value;
+                    saveNodePosition(grade, n.lo.id, n.x, n.y);
                 }
             }
+            _touchDragNode = -1;
             _touchStart = null;
         });
 
