@@ -1058,6 +1058,7 @@
     🌐
     <span class="lang-tooltip" id="langTooltip">عربي</span>
 </button>
+<div class="cursor-circle" id="cursorCircle"></div>
 
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
@@ -9894,6 +9895,32 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     }, 2000);
 })();
 
+// === Cursor Storytelling ===
+(function() {
+    var circle = document.getElementById('cursorCircle');
+    if (!circle || 'ontouchstart' in window) return;
+    circle.style.display = 'block';
+    var words = document.querySelectorAll('.discovery-word');
+    var isLens = false;
+    document.addEventListener('mousemove', function(e) {
+        circle.style.left = e.clientX + 'px';
+        circle.style.top = e.clientY + 'px';
+    });
+    words.forEach(function(w) {
+        w.addEventListener('mouseenter', function() {
+            circle.classList.add('lens-active');
+            w.classList.add('revealed');
+            isLens = true;
+        });
+        w.addEventListener('mouseleave', function() {
+            circle.classList.remove('lens-active');
+            w.classList.remove('revealed');
+            isLens = false;
+        });
+    });
+    document.addEventListener('mouseleave', function() { circle.style.opacity = '0'; });
+    document.addEventListener('mouseenter', function() { circle.style.opacity = '0.7'; });
+})();
 </script>
 
 <!-- Cloud IDE -->
