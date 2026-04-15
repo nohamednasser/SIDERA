@@ -568,6 +568,39 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_kg_notes: {
+        Row: {
+          created_at: string
+          grade: string
+          id: string
+          lo_id: string
+          lo_title: string
+          note_text: string
+          student_email: string
+          student_name: string
+        }
+        Insert: {
+          created_at?: string
+          grade: string
+          id?: string
+          lo_id: string
+          lo_title?: string
+          note_text: string
+          student_email: string
+          student_name: string
+        }
+        Update: {
+          created_at?: string
+          grade?: string
+          id?: string
+          lo_id?: string
+          lo_title?: string
+          note_text?: string
+          student_email?: string
+          student_name?: string
+        }
+        Relationships: []
+      }
       stem_drive_files: {
         Row: {
           created_at: string
