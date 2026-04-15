@@ -1346,6 +1346,7 @@
         </select>
         <select id="kgSubjectSelect" onchange="updateKnowledgeGraph()" style="padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card-bg);color:var(--dark);font-size:0.82rem;font-weight:600;">
         </select>
+        <button id="kgResetBtn" onclick="resetKGLayout()" title="Reset layout" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">🔄 Reset</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
             <span style="font-size:0.75rem;color:var(--text);" id="kgProgress">0/0 completed</span>
             <div style="width:120px;height:6px;background:var(--input-bg);border-radius:6px;overflow:hidden;">
@@ -10029,11 +10030,13 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     var canvas, ctx;
     var nodes = [], edges = [];
     var _kgCompleted = JSON.parse(localStorage.getItem('kg_completed') || '{}');
+    var _kgPositions = JSON.parse(localStorage.getItem('kg_positions') || '{}');
     var _kgHover = -1;
     var _kgDpr = window.devicePixelRatio || 1;
     var _kgPan = { x: 0, y: 0 };
     var _kgDragging = false;
     var _kgDragStart = { x: 0, y: 0 };
+    var _kgDragNode = -1; // Index of node being dragged
     var _kgAnimFrame = null;
     var _kgPulseT = 0;
     var _kgSubjects = [];
@@ -10048,6 +10051,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         { main: '#06b6d4', glow: 'rgba(6,182,212,0.3)', light: 'rgba(6,182,212,0.08)' },
     ];
 
+    function getPosKey(grade, loId) { return 'pos:' + grade + ':' + loId; }
     function getCompletionKey(grade, loId) { return grade + ':' + loId; }
     function isCompleted(grade, loId) { return !!_kgCompleted[getCompletionKey(grade, loId)]; }
     function toggleComplete(grade, loId) {
@@ -10056,6 +10060,18 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         else _kgCompleted[key] = Date.now();
         localStorage.setItem('kg_completed', JSON.stringify(_kgCompleted));
     }
+    function saveNodePosition(grade, loId, x, y) {
+        _kgPositions[getPosKey(grade, loId)] = { x: x, y: y };
+        localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
+    }
+    window.resetKGLayout = function() {
+        var grade = document.getElementById('kgGradeSelect').value;
+        var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
+        keysToDelete.forEach(function(k) { delete _kgPositions[k]; });
+        localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
+        rebuildGraph();
+        showToast('🔄 Layout reset!', 'info');
+    };
 
     function layoutNodes(los, canvasW, canvasH) {
         nodes = [];
@@ -10084,14 +10100,19 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             var spacing = (canvasW - 120) / Math.max(items.length, 1);
 
             items.forEach(function(lo, li) {
-                var x = 60 + spacing * li + spacing / 2;
+                var defaultX = 60 + spacing * li + spacing / 2;
+                var defaultY = laneY;
                 var color = _kgColors[si % _kgColors.length];
                 var completed = isCompleted(grade, lo.id);
-                // A node is "unlocked" if it's the first in its subject, or the previous one is completed
                 var unlocked = li === 0 || isCompleted(grade, items[li - 1].id);
 
+                // Check saved position
+                var saved = _kgPositions[getPosKey(grade, lo.id)];
+                var nx = saved ? saved.x : defaultX;
+                var ny = saved ? saved.y : defaultY;
+
                 nodes.push({
-                    x: x, y: laneY, r: nodeRadius,
+                    x: nx, y: ny, r: nodeRadius,
                     lo: lo, color: color, completed: completed, unlocked: unlocked,
                     subject: subj, idx: idx, subjectIdx: si, posInSubject: li
                 });
@@ -10271,6 +10292,15 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             var rect = canvas.getBoundingClientRect();
             var mx = e.clientX - rect.left, my = e.clientY - rect.top;
 
+            // Dragging a node
+            if (_kgDragNode >= 0) {
+                var n = nodes[_kgDragNode];
+                n.x = mx - _kgPan.x;
+                n.y = my - _kgPan.y;
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+
             if (_kgDragging) {
                 _kgPan.x += e.clientX - _kgDragStart.x;
                 _kgPan.y += e.clientY - _kgDragStart.y;
@@ -10293,6 +10323,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 if (n.completed) { statusEl.textContent = '✅ Completed'; statusEl.style.color = '#22c55e'; }
                 else if (n.unlocked) { statusEl.textContent = '🔓 Unlocked — Click to complete'; statusEl.style.color = n.color.main; }
                 else { statusEl.textContent = '🔒 Locked — Complete previous first'; statusEl.style.color = 'var(--text)'; }
+                statusEl.textContent += ' | 🖱️ Drag to move';
                 tt.style.display = 'block';
                 var tx = Math.min(e.clientX - canvas.getBoundingClientRect().left + 16, canvas.clientWidth - 260);
                 var ty = e.clientY - canvas.getBoundingClientRect().top - 10;
@@ -10307,41 +10338,62 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             var rect = canvas.getBoundingClientRect();
             var mx = e.clientX - rect.left, my = e.clientY - rect.top;
             var hit = getNodeAtPos(mx, my);
-            if (hit >= 0) return; // Don't drag if clicking a node
+            if (hit >= 0) {
+                _kgDragNode = hit;
+                _kgDragStart = { x: e.clientX, y: e.clientY };
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
             _kgDragging = true;
             _kgDragStart = { x: e.clientX, y: e.clientY };
             canvas.style.cursor = 'grabbing';
         });
 
-        canvas.addEventListener('mouseup', function() { _kgDragging = false; canvas.style.cursor = 'grab'; });
+        canvas.addEventListener('mouseup', function(e) {
+            if (_kgDragNode >= 0) {
+                var n = nodes[_kgDragNode];
+                var moved = Math.abs(e.clientX - _kgDragStart.x) + Math.abs(e.clientY - _kgDragStart.y);
+                if (moved > 6) {
+                    // Save position
+                    var grade = document.getElementById('kgGradeSelect').value;
+                    saveNodePosition(grade, n.lo.id, n.x, n.y);
+                } else {
+                    // It was a click, toggle completion
+                    if (!n.unlocked && !n.completed) {
+                        showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
+                    } else {
+                        var grade = document.getElementById('kgGradeSelect').value;
+                        toggleComplete(grade, n.lo.id);
+                        var wasCompleted = n.completed;
+                        rebuildGraph();
+                        if (!wasCompleted) {
+                            showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
+                            awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+                        }
+                    }
+                }
+                _kgDragNode = -1;
+                canvas.style.cursor = 'grab';
+                return;
+            }
+            _kgDragging = false;
+            canvas.style.cursor = 'grab';
+        });
         canvas.addEventListener('mouseleave', function() {
+            if (_kgDragNode >= 0) {
+                var n = nodes[_kgDragNode];
+                var grade = document.getElementById('kgGradeSelect').value;
+                saveNodePosition(grade, n.lo.id, n.x, n.y);
+                _kgDragNode = -1;
+            }
             _kgDragging = false;
             _kgHover = -1;
             document.getElementById('kgTooltip').style.display = 'none';
         });
 
-        canvas.addEventListener('click', function(e) {
-            var rect = canvas.getBoundingClientRect();
-            var mx = e.clientX - rect.left, my = e.clientY - rect.top;
-            var hit = getNodeAtPos(mx, my);
-            if (hit < 0) return;
-            var n = nodes[hit];
-            if (!n.unlocked && !n.completed) {
-                showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
-                return;
-            }
-            var grade = document.getElementById('kgGradeSelect').value;
-            toggleComplete(grade, n.lo.id);
-            var wasCompleted = n.completed;
-            rebuildGraph();
-            if (!wasCompleted) {
-                showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
-                awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
-            }
-        });
-
         // Touch events
         var _touchStart = null;
+        var _touchDragNode = -1;
         canvas.addEventListener('touchstart', function(e) {
             if (e.touches.length === 1) {
                 var t = e.touches[0];
@@ -10350,6 +10402,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 var hit = getNodeAtPos(mx, my);
                 if (hit >= 0) {
                     _touchStart = { node: hit, x: t.clientX, y: t.clientY };
+                    _touchDragNode = hit;
                 } else {
                     _kgDragging = true;
                     _kgDragStart = { x: t.clientX, y: t.clientY };
@@ -10358,31 +10411,45 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         }, { passive: true });
 
         canvas.addEventListener('touchmove', function(e) {
-            if (_kgDragging && e.touches.length === 1) {
-                var t = e.touches[0];
+            if (e.touches.length !== 1) return;
+            var t = e.touches[0];
+            if (_touchDragNode >= 0) {
+                // Dragging a node on mobile
+                var rect = canvas.getBoundingClientRect();
+                nodes[_touchDragNode].x = t.clientX - rect.left - _kgPan.x;
+                nodes[_touchDragNode].y = t.clientY - rect.top - _kgPan.y;
+                _touchStart = null; // no longer a tap
+            } else if (_kgDragging) {
                 _kgPan.x += t.clientX - _kgDragStart.x;
                 _kgPan.y += t.clientY - _kgDragStart.y;
                 _kgDragStart = { x: t.clientX, y: t.clientY };
             }
-            _touchStart = null;
         }, { passive: true });
 
         canvas.addEventListener('touchend', function(e) {
             _kgDragging = false;
-            if (_touchStart && _touchStart.node >= 0) {
-                var n = nodes[_touchStart.node];
-                if (!n.unlocked && !n.completed) {
-                    showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
-                } else {
-                    var grade = document.getElementById('kgGradeSelect').value;
-                    toggleComplete(grade, n.lo.id);
-                    if (!n.completed) {
-                        showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
-                        awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+            if (_touchDragNode >= 0) {
+                var n = nodes[_touchDragNode];
+                if (_touchStart && _touchStart.node >= 0) {
+                    // Was a tap (no drag)
+                    if (!n.unlocked && !n.completed) {
+                        showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
+                    } else {
+                        var grade = document.getElementById('kgGradeSelect').value;
+                        toggleComplete(grade, n.lo.id);
+                        if (!n.completed) {
+                            showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
+                            awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+                        }
+                        rebuildGraph();
                     }
-                    rebuildGraph();
+                } else {
+                    // Was a drag — save position
+                    var grade = document.getElementById('kgGradeSelect').value;
+                    saveNodePosition(grade, n.lo.id, n.x, n.y);
                 }
             }
+            _touchDragNode = -1;
             _touchStart = null;
         });
 
