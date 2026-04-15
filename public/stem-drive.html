@@ -6784,19 +6784,39 @@ async function askBot(question, isRetry) {
     }
 
     try {
+        // Use auth token if available, fallback to anon key
+        const chatAuthToken = getAuthToken();
+        const isGuest = !hasStudentSession() && !localStorage.getItem('isSideraAdmin');
+        
+        if (isGuest || chatAuthToken === SUPABASE_ANON_KEY) {
+            // Guest users — try refreshing session first
+            const refreshed = await ensureStudentSession();
+            if (!refreshed) {
+                removeTyping();
+                addBotMsg('🔐 لازم تسجل دخول الأول عشان تستخدم الشات بوت.<br><br>اعمل حساب أو سجل دخول من الزرار اللي فوق! 👆');
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+                return;
+            }
+        }
+        
+        const finalToken = getAuthToken();
         const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Authorization': `Bearer ${finalToken}`,
             },
             body: JSON.stringify({ message: question, history: chatHistory.slice(-20) }),
         });
 
         if (!res.ok) {
             removeTyping();
-            if (res.status === 429) {
-                addBotMsg('⏳ في ضغط دلوقتي، جرب تاني كمان شوية!');
+            if (res.status === 401) {
+                addBotMsg('🔐 الجلسة انتهت! سجل دخول تاني من فوق وارجع كلمني 😊');
+            } else if (res.status === 429) {
+                addBotMsg('⏳ في ضغط دلوقتي، استنى دقيقة وجرب تاني!');
             } else if (res.status === 402) {
                 addBotMsg('⚠️ الرصيد خلص، تواصل مع الأدمن.');
             } else if (_chatRetryCount < _maxChatRetries) {
@@ -6805,7 +6825,7 @@ async function askBot(question, isRetry) {
                 setTimeout(function() { askBot(question, true); }, 1500 * _chatRetryCount);
                 return;
             } else {
-                addBotMsg('⚠️ حصل مشكلة. جرب تاني! 🔄');
+                addBotMsg('⚠️ حصل مشكلة في السيرفر. جرب تاني كمان شوية! 🔄');
             }
             sendBtn.disabled = false;
             input.disabled = false;
