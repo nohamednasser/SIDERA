@@ -1347,6 +1347,7 @@
         <select id="kgSubjectSelect" onchange="updateKnowledgeGraph()" style="padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card-bg);color:var(--dark);font-size:0.82rem;font-weight:600;">
         </select>
         <button id="kgResetBtn" onclick="resetKGLayout()" title="Reset layout" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">🔄 Reset</button>
+        <button onclick="exportKGNotesPDF()" title="Export notes as PDF" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">📄 Export Notes</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
             <span style="font-size:0.75rem;color:var(--text);" id="kgProgress">0/0 completed</span>
             <div style="width:120px;height:6px;background:var(--input-bg);border-radius:6px;overflow:hidden;">
@@ -10116,8 +10117,90 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         _kgNoteTarget = null;
     };
 
+    window.exportKGNotesPDF = async function() {
+        var noteKeys = Object.keys(_kgNotes).filter(function(k) { return k.startsWith('note:'); });
+        if (noteKeys.length === 0) {
+            showToast('📝 مفيش ملاحظات لتصديرها!', 'warning');
+            return;
+        }
+        showToast('📄 جاري تجهيز الـ PDF...', 'info');
+        // Load jsPDF if needed
+        if (!window.jspdf) {
+            await new Promise(function(resolve, reject) {
+                var s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+        var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+        var W = 210, M = 18, y = 20;
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(0, 188, 212);
+        doc.text('SIDERA - Knowledge Map Notes', M, y);
+        y += 8;
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text('Exported: ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }), M, y);
+        y += 4;
+        doc.setDrawColor(0, 188, 212);
+        doc.setLineWidth(0.5);
+        doc.line(M, y, W - M, y);
+        y += 10;
+
+        // Group notes by grade
+        var grouped = {};
+        noteKeys.forEach(function(k) {
+            var parts = k.split(':'); // note:grade:loId
+            var grade = parts[1] || 'Unknown';
+            if (!grouped[grade]) grouped[grade] = [];
+            grouped[grade].push({ loId: parts[2], text: _kgNotes[k] });
+        });
+
+        var gradeNames = Object.keys(grouped).sort();
+        gradeNames.forEach(function(grade) {
+            // Grade header
+            if (y > 260) { doc.addPage(); y = 20; }
+            doc.setFontSize(13);
+            doc.setTextColor(0, 188, 212);
+            doc.text(grade, M, y);
+            y += 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(M, y, W - M, y);
+            y += 7;
+
+            grouped[grade].forEach(function(note) {
+                if (y > 265) { doc.addPage(); y = 20; }
+                // LO ID
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 60);
+                doc.text('LO: ' + (note.loId || '—'), M, y);
+                y += 5;
+                // Note text (wrap)
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                var lines = doc.splitTextToSize(note.text, W - 2 * M);
+                lines.forEach(function(line) {
+                    if (y > 280) { doc.addPage(); y = 20; }
+                    doc.text(line, M + 2, y);
+                    y += 4.5;
+                });
+                y += 4;
+                // Separator
+                doc.setDrawColor(230, 230, 230);
+                doc.line(M + 2, y - 2, W - M, y - 2);
+                y += 4;
+            });
+            y += 4;
+        });
+
+        doc.save('SIDERA_Knowledge_Notes.pdf');
+        showToast('📄 تم تصدير الملاحظات بنجاح!', 'success');
+    };
+
     window.resetKGLayout = function() {
-        var grade = document.getElementById('kgGradeSelect').value;
         var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
         keysToDelete.forEach(function(k) { delete _kgPositions[k]; });
         localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
