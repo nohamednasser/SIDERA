@@ -10309,6 +10309,23 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 ctx.fillText('✓', n.x + r * 0.5, n.y - r * 0.5);
             }
 
+            // Note indicator badge
+            var grade = document.getElementById('kgGradeSelect').value;
+            if (hasNote(grade, n.lo.id)) {
+                ctx.beginPath();
+                ctx.arc(n.x + r * 0.7, n.y - r * 0.7, 7, 0, Math.PI * 2);
+                ctx.fillStyle = '#f59e0b';
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 6;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 8px sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('📝', n.x + r * 0.7, n.y - r * 0.7);
+            }
+
             // Subject label (first node only)
             if (n.posInSubject === 0) {
                 ctx.fillStyle = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)';
