@@ -10100,14 +10100,19 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             var spacing = (canvasW - 120) / Math.max(items.length, 1);
 
             items.forEach(function(lo, li) {
-                var x = 60 + spacing * li + spacing / 2;
+                var defaultX = 60 + spacing * li + spacing / 2;
+                var defaultY = laneY;
                 var color = _kgColors[si % _kgColors.length];
                 var completed = isCompleted(grade, lo.id);
-                // A node is "unlocked" if it's the first in its subject, or the previous one is completed
                 var unlocked = li === 0 || isCompleted(grade, items[li - 1].id);
 
+                // Check saved position
+                var saved = _kgPositions[getPosKey(grade, lo.id)];
+                var nx = saved ? saved.x : defaultX;
+                var ny = saved ? saved.y : defaultY;
+
                 nodes.push({
-                    x: x, y: laneY, r: nodeRadius,
+                    x: nx, y: ny, r: nodeRadius,
                     lo: lo, color: color, completed: completed, unlocked: unlocked,
                     subject: subj, idx: idx, subjectIdx: si, posInSubject: li
                 });
