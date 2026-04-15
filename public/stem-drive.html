@@ -10101,10 +10101,12 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     function hasNote(grade, loId) { return !!_kgNotes[getNoteKey(grade, loId)]; }
 
     window.openKGNotes = function(grade, loId, title) {
-        _kgNoteTarget = { grade: grade, loId: loId };
+        _kgNoteTarget = { grade: grade, loId: loId, title: title || 'Notes' };
         document.getElementById('kgNotesTitle').textContent = '📝 ' + (title || 'Notes');
         document.getElementById('kgNotesTextarea').value = getNote(grade, loId);
-        document.getElementById('kgNotesDeleteBtn').style.display = hasNote(grade, loId) ? 'inline-block' : 'none';
+        var hasExisting = hasNote(grade, loId);
+        document.getElementById('kgNotesDeleteBtn').style.display = hasExisting ? 'inline-block' : 'none';
+        document.getElementById('kgNotesShareBtn').style.display = hasExisting ? 'inline-block' : 'none';
         var overlay = document.getElementById('kgNotesOverlay');
         overlay.style.display = 'flex';
         setTimeout(function() { document.getElementById('kgNotesTextarea').focus(); }, 100);
@@ -10128,6 +10130,109 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     window.closeKGNotes = function() {
         document.getElementById('kgNotesOverlay').style.display = 'none';
         _kgNoteTarget = null;
+    };
+
+    // ===== Shared Notes =====
+    window.shareKGNote = async function() {
+        if (!_kgNoteTarget) return;
+        var session = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+        if (!session || !session.access_token) {
+            showToast('🔒 سجل دخولك أولاً لمشاركة الملاحظات', 'warning');
+            return;
+        }
+        var text = document.getElementById('kgNotesTextarea').value.trim();
+        if (!text) { showToast('📝 اكتب ملاحظة أولاً!', 'warning'); return; }
+        showToast('📤 جاري المشاركة...', 'info');
+        try {
+            var res = await fetch(SUPABASE_URL + '/rest/v1/shared_kg_notes', {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + session.access_token,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    student_email: session.email,
+                    student_name: session.name || session.email.split('@')[0],
+                    grade: _kgNoteTarget.grade,
+                    lo_id: _kgNoteTarget.loId,
+                    lo_title: _kgNoteTarget.title,
+                    note_text: text
+                })
+            });
+            if (!res.ok) throw new Error('Failed');
+            showToast('✅ تم مشاركة الملاحظة مع الطلاب!', 'success');
+            closeKGNotes();
+        } catch(e) {
+            showToast('❌ فشلت المشاركة، حاول تاني', 'error');
+        }
+    };
+
+    window.openSharedKGNotes = async function() {
+        var grade = document.getElementById('kgGradeSelect').value;
+        var session = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+        if (!session || !session.access_token) {
+            showToast('🔒 سجل دخولك أولاً لعرض الملاحظات المشتركة', 'warning');
+            return;
+        }
+        var overlay = document.getElementById('kgSharedOverlay');
+        overlay.style.display = 'flex';
+        var list = document.getElementById('kgSharedList');
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text);opacity:0.6;">⏳ جاري التحميل...</div>';
+        try {
+            var res = await fetch(SUPABASE_URL + '/rest/v1/shared_kg_notes?grade=eq.' + grade + '&order=created_at.desc&limit=50', {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + session.access_token
+                }
+            });
+            var notes = await res.json();
+            if (!notes || notes.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text);opacity:0.5;"><div style="font-size:2rem;margin-bottom:8px;">📭</div>مفيش ملاحظات مشتركة لـ ' + grade + ' لسه</div>';
+                return;
+            }
+            var html = '';
+            notes.forEach(function(n) {
+                var isOwn = n.student_email === session.email;
+                var time = new Date(n.created_at).toLocaleDateString('ar-EG', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                html += '<div style="border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;background:var(--input-bg);">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                        '<div><span style="font-weight:700;font-size:0.85rem;color:var(--dark);">' + (n.student_name || 'طالب') + '</span>' +
+                        '<span style="font-size:0.7rem;color:var(--text);opacity:0.6;margin-right:8px;margin-left:8px;">' + time + '</span></div>' +
+                        (isOwn ? '<button onclick="deleteSharedKGNote(\'' + n.id + '\',this)" style="background:none;border:none;cursor:pointer;font-size:0.8rem;color:#ef4444;" title="حذف">🗑️</button>' : '') +
+                    '</div>' +
+                    '<div style="font-size:0.75rem;color:var(--accent);font-weight:600;margin-bottom:6px;">📍 ' + (n.lo_title || n.lo_id) + '</div>' +
+                    '<div style="font-size:0.82rem;color:var(--dark);line-height:1.6;white-space:pre-wrap;">' + n.note_text.replace(/</g,'&lt;') + '</div>' +
+                '</div>';
+            });
+            list.innerHTML = html;
+        } catch(e) {
+            list.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">❌ حصل خطأ في تحميل الملاحظات</div>';
+        }
+    };
+
+    window.deleteSharedKGNote = async function(id, btn) {
+        var session = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+        if (!session) return;
+        btn.textContent = '⏳';
+        try {
+            await fetch(SUPABASE_URL + '/rest/v1/shared_kg_notes?id=eq.' + id, {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + session.access_token
+                }
+            });
+            btn.closest('div[style*="border-radius:14px"]').remove();
+            showToast('🗑️ تم حذف الملاحظة المشتركة', 'info');
+        } catch(e) {
+            showToast('❌ فشل الحذف', 'error');
+        }
+    };
+
+    window.closeSharedKGNotes = function() {
+        document.getElementById('kgSharedOverlay').style.display = 'none';
     };
 
     window.exportKGNotesPDF = async function() {
