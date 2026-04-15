@@ -10200,8 +10200,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         showToast('📄 تم تصدير الملاحظات بنجاح!', 'success');
     };
 
-
-        var grade = document.getElementById('kgGradeSelect').value;
+    window.resetKGLayout = function() {
         var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
         keysToDelete.forEach(function(k) { delete _kgPositions[k]; });
         localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
