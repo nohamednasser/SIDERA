@@ -10431,7 +10431,9 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 if (n.completed) { statusEl.textContent = '✅ Completed'; statusEl.style.color = '#22c55e'; }
                 else if (n.unlocked) { statusEl.textContent = '🔓 Unlocked — Click to complete'; statusEl.style.color = n.color.main; }
                 else { statusEl.textContent = '🔒 Locked — Complete previous first'; statusEl.style.color = 'var(--text)'; }
-                statusEl.textContent += ' | 🖱️ Drag to move';
+                var grade = document.getElementById('kgGradeSelect').value;
+                var noteHint = hasNote(grade, n.lo.id) ? ' | 📝 Has notes' : '';
+                statusEl.textContent += ' | 🖱️ Drag to move | Right-click: Notes' + noteHint;
                 tt.style.display = 'block';
                 var tx = Math.min(e.clientX - canvas.getBoundingClientRect().left + 16, canvas.clientWidth - 260);
                 var ty = e.clientY - canvas.getBoundingClientRect().top - 10;
