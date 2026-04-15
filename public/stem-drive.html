@@ -1379,8 +1379,20 @@
             <textarea id="kgNotesTextarea" placeholder="اكتب ملاحظاتك هنا..." style="width:100%;min-height:140px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);padding:12px;font-size:0.88rem;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box;"></textarea>
             <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
                 <button onclick="deleteKGNote()" id="kgNotesDeleteBtn" style="padding:8px 16px;border-radius:10px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:0.8rem;font-weight:600;cursor:pointer;display:none;">🗑️ حذف</button>
+                <button onclick="shareKGNote()" id="kgNotesShareBtn" style="padding:8px 16px;border-radius:10px;border:1px solid #3b82f6;background:transparent;color:#3b82f6;font-size:0.8rem;font-weight:600;cursor:pointer;display:none;">📤 شارك</button>
                 <button onclick="saveKGNote()" style="padding:8px 20px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:0.8rem;font-weight:700;cursor:pointer;">💾 حفظ</button>
             </div>
+        </div>
+    </div>
+    <!-- Shared Notes Overlay -->
+    <div id="kgSharedOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeSharedKGNotes()">
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:24px;max-width:560px;width:94%;max-height:80vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;display:flex;flex-direction:column;">
+            <button onclick="closeSharedKGNotes()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text);">✕</button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                <span style="font-size:1.3rem;">👥</span>
+                <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--dark);">ملاحظات مشتركة</h3>
+            </div>
+            <div id="kgSharedList" style="overflow-y:auto;flex:1;min-height:100px;"></div>
         </div>
     </div>
     <p style="text-align:center;font-size:0.7rem;color:var(--text);opacity:0.5;margin-top:6px;">Right-click (or long-press) on a node to add notes 📝</p>
