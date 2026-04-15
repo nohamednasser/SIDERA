@@ -2730,7 +2730,18 @@ async function handleAuth() {
                 body: JSON.stringify({ email, password: pass })
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+            if (!res.ok) {
+                const errMsg = data.error_description || data.msg || '';
+                if (/invalid.*credentials|wrong.*password|invalid.*password/i.test(errMsg)) {
+                    throw new Error('🔑 كلمة السر غلط! تأكد منها وجرب تاني.');
+                } else if (/email.*not.*confirmed/i.test(errMsg)) {
+                    throw new Error('📧 الإيميل لسه مش متأكد. شيك على الإنبوكس.');
+                } else if (/user.*not.*found/i.test(errMsg)) {
+                    throw new Error('❌ الاسم ده مش موجود. اعمل حساب جديد!');
+                } else {
+                    throw new Error(errMsg || 'فشل تسجيل الدخول. جرب تاني.');
+                }
+            }
 
             if (isAdminUser) {
                 // Verify admin from database before granting access
@@ -5893,7 +5904,17 @@ async function submitExam(forceSubmit = false) {
     } catch (err) {
         console.error('submitExam error:', err);
         const msg = String(err && err.message ? err.message : err);
-        showToast(/jwt|permission|row-level|401|403/i.test(msg) ? 'سجّل دخولك من جديد ثم أعد المحاولة.' : 'Failed to submit exam. Try again.', 'error');
+        let userMsg;
+        if (/jwt|permission|row-level|401|403/i.test(msg)) {
+            userMsg = '🔐 الجلسة انتهت! سجّل دخولك تاني وكمل الامتحان.';
+        } else if (/fetch|network|failed to fetch|ERR_INTERNET|offline/i.test(msg)) {
+            userMsg = '📶 يا بطل، اتأكد من النت وكمل امتحانك! إجاباتك محفوظة عندك.';
+        } else if (/timeout|ETIMEDOUT/i.test(msg)) {
+            userMsg = '⏱ السيرفر بطيء. استنى شوية وجرب تسلّم تاني!';
+        } else {
+            userMsg = '⚠️ حصلت مشكلة في التسليم. جرب تاني — إجاباتك محفوظة! 🔄';
+        }
+        showToast(userMsg, 'error', 6000);
         _isSubmittingExam = false;
         if (btn) {
             btn.disabled = false;
