@@ -1011,8 +1011,47 @@
             .vlab-grid { grid-template-columns: 1fr; }
             .snippets-panel { width: 100%; right: -100%; }
             .xp-bar-container { padding: 4px 10px; }
-            .radar-container { max-width: 250px; }
+        .radar-container { max-width: 250px; }
         }
+
+        /* ===== Liquid Focus Mode ===== */
+        .focus-mode-active > *:not(.exam-modal):not(.preview-modal):not(.focus-rays-overlay):not(script):not(style):not(link) {
+            filter: saturate(0.15) brightness(0.5);
+            pointer-events: none;
+            transition: filter 0.6s ease;
+        }
+        .focus-mode-active .exam-modal.show,
+        .focus-mode-active .preview-modal.show {
+            filter: none !important;
+            pointer-events: auto !important;
+        }
+        .focus-rays-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            overflow: hidden;
+        }
+        .focus-rays-overlay.active { opacity: 1; }
+        .focus-ray {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 120vh;
+            transform-origin: center top;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            will-change: opacity;
+        }
+        .focus-ray.visible { opacity: 1; }
+        @keyframes focusRayPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+        .focus-ray.visible { animation: focusRayPulse 4s ease-in-out infinite; }
     </style>
 </head>
 <body>
@@ -9849,6 +9888,103 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     var _checkLabLogLoad = setInterval(function() {
         if (getUserEmail()) { clearInterval(_checkLabLogLoad); loadLabLogs(); }
     }, 2000);
+})();
+
+// ===== Liquid Focus Mode =====
+(function() {
+    var _focusTimer = null;
+    var _focusMinutes = 0;
+    var _focusRaysEl = null;
+    var _totalRays = 24;
+    var _raysCreated = false;
+
+    function createRaysOverlay() {
+        if (_raysCreated) return;
+        _focusRaysEl = document.createElement('div');
+        _focusRaysEl.className = 'focus-rays-overlay';
+        var colors = ['rgba(163,64,84,0.15)', 'rgba(6,182,212,0.12)', 'rgba(167,139,250,0.1)', 'rgba(245,158,11,0.08)'];
+        for (var i = 0; i < _totalRays; i++) {
+            var ray = document.createElement('div');
+            ray.className = 'focus-ray';
+            var angle = (360 / _totalRays) * i;
+            var color = colors[i % colors.length];
+            ray.style.background = 'linear-gradient(to bottom, ' + color + ', transparent 70%)';
+            ray.style.transform = 'translate(-50%, -50%) rotate(' + angle + 'deg)';
+            ray.dataset.index = i;
+            _focusRaysEl.appendChild(ray);
+        }
+        document.body.appendChild(_focusRaysEl);
+        _raysCreated = true;
+    }
+
+    function updateRays() {
+        if (!_focusRaysEl) return;
+        // Each minute reveals ~3 rays, max all after 8 mins
+        var raysToShow = Math.min(_totalRays, Math.floor(_focusMinutes * 3));
+        var rays = _focusRaysEl.querySelectorAll('.focus-ray');
+        for (var i = 0; i < rays.length; i++) {
+            if (i < raysToShow) {
+                rays[i].classList.add('visible');
+                // Stagger animation delay
+                rays[i].style.animationDelay = (i * 0.15) + 's';
+            } else {
+                rays[i].classList.remove('visible');
+            }
+        }
+    }
+
+    function enterFocusMode() {
+        createRaysOverlay();
+        document.body.classList.add('focus-mode-active');
+        _focusRaysEl.classList.add('active');
+        _focusMinutes = 0;
+        updateRays();
+        _focusTimer = setInterval(function() {
+            _focusMinutes++;
+            updateRays();
+            if (_focusMinutes >= 8) clearInterval(_focusTimer);
+        }, 60000);
+    }
+
+    function exitFocusMode() {
+        document.body.classList.remove('focus-mode-active');
+        if (_focusRaysEl) _focusRaysEl.classList.remove('active');
+        if (_focusTimer) { clearInterval(_focusTimer); _focusTimer = null; }
+        _focusMinutes = 0;
+        // Reset rays
+        if (_focusRaysEl) {
+            var rays = _focusRaysEl.querySelectorAll('.focus-ray');
+            for (var i = 0; i < rays.length; i++) rays[i].classList.remove('visible');
+        }
+    }
+
+    // Hook exam start
+    var _origExamShowLine = document.getElementById('examTakingModal');
+    if (_origExamShowLine) {
+        new MutationObserver(function(muts) {
+            muts.forEach(function(m) {
+                if (m.attributeName === 'class') {
+                    var el = m.target;
+                    if (el.classList.contains('show')) enterFocusMode();
+                    else exitFocusMode();
+                }
+            });
+        }).observe(_origExamShowLine, { attributes: true });
+    }
+
+    // Hook preview modal
+    var _prevModal = document.getElementById('previewModal');
+    if (_prevModal) {
+        new MutationObserver(function(muts) {
+            muts.forEach(function(m) {
+                if (m.attributeName === 'class') {
+                    var el = m.target;
+                    if (el.classList.contains('show')) enterFocusMode();
+                    else exitFocusMode();
+                }
+            });
+        }).observe(_prevModal, { attributes: true });
+    }
 })();
 
 </script>
