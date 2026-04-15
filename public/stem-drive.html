@@ -1181,6 +1181,7 @@
 <!-- Sticky Section Navigation -->
 <nav class="section-nav" id="sectionNav">
     <a href="#examsSection" onclick="smoothNav(event,'examsSection')">📝 Exams</a>
+    <a href="#knowledgeGraphSection" onclick="smoothNav(event,'knowledgeGraphSection')">🗺️ Map</a>
     <a href="#container" onclick="smoothNav(event,'container')">📚 Materials</a>
     <a href="#capstoneArea" onclick="smoothNav(event,'capstoneArea')">📄 Capstone</a>
     <a href="#alumniSection" onclick="smoothNav(event,'alumniSection')">🎓 Alumni</a>
@@ -1327,6 +1328,42 @@
     </div>
     <div class="exam-grid" id="examsGrid">
         <p class="no-resources" style="grid-column:1/-1;" id="examsLoading"></p>
+    </div>
+</div>
+
+<!-- Knowledge Graph Section -->
+<div class="exam-divider" id="knowledgeGraphSection"></div>
+<div class="exam-section-title">
+    <h2>🗺️ Knowledge Map</h2>
+    <p>Your learning journey — unlock paths as you explore</p>
+</div>
+<div class="kg-section" style="width:90%;max-width:1400px;margin:0 auto 20px;">
+    <div class="kg-controls" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;">
+        <select id="kgGradeSelect" onchange="updateKnowledgeGraph()" style="padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card-bg);color:var(--dark);font-size:0.82rem;font-weight:600;">
+            <option value="G10">Grade 10</option>
+            <option value="G11">Grade 11</option>
+            <option value="G12">Grade 12</option>
+        </select>
+        <select id="kgSubjectSelect" onchange="updateKnowledgeGraph()" style="padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card-bg);color:var(--dark);font-size:0.82rem;font-weight:600;">
+        </select>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:0.75rem;color:var(--text);" id="kgProgress">0/0 completed</span>
+            <div style="width:120px;height:6px;background:var(--input-bg);border-radius:6px;overflow:hidden;">
+                <div id="kgProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#a78bfa);border-radius:6px;transition:width 0.5s ease;"></div>
+            </div>
+        </div>
+    </div>
+    <div style="position:relative;width:100%;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);overflow:hidden;transition:background-color 0.15s,border-color 0.15s;">
+        <canvas id="kgCanvas" style="width:100%;display:block;cursor:grab;"></canvas>
+        <div id="kgTooltip" style="position:absolute;display:none;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,0.15);pointer-events:none;z-index:10;max-width:240px;">
+            <div id="kgTooltipTitle" style="font-weight:700;font-size:0.88rem;margin-bottom:4px;"></div>
+            <div id="kgTooltipDesc" style="font-size:0.75rem;color:var(--text);line-height:1.4;"></div>
+            <div id="kgTooltipStatus" style="font-size:0.7rem;margin-top:6px;font-weight:600;"></div>
+        </div>
+        <div id="kgEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--text);font-size:0.9rem;">
+            <div style="font-size:2.5rem;margin-bottom:10px;">🗺️</div>
+            <p>No learning outcomes found for this selection</p>
+        </div>
     </div>
 </div>
 
@@ -9985,6 +10022,449 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             });
         }).observe(_prevModal, { attributes: true });
     }
+})();
+
+// ===== Interactive Knowledge Graph =====
+(function() {
+    var canvas, ctx;
+    var nodes = [], edges = [];
+    var _kgCompleted = JSON.parse(localStorage.getItem('kg_completed') || '{}');
+    var _kgHover = -1;
+    var _kgDpr = window.devicePixelRatio || 1;
+    var _kgPan = { x: 0, y: 0 };
+    var _kgDragging = false;
+    var _kgDragStart = { x: 0, y: 0 };
+    var _kgAnimFrame = null;
+    var _kgPulseT = 0;
+    var _kgSubjects = [];
+
+    // Color palette for subjects
+    var _kgColors = [
+        { main: '#A34054', glow: 'rgba(163,64,84,0.3)', light: 'rgba(163,64,84,0.08)' },
+        { main: '#3b82f6', glow: 'rgba(59,130,246,0.3)', light: 'rgba(59,130,246,0.08)' },
+        { main: '#a78bfa', glow: 'rgba(167,139,250,0.3)', light: 'rgba(167,139,250,0.08)' },
+        { main: '#22c55e', glow: 'rgba(34,197,94,0.3)', light: 'rgba(34,197,94,0.08)' },
+        { main: '#f59e0b', glow: 'rgba(245,158,11,0.3)', light: 'rgba(245,158,11,0.08)' },
+        { main: '#06b6d4', glow: 'rgba(6,182,212,0.3)', light: 'rgba(6,182,212,0.08)' },
+    ];
+
+    function getCompletionKey(grade, loId) { return grade + ':' + loId; }
+    function isCompleted(grade, loId) { return !!_kgCompleted[getCompletionKey(grade, loId)]; }
+    function toggleComplete(grade, loId) {
+        var key = getCompletionKey(grade, loId);
+        if (_kgCompleted[key]) delete _kgCompleted[key];
+        else _kgCompleted[key] = Date.now();
+        localStorage.setItem('kg_completed', JSON.stringify(_kgCompleted));
+    }
+
+    function layoutNodes(los, canvasW, canvasH) {
+        nodes = [];
+        edges = [];
+        if (!los.length) return;
+
+        // Group by subject
+        var groups = {};
+        los.forEach(function(lo) {
+            if (!groups[lo.subject]) groups[lo.subject] = [];
+            groups[lo.subject].push(lo);
+        });
+
+        var subjectKeys = Object.keys(groups);
+        var nodeRadius = Math.max(18, Math.min(28, canvasW / (los.length + 5)));
+        var grade = document.getElementById('kgGradeSelect').value;
+
+        // Layout: each subject is a horizontal lane
+        var laneHeight = (canvasH - 80) / Math.max(subjectKeys.length, 1);
+        var idx = 0;
+
+        subjectKeys.forEach(function(subj, si) {
+            var items = groups[subj];
+            items.sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
+            var laneY = 50 + laneHeight * si + laneHeight / 2;
+            var spacing = (canvasW - 120) / Math.max(items.length, 1);
+
+            items.forEach(function(lo, li) {
+                var x = 60 + spacing * li + spacing / 2;
+                var color = _kgColors[si % _kgColors.length];
+                var completed = isCompleted(grade, lo.id);
+                // A node is "unlocked" if it's the first in its subject, or the previous one is completed
+                var unlocked = li === 0 || isCompleted(grade, items[li - 1].id);
+
+                nodes.push({
+                    x: x, y: laneY, r: nodeRadius,
+                    lo: lo, color: color, completed: completed, unlocked: unlocked,
+                    subject: subj, idx: idx, subjectIdx: si, posInSubject: li
+                });
+
+                // Edge to next in same subject
+                if (li > 0) {
+                    var prevCompleted = isCompleted(grade, items[li - 1].id);
+                    edges.push({
+                        from: idx - 1, to: idx,
+                        lit: prevCompleted,
+                        color: color
+                    });
+                }
+                idx++;
+            });
+        });
+    }
+
+    function drawGraph() {
+        if (!ctx || !canvas) return;
+        var w = canvas.width / _kgDpr;
+        var h = canvas.height / _kgDpr;
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        ctx.save();
+        ctx.scale(_kgDpr, _kgDpr);
+        ctx.clearRect(0, 0, w, h);
+
+        // Background
+        ctx.fillStyle = isDark ? '#0f0d1a' : '#fafbfc';
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle grid
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+        ctx.lineWidth = 1;
+        for (var gx = 0; gx < w; gx += 40) { ctx.beginPath(); ctx.moveTo(gx + _kgPan.x % 40, 0); ctx.lineTo(gx + _kgPan.x % 40, h); ctx.stroke(); }
+        for (var gy = 0; gy < h; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy + _kgPan.y % 40); ctx.lineTo(w, gy + _kgPan.y % 40); ctx.stroke(); }
+
+        ctx.save();
+        ctx.translate(_kgPan.x, _kgPan.y);
+
+        _kgPulseT += 0.02;
+
+        // Draw edges (light threads)
+        edges.forEach(function(e) {
+            var a = nodes[e.from], b = nodes[e.to];
+            ctx.beginPath();
+            // Curved connection
+            var cpx = (a.x + b.x) / 2;
+            var cpy = (a.y + b.y) / 2 - 20;
+            ctx.moveTo(a.x, a.y);
+            ctx.quadraticCurveTo(cpx, cpy, b.x, b.y);
+
+            if (e.lit) {
+                // Glowing lit thread
+                ctx.strokeStyle = e.color.main;
+                ctx.lineWidth = 3;
+                ctx.shadowColor = e.color.glow;
+                ctx.shadowBlur = 12 + Math.sin(_kgPulseT * 2) * 4;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Flowing particle effect
+                var t = (_kgPulseT * 0.3) % 1;
+                var px = a.x * (1-t)*(1-t) + 2*cpx*t*(1-t) + b.x*t*t;
+                var py = a.y * (1-t)*(1-t) + 2*cpy*t*(1-t) + b.y*t*t;
+                ctx.beginPath();
+                ctx.arc(px, py, 4, 0, Math.PI * 2);
+                ctx.fillStyle = e.color.main;
+                ctx.shadowColor = e.color.main;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            } else {
+                // Dim unlit thread
+                ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 6]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        });
+
+        // Draw nodes
+        nodes.forEach(function(n, i) {
+            var isHover = i === _kgHover;
+            var r = n.r + (isHover ? 4 : 0);
+
+            // Outer glow for completed
+            if (n.completed) {
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, r + 8 + Math.sin(_kgPulseT * 1.5 + i) * 3, 0, Math.PI * 2);
+                ctx.fillStyle = n.color.glow;
+                ctx.globalAlpha = 0.3 + Math.sin(_kgPulseT * 1.5 + i) * 0.1;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            // Node circle
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+            if (n.completed) {
+                ctx.fillStyle = n.color.main;
+                ctx.shadowColor = n.color.main;
+                ctx.shadowBlur = isHover ? 20 : 10;
+            } else if (n.unlocked) {
+                ctx.fillStyle = isDark ? '#1f1c2e' : '#ffffff';
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.fillStyle = isDark ? '#16131f' : '#f0f0f0';
+                ctx.shadowBlur = 0;
+            }
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Border
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = n.completed ? n.color.main : (n.unlocked ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'));
+            ctx.lineWidth = n.completed ? 2.5 : 1.5;
+            ctx.stroke();
+
+            // Icon/text inside node
+            ctx.fillStyle = n.completed ? '#ffffff' : (n.unlocked ? (isDark ? '#e2e8f0' : '#333') : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'));
+            ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.55) + 'px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var label = n.lo.lo_code || ('L' + (n.posInSubject + 1));
+            ctx.fillText(label, n.x, n.y);
+
+            // Lock icon for locked nodes
+            if (!n.unlocked && !n.completed) {
+                ctx.font = Math.round(r * 0.5) + 'px sans-serif';
+                ctx.fillText('🔒', n.x, n.y);
+            }
+
+            // Checkmark for completed
+            if (n.completed) {
+                ctx.font = 'bold ' + Math.round(r * 0.45) + 'px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('✓', n.x + r * 0.5, n.y - r * 0.5);
+            }
+
+            // Subject label (first node only)
+            if (n.posInSubject === 0) {
+                ctx.fillStyle = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)';
+                ctx.font = '600 11px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(n.subject, n.x, n.y - r - 14);
+            }
+        });
+
+        ctx.restore();
+        ctx.restore();
+
+        _kgAnimFrame = requestAnimationFrame(drawGraph);
+    }
+
+    function getNodeAtPos(mx, my) {
+        for (var i = nodes.length - 1; i >= 0; i--) {
+            var n = nodes[i];
+            var dx = (mx - _kgPan.x) - n.x, dy = (my - _kgPan.y) - n.y;
+            if (dx * dx + dy * dy <= (n.r + 6) * (n.r + 6)) return i;
+        }
+        return -1;
+    }
+
+    function setupCanvas() {
+        canvas = document.getElementById('kgCanvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        resizeCanvas();
+
+        // Mouse events
+        canvas.addEventListener('mousemove', function(e) {
+            var rect = canvas.getBoundingClientRect();
+            var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+            if (_kgDragging) {
+                _kgPan.x += e.clientX - _kgDragStart.x;
+                _kgPan.y += e.clientY - _kgDragStart.y;
+                _kgDragStart = { x: e.clientX, y: e.clientY };
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+
+            var hit = getNodeAtPos(mx, my);
+            _kgHover = hit;
+            canvas.style.cursor = hit >= 0 ? 'pointer' : 'grab';
+
+            // Tooltip
+            var tt = document.getElementById('kgTooltip');
+            if (hit >= 0) {
+                var n = nodes[hit];
+                document.getElementById('kgTooltipTitle').textContent = n.lo.lo_code + ' — ' + n.lo.title;
+                document.getElementById('kgTooltipDesc').textContent = n.lo.description || '';
+                var statusEl = document.getElementById('kgTooltipStatus');
+                if (n.completed) { statusEl.textContent = '✅ Completed'; statusEl.style.color = '#22c55e'; }
+                else if (n.unlocked) { statusEl.textContent = '🔓 Unlocked — Click to complete'; statusEl.style.color = n.color.main; }
+                else { statusEl.textContent = '🔒 Locked — Complete previous first'; statusEl.style.color = 'var(--text)'; }
+                tt.style.display = 'block';
+                var tx = Math.min(e.clientX - canvas.getBoundingClientRect().left + 16, canvas.clientWidth - 260);
+                var ty = e.clientY - canvas.getBoundingClientRect().top - 10;
+                tt.style.left = tx + 'px';
+                tt.style.top = ty + 'px';
+            } else {
+                tt.style.display = 'none';
+            }
+        });
+
+        canvas.addEventListener('mousedown', function(e) {
+            var rect = canvas.getBoundingClientRect();
+            var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            var hit = getNodeAtPos(mx, my);
+            if (hit >= 0) return; // Don't drag if clicking a node
+            _kgDragging = true;
+            _kgDragStart = { x: e.clientX, y: e.clientY };
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mouseup', function() { _kgDragging = false; canvas.style.cursor = 'grab'; });
+        canvas.addEventListener('mouseleave', function() {
+            _kgDragging = false;
+            _kgHover = -1;
+            document.getElementById('kgTooltip').style.display = 'none';
+        });
+
+        canvas.addEventListener('click', function(e) {
+            var rect = canvas.getBoundingClientRect();
+            var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            var hit = getNodeAtPos(mx, my);
+            if (hit < 0) return;
+            var n = nodes[hit];
+            if (!n.unlocked && !n.completed) {
+                showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
+                return;
+            }
+            var grade = document.getElementById('kgGradeSelect').value;
+            toggleComplete(grade, n.lo.id);
+            var wasCompleted = n.completed;
+            rebuildGraph();
+            if (!wasCompleted) {
+                showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
+                awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+            }
+        });
+
+        // Touch events
+        var _touchStart = null;
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                var t = e.touches[0];
+                var rect = canvas.getBoundingClientRect();
+                var mx = t.clientX - rect.left, my = t.clientY - rect.top;
+                var hit = getNodeAtPos(mx, my);
+                if (hit >= 0) {
+                    _touchStart = { node: hit, x: t.clientX, y: t.clientY };
+                } else {
+                    _kgDragging = true;
+                    _kgDragStart = { x: t.clientX, y: t.clientY };
+                }
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (_kgDragging && e.touches.length === 1) {
+                var t = e.touches[0];
+                _kgPan.x += t.clientX - _kgDragStart.x;
+                _kgPan.y += t.clientY - _kgDragStart.y;
+                _kgDragStart = { x: t.clientX, y: t.clientY };
+            }
+            _touchStart = null;
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', function(e) {
+            _kgDragging = false;
+            if (_touchStart && _touchStart.node >= 0) {
+                var n = nodes[_touchStart.node];
+                if (!n.unlocked && !n.completed) {
+                    showToast('🔒 خلّص الدرس اللي قبله الأول!', 'warning');
+                } else {
+                    var grade = document.getElementById('kgGradeSelect').value;
+                    toggleComplete(grade, n.lo.id);
+                    if (!n.completed) {
+                        showToast('🎉 ' + n.lo.lo_code + ' — Completed!', 'success');
+                        awardXP && awardXP(15, 'Knowledge Map: ' + n.lo.lo_code);
+                    }
+                    rebuildGraph();
+                }
+            }
+            _touchStart = null;
+        });
+
+        // Wheel zoom-like pan
+        canvas.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            _kgPan.x -= e.deltaX * 0.5;
+            _kgPan.y -= e.deltaY * 0.5;
+        }, { passive: false });
+    }
+
+    function resizeCanvas() {
+        if (!canvas) return;
+        var w = canvas.parentElement.clientWidth;
+        var h = Math.max(320, Math.min(500, w * 0.45));
+        canvas.width = w * _kgDpr;
+        canvas.height = h * _kgDpr;
+        canvas.style.height = h + 'px';
+    }
+
+    function rebuildGraph() {
+        if (!canvas) return;
+        var grade = document.getElementById('kgGradeSelect').value;
+        var subject = document.getElementById('kgSubjectSelect').value;
+        var los = (_loCache || []).filter(function(lo) {
+            return lo.grade === grade && (subject === 'all' || lo.subject === subject);
+        });
+
+        resizeCanvas();
+        var w = canvas.width / _kgDpr;
+        var h = canvas.height / _kgDpr;
+
+        document.getElementById('kgEmpty').style.display = los.length ? 'none' : 'block';
+        canvas.style.display = los.length ? 'block' : 'none';
+
+        _kgPan = { x: 0, y: 0 };
+        layoutNodes(los, w, h);
+
+        // Update progress
+        var completed = nodes.filter(function(n) { return n.completed; }).length;
+        document.getElementById('kgProgress').textContent = completed + '/' + nodes.length + ' completed';
+        document.getElementById('kgProgressBar').style.width = (nodes.length ? (completed / nodes.length * 100) : 0) + '%';
+
+        if (!_kgAnimFrame) drawGraph();
+    }
+
+    async function populateKGSubjects() {
+        var los = await loadLearningOutcomes();
+        var grade = document.getElementById('kgGradeSelect').value;
+        var subjects = [];
+        (los || []).forEach(function(lo) {
+            if (lo.grade === grade && subjects.indexOf(lo.subject) === -1) subjects.push(lo.subject);
+        });
+        var sel = document.getElementById('kgSubjectSelect');
+        sel.innerHTML = '<option value="all">All Subjects</option>' + subjects.map(function(s) {
+            return '<option value="' + s + '">' + s + '</option>';
+        }).join('');
+    }
+
+    window.updateKnowledgeGraph = async function() {
+        await populateKGSubjects();
+        rebuildGraph();
+    };
+
+    // Init
+    window.addEventListener('resize', function() { resizeCanvas(); rebuildGraph(); });
+    
+    // Start when LOs are loaded
+    setTimeout(async function() {
+        await loadLearningOutcomes();
+        setupCanvas();
+        await populateKGSubjects();
+        rebuildGraph();
+
+        // Sync grade filter with main grade filter
+        var gradeFilter = document.querySelector('#examFilters .exam-filter-btn.active');
+        if (gradeFilter && gradeFilter.dataset.filter !== 'all') {
+            document.getElementById('kgGradeSelect').value = gradeFilter.dataset.filter;
+            await populateKGSubjects();
+            rebuildGraph();
+        }
+    }, 1500);
 })();
 
 </script>
