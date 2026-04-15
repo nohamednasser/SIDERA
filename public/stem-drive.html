@@ -1366,6 +1366,22 @@
             <p>No learning outcomes found for this selection</p>
         </div>
     </div>
+    <!-- Notes Modal -->
+    <div id="kgNotesOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)closeKGNotes()">
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:24px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">
+            <button onclick="closeKGNotes()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text);">✕</button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                <span style="font-size:1.3rem;">📝</span>
+                <h3 id="kgNotesTitle" style="margin:0;font-size:1rem;font-weight:700;color:var(--dark);">Notes</h3>
+            </div>
+            <textarea id="kgNotesTextarea" placeholder="اكتب ملاحظاتك هنا..." style="width:100%;min-height:140px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);padding:12px;font-size:0.88rem;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box;"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                <button onclick="deleteKGNote()" id="kgNotesDeleteBtn" style="padding:8px 16px;border-radius:10px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:0.8rem;font-weight:600;cursor:pointer;display:none;">🗑️ حذف</button>
+                <button onclick="saveKGNote()" style="padding:8px 20px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:0.8rem;font-weight:700;cursor:pointer;">💾 حفظ</button>
+            </div>
+        </div>
+    </div>
+    <p style="text-align:center;font-size:0.7rem;color:var(--text);opacity:0.5;margin-top:6px;">Right-click (or long-press) on a node to add notes 📝</p>
 </div>
 
 <!-- Materials Divider & Title -->
@@ -10031,7 +10047,9 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     var nodes = [], edges = [];
     var _kgCompleted = JSON.parse(localStorage.getItem('kg_completed') || '{}');
     var _kgPositions = JSON.parse(localStorage.getItem('kg_positions') || '{}');
+    var _kgNotes = JSON.parse(localStorage.getItem('kg_notes') || '{}');
     var _kgHover = -1;
+    var _kgNoteTarget = null; // { grade, loId }
     var _kgDpr = window.devicePixelRatio || 1;
     var _kgPan = { x: 0, y: 0 };
     var _kgDragging = false;
@@ -10064,6 +10082,40 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
         _kgPositions[getPosKey(grade, loId)] = { x: x, y: y };
         localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
     }
+    function getNoteKey(grade, loId) { return 'note:' + grade + ':' + loId; }
+    function getNote(grade, loId) { return _kgNotes[getNoteKey(grade, loId)] || ''; }
+    function hasNote(grade, loId) { return !!_kgNotes[getNoteKey(grade, loId)]; }
+
+    window.openKGNotes = function(grade, loId, title) {
+        _kgNoteTarget = { grade: grade, loId: loId };
+        document.getElementById('kgNotesTitle').textContent = '📝 ' + (title || 'Notes');
+        document.getElementById('kgNotesTextarea').value = getNote(grade, loId);
+        document.getElementById('kgNotesDeleteBtn').style.display = hasNote(grade, loId) ? 'inline-block' : 'none';
+        var overlay = document.getElementById('kgNotesOverlay');
+        overlay.style.display = 'flex';
+        setTimeout(function() { document.getElementById('kgNotesTextarea').focus(); }, 100);
+    };
+    window.saveKGNote = function() {
+        if (!_kgNoteTarget) return;
+        var text = document.getElementById('kgNotesTextarea').value.trim();
+        var key = getNoteKey(_kgNoteTarget.grade, _kgNoteTarget.loId);
+        if (text) { _kgNotes[key] = text; } else { delete _kgNotes[key]; }
+        localStorage.setItem('kg_notes', JSON.stringify(_kgNotes));
+        closeKGNotes();
+        showToast('📝 تم حفظ الملاحظة!', 'success');
+    };
+    window.deleteKGNote = function() {
+        if (!_kgNoteTarget) return;
+        delete _kgNotes[getNoteKey(_kgNoteTarget.grade, _kgNoteTarget.loId)];
+        localStorage.setItem('kg_notes', JSON.stringify(_kgNotes));
+        closeKGNotes();
+        showToast('🗑️ تم حذف الملاحظة', 'info');
+    };
+    window.closeKGNotes = function() {
+        document.getElementById('kgNotesOverlay').style.display = 'none';
+        _kgNoteTarget = null;
+    };
+
     window.resetKGLayout = function() {
         var grade = document.getElementById('kgGradeSelect').value;
         var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
