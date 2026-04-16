@@ -10154,6 +10154,109 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     function getNote(grade, loId) { return _kgNotes[getNoteKey(grade, loId)] || ''; }
     function hasNote(grade, loId) { return !!_kgNotes[getNoteKey(grade, loId)]; }
 
+    // ===== Per-node Customization =====
+    function getCustomKey(grade, loId) { return grade + ':' + loId; }
+    function getCustom(grade, loId) { return _kgCustom[getCustomKey(grade, loId)] || null; }
+    function saveCustom(grade, loId, data) {
+        var key = getCustomKey(grade, loId);
+        if (data) _kgCustom[key] = data; else delete _kgCustom[key];
+        localStorage.setItem('kg_custom', JSON.stringify(_kgCustom));
+    }
+
+    window.openKGCustomize = function() {
+        if (!_kgNoteTarget) return;
+        var c = getCustom(_kgNoteTarget.grade, _kgNoteTarget.loId) || {};
+        document.getElementById('kgCustomLabel').value = c.label || '';
+        document.getElementById('kgCustomEmoji').value = c.emoji || '';
+        document.getElementById('kgCustomSize').value = c.size || 100;
+        document.getElementById('kgCustomSizeVal').textContent = (c.size || 100) + '%';
+        // Render emoji palette
+        var ePal = document.getElementById('kgCustomEmojis');
+        ePal.innerHTML = _kgEmojiOptions.map(function(em) {
+            return '<button type="button" onclick="document.getElementById(\'kgCustomEmoji\').value=\'' + em + '\';updateKGCustomPreview()" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + em + '</button>';
+        }).join('');
+        // Render color palette
+        var cPal = document.getElementById('kgCustomColors');
+        var selectedColor = c.color || '';
+        cPal.innerHTML = _kgColorOptions.map(function(col) {
+            var sel = col.main === selectedColor ? 'box-shadow:0 0 0 3px var(--accent);' : '';
+            return '<button type="button" data-color="' + col.main + '" data-glow="' + col.glow + '" onclick="selectKGColor(this)" style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:' + col.main + ';cursor:pointer;' + sel + '"></button>';
+        }).join('');
+        document.getElementById('kgCustomizeOverlay').dataset.color = selectedColor;
+        document.getElementById('kgCustomizeOverlay').dataset.glow = c.glowColor || '';
+        document.getElementById('kgCustomEmoji').oninput = updateKGCustomPreview;
+        document.getElementById('kgCustomLabel').oninput = updateKGCustomPreview;
+        document.getElementById('kgCustomizeOverlay').style.display = 'flex';
+        updateKGCustomPreview();
+    };
+
+    window.selectKGColor = function(btn) {
+        document.getElementById('kgCustomizeOverlay').dataset.color = btn.dataset.color;
+        document.getElementById('kgCustomizeOverlay').dataset.glow = btn.dataset.glow;
+        // Re-highlight
+        var btns = document.getElementById('kgCustomColors').querySelectorAll('button');
+        btns.forEach(function(b) {
+            b.style.boxShadow = b.dataset.color === btn.dataset.color ? '0 0 0 3px var(--accent)' : 'none';
+        });
+        updateKGCustomPreview();
+    };
+
+    window.updateKGCustomPreview = function() {
+        var prev = document.getElementById('kgCustomPreview');
+        if (!prev) return;
+        var color = document.getElementById('kgCustomizeOverlay').dataset.color || '#a78bfa';
+        var size = parseInt(document.getElementById('kgCustomSize').value) || 100;
+        var emoji = document.getElementById('kgCustomEmoji').value;
+        var label = document.getElementById('kgCustomLabel').value;
+        prev.style.background = color;
+        prev.style.boxShadow = '0 8px 24px ' + color + '60';
+        prev.style.transform = 'scale(' + (size / 100) + ')';
+        prev.textContent = emoji || label || '★';
+    };
+
+    window.saveKGNodeCustom = function() {
+        if (!_kgNoteTarget) return;
+        var color = document.getElementById('kgCustomizeOverlay').dataset.color || '';
+        var glow = document.getElementById('kgCustomizeOverlay').dataset.glow || '';
+        var data = {
+            label: document.getElementById('kgCustomLabel').value.trim(),
+            emoji: document.getElementById('kgCustomEmoji').value.trim(),
+            color: color,
+            glowColor: glow,
+            size: parseInt(document.getElementById('kgCustomSize').value) || 100
+        };
+        // If everything is empty, clear
+        if (!data.label && !data.emoji && !data.color && data.size === 100) {
+            saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, null);
+        } else {
+            saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, data);
+        }
+        closeKGCustomize();
+        showToast('🎨 تم حفظ التخصيص!', 'success');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+    };
+
+    window.resetKGNodeCustom = function() {
+        if (!_kgNoteTarget) return;
+        saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, null);
+        closeKGCustomize();
+        showToast('↺ تم استرجاع الافتراضي', 'info');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+    };
+
+    window.closeKGCustomize = function() {
+        document.getElementById('kgCustomizeOverlay').style.display = 'none';
+    };
+
+    window.resetKGCustomizations = async function() {
+        var ok = await (window.customConfirm ? customConfirm('هتمسح كل التخصيصات للخريطة. متأكد؟') : Promise.resolve(confirm('Reset all customizations?')));
+        if (!ok) return;
+        _kgCustom = {};
+        localStorage.setItem('kg_custom', '{}');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+        showToast('🎨 تم مسح كل التخصيصات', 'info');
+    };
+
     window.openKGNotes = function(grade, loId, title) {
         _kgNoteTarget = { grade: grade, loId: loId, title: title || 'Notes' };
         document.getElementById('kgNotesTitle').textContent = '📝 ' + (title || 'Notes');
