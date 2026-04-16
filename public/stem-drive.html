@@ -10734,12 +10734,21 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             ctx.lineWidth = n.completed ? 2.5 : 1.5;
             ctx.stroke();
 
-            // Icon/text inside node
+            // Icon/text inside node (with customization)
             ctx.fillStyle = n.completed ? '#ffffff' : (n.unlocked ? (isDark ? '#e2e8f0' : '#333') : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'));
-            ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.55) + 'px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            var label = n.lo.lo_code || ('L' + (n.posInSubject + 1));
+            var label;
+            if (n.custom && n.custom.emoji) {
+                ctx.font = Math.round(r * 0.85) + 'px sans-serif';
+                label = n.custom.emoji;
+            } else if (n.custom && n.custom.label) {
+                ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.45) + 'px "Segoe UI", sans-serif';
+                label = n.custom.label.length > 6 ? n.custom.label.substring(0, 6) : n.custom.label;
+            } else {
+                ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.55) + 'px "Segoe UI", sans-serif';
+                label = n.lo.lo_code || ('L' + (n.posInSubject + 1));
+            }
             ctx.fillText(label, n.x, n.y);
 
             // Lock icon for locked nodes
