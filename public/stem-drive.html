@@ -10553,6 +10553,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     };
 
     window.resetKGLayout = function() {
+        var grade = document.getElementById('kgGradeSelect').value;
         var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
         keysToDelete.forEach(function(k) { delete _kgPositions[k]; });
         localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
@@ -10589,9 +10590,18 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             items.forEach(function(lo, li) {
                 var defaultX = 60 + spacing * li + spacing / 2;
                 var defaultY = laneY;
-                var color = _kgColors[si % _kgColors.length];
+                var defaultColor = _kgColors[si % _kgColors.length];
                 var completed = isCompleted(grade, lo.id);
                 var unlocked = li === 0 || isCompleted(grade, items[li - 1].id);
+
+                // Apply per-node customization
+                var custom = getCustom(grade, lo.id);
+                var color = defaultColor;
+                if (custom && custom.color) {
+                    color = { main: custom.color, glow: custom.glowColor || (custom.color + '55'), light: (custom.color + '14') };
+                }
+                var sizeFactor = (custom && custom.size) ? (custom.size / 100) : 1;
+                var nodeR = nodeRadius * sizeFactor;
 
                 // Check saved position
                 var saved = _kgPositions[getPosKey(grade, lo.id)];
@@ -10599,9 +10609,10 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 var ny = saved ? saved.y : defaultY;
 
                 nodes.push({
-                    x: nx, y: ny, r: nodeRadius,
+                    x: nx, y: ny, r: nodeR,
                     lo: lo, color: color, completed: completed, unlocked: unlocked,
-                    subject: subj, idx: idx, subjectIdx: si, posInSubject: li
+                    subject: subj, idx: idx, subjectIdx: si, posInSubject: li,
+                    custom: custom
                 });
 
                 // Edge to next in same subject
