@@ -1349,6 +1349,7 @@
         <button id="kgResetBtn" onclick="resetKGLayout()" title="Reset layout" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">🔄 Reset</button>
         <button onclick="exportKGNotesPDF()" title="Export notes as PDF" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">📄 Export Notes</button>
         <button onclick="openSharedKGNotes()" title="Browse shared notes" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">👥 Shared Notes</button>
+        <button onclick="resetKGCustomizations()" title="Reset all customizations" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px;">🎨 Reset Style</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
             <span style="font-size:0.75rem;color:var(--text);" id="kgProgress">0/0 completed</span>
             <div style="width:120px;height:6px;background:var(--input-bg);border-radius:6px;overflow:hidden;">
@@ -1377,7 +1378,8 @@
                 <h3 id="kgNotesTitle" style="margin:0;font-size:1rem;font-weight:700;color:var(--dark);">Notes</h3>
             </div>
             <textarea id="kgNotesTextarea" placeholder="اكتب ملاحظاتك هنا..." style="width:100%;min-height:140px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);padding:12px;font-size:0.88rem;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box;"></textarea>
-            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                <button onclick="openKGCustomize()" id="kgNotesCustomizeBtn" style="padding:8px 14px;border-radius:10px;border:1px solid #a78bfa;background:transparent;color:#a78bfa;font-size:0.78rem;font-weight:600;cursor:pointer;">🎨 تخصيص</button>
                 <button onclick="deleteKGNote()" id="kgNotesDeleteBtn" style="padding:8px 16px;border-radius:10px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:0.8rem;font-weight:600;cursor:pointer;display:none;">🗑️ حذف</button>
                 <button onclick="shareKGNote()" id="kgNotesShareBtn" style="padding:8px 16px;border-radius:10px;border:1px solid #3b82f6;background:transparent;color:#3b82f6;font-size:0.8rem;font-weight:600;cursor:pointer;display:none;">📤 شارك</button>
                 <button onclick="saveKGNote()" style="padding:8px 20px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:0.8rem;font-weight:700;cursor:pointer;">💾 حفظ</button>
@@ -1395,7 +1397,46 @@
             <div id="kgSharedList" style="overflow-y:auto;flex:1;min-height:100px;"></div>
         </div>
     </div>
-    <p style="text-align:center;font-size:0.7rem;color:var(--text);opacity:0.5;margin-top:6px;">Right-click (or long-press) on a node to add notes 📝</p>
+    <!-- Customize Node Overlay -->
+    <div id="kgCustomizeOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeKGCustomize()">
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:24px;max-width:460px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;max-height:88vh;overflow-y:auto;">
+            <button onclick="closeKGCustomize()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text);">✕</button>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <span style="font-size:1.3rem;">🎨</span>
+                <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--dark);">تخصيص النقطة</h3>
+            </div>
+            <!-- Live Preview -->
+            <div style="display:flex;justify-content:center;margin-bottom:18px;">
+                <div id="kgCustomPreview" style="width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:all 0.2s;"></div>
+            </div>
+            <!-- Custom Label -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--dark);margin-bottom:6px;">📝 الاسم المخصص (اختياري)</label>
+                <input id="kgCustomLabel" type="text" maxlength="20" placeholder="e.g. My Topic" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:0.85rem;box-sizing:border-box;" />
+            </div>
+            <!-- Custom Icon/Emoji -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--dark);margin-bottom:6px;">😀 أيقونة (Emoji)</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;" id="kgCustomEmojis"></div>
+                <input id="kgCustomEmoji" type="text" maxlength="2" placeholder="أو اكتب emoji" style="width:100%;margin-top:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--dark);font-size:1.1rem;text-align:center;box-sizing:border-box;" />
+            </div>
+            <!-- Color Picker -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--dark);margin-bottom:6px;">🎨 اللون</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;" id="kgCustomColors"></div>
+            </div>
+            <!-- Size -->
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--dark);margin-bottom:6px;">📏 الحجم: <span id="kgCustomSizeVal">100%</span></label>
+                <input id="kgCustomSize" type="range" min="70" max="160" value="100" style="width:100%;" oninput="document.getElementById('kgCustomSizeVal').textContent=this.value+'%';updateKGCustomPreview()" />
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:8px;">
+                <button onclick="resetKGNodeCustom()" style="padding:8px 14px;border-radius:10px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:0.78rem;font-weight:600;cursor:pointer;">↺ افتراضي</button>
+                <button onclick="saveKGNodeCustom()" style="padding:8px 22px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:0.82rem;font-weight:700;cursor:pointer;">💾 حفظ التخصيص</button>
+            </div>
+        </div>
+    </div>
+    <p style="text-align:center;font-size:0.7rem;color:var(--text);opacity:0.5;margin-top:6px;">Right-click (or long-press) on a node to add notes & customize 📝🎨</p>
 </div>
 
 <!-- Materials Divider & Title -->
@@ -10062,6 +10103,19 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     var _kgCompleted = JSON.parse(localStorage.getItem('kg_completed') || '{}');
     var _kgPositions = JSON.parse(localStorage.getItem('kg_positions') || '{}');
     var _kgNotes = JSON.parse(localStorage.getItem('kg_notes') || '{}');
+    var _kgCustom = JSON.parse(localStorage.getItem('kg_custom') || '{}'); // per-node customization
+    var _kgLikes = {}; // note_id -> { count, likedByMe }
+    var _kgEmojiOptions = ['⭐','🔥','💡','🎯','🚀','🧪','📚','🧠','⚡','💎','🏆','❤️','🌟','🎓','🔬','📐'];
+    var _kgColorOptions = [
+        { main: '#A34054', glow: 'rgba(163,64,84,0.35)' },
+        { main: '#3b82f6', glow: 'rgba(59,130,246,0.35)' },
+        { main: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
+        { main: '#22c55e', glow: 'rgba(34,197,94,0.35)' },
+        { main: '#f59e0b', glow: 'rgba(245,158,11,0.35)' },
+        { main: '#06b6d4', glow: 'rgba(6,182,212,0.35)' },
+        { main: '#ec4899', glow: 'rgba(236,72,153,0.35)' },
+        { main: '#14b8a6', glow: 'rgba(20,184,166,0.35)' },
+    ];
     var _kgHover = -1;
     var _kgNoteTarget = null; // { grade, loId }
     var _kgDpr = window.devicePixelRatio || 1;
@@ -10099,6 +10153,109 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     function getNoteKey(grade, loId) { return 'note:' + grade + ':' + loId; }
     function getNote(grade, loId) { return _kgNotes[getNoteKey(grade, loId)] || ''; }
     function hasNote(grade, loId) { return !!_kgNotes[getNoteKey(grade, loId)]; }
+
+    // ===== Per-node Customization =====
+    function getCustomKey(grade, loId) { return grade + ':' + loId; }
+    function getCustom(grade, loId) { return _kgCustom[getCustomKey(grade, loId)] || null; }
+    function saveCustom(grade, loId, data) {
+        var key = getCustomKey(grade, loId);
+        if (data) _kgCustom[key] = data; else delete _kgCustom[key];
+        localStorage.setItem('kg_custom', JSON.stringify(_kgCustom));
+    }
+
+    window.openKGCustomize = function() {
+        if (!_kgNoteTarget) return;
+        var c = getCustom(_kgNoteTarget.grade, _kgNoteTarget.loId) || {};
+        document.getElementById('kgCustomLabel').value = c.label || '';
+        document.getElementById('kgCustomEmoji').value = c.emoji || '';
+        document.getElementById('kgCustomSize').value = c.size || 100;
+        document.getElementById('kgCustomSizeVal').textContent = (c.size || 100) + '%';
+        // Render emoji palette
+        var ePal = document.getElementById('kgCustomEmojis');
+        ePal.innerHTML = _kgEmojiOptions.map(function(em) {
+            return '<button type="button" onclick="document.getElementById(\'kgCustomEmoji\').value=\'' + em + '\';updateKGCustomPreview()" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + em + '</button>';
+        }).join('');
+        // Render color palette
+        var cPal = document.getElementById('kgCustomColors');
+        var selectedColor = c.color || '';
+        cPal.innerHTML = _kgColorOptions.map(function(col) {
+            var sel = col.main === selectedColor ? 'box-shadow:0 0 0 3px var(--accent);' : '';
+            return '<button type="button" data-color="' + col.main + '" data-glow="' + col.glow + '" onclick="selectKGColor(this)" style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:' + col.main + ';cursor:pointer;' + sel + '"></button>';
+        }).join('');
+        document.getElementById('kgCustomizeOverlay').dataset.color = selectedColor;
+        document.getElementById('kgCustomizeOverlay').dataset.glow = c.glowColor || '';
+        document.getElementById('kgCustomEmoji').oninput = updateKGCustomPreview;
+        document.getElementById('kgCustomLabel').oninput = updateKGCustomPreview;
+        document.getElementById('kgCustomizeOverlay').style.display = 'flex';
+        updateKGCustomPreview();
+    };
+
+    window.selectKGColor = function(btn) {
+        document.getElementById('kgCustomizeOverlay').dataset.color = btn.dataset.color;
+        document.getElementById('kgCustomizeOverlay').dataset.glow = btn.dataset.glow;
+        // Re-highlight
+        var btns = document.getElementById('kgCustomColors').querySelectorAll('button');
+        btns.forEach(function(b) {
+            b.style.boxShadow = b.dataset.color === btn.dataset.color ? '0 0 0 3px var(--accent)' : 'none';
+        });
+        updateKGCustomPreview();
+    };
+
+    window.updateKGCustomPreview = function() {
+        var prev = document.getElementById('kgCustomPreview');
+        if (!prev) return;
+        var color = document.getElementById('kgCustomizeOverlay').dataset.color || '#a78bfa';
+        var size = parseInt(document.getElementById('kgCustomSize').value) || 100;
+        var emoji = document.getElementById('kgCustomEmoji').value;
+        var label = document.getElementById('kgCustomLabel').value;
+        prev.style.background = color;
+        prev.style.boxShadow = '0 8px 24px ' + color + '60';
+        prev.style.transform = 'scale(' + (size / 100) + ')';
+        prev.textContent = emoji || label || '★';
+    };
+
+    window.saveKGNodeCustom = function() {
+        if (!_kgNoteTarget) return;
+        var color = document.getElementById('kgCustomizeOverlay').dataset.color || '';
+        var glow = document.getElementById('kgCustomizeOverlay').dataset.glow || '';
+        var data = {
+            label: document.getElementById('kgCustomLabel').value.trim(),
+            emoji: document.getElementById('kgCustomEmoji').value.trim(),
+            color: color,
+            glowColor: glow,
+            size: parseInt(document.getElementById('kgCustomSize').value) || 100
+        };
+        // If everything is empty, clear
+        if (!data.label && !data.emoji && !data.color && data.size === 100) {
+            saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, null);
+        } else {
+            saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, data);
+        }
+        closeKGCustomize();
+        showToast('🎨 تم حفظ التخصيص!', 'success');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+    };
+
+    window.resetKGNodeCustom = function() {
+        if (!_kgNoteTarget) return;
+        saveCustom(_kgNoteTarget.grade, _kgNoteTarget.loId, null);
+        closeKGCustomize();
+        showToast('↺ تم استرجاع الافتراضي', 'info');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+    };
+
+    window.closeKGCustomize = function() {
+        document.getElementById('kgCustomizeOverlay').style.display = 'none';
+    };
+
+    window.resetKGCustomizations = async function() {
+        var ok = await (window.customConfirm ? customConfirm('هتمسح كل التخصيصات للخريطة. متأكد؟') : Promise.resolve(confirm('Reset all customizations?')));
+        if (!ok) return;
+        _kgCustom = {};
+        localStorage.setItem('kg_custom', '{}');
+        if (typeof rebuildGraph === 'function') rebuildGraph();
+        showToast('🎨 تم مسح كل التخصيصات', 'info');
+    };
 
     window.openKGNotes = function(grade, loId, title) {
         _kgNoteTarget = { grade: grade, loId: loId, title: title || 'Notes' };
@@ -10192,10 +10349,35 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text);opacity:0.5;"><div style="font-size:2rem;margin-bottom:8px;">📭</div>مفيش ملاحظات مشتركة لـ ' + grade + ' لسه</div>';
                 return;
             }
+            // Fetch likes for these notes
+            var noteIds = notes.map(function(n) { return n.id; });
+            _kgLikes = {};
+            try {
+                var likesRes = await fetch(SUPABASE_URL + '/rest/v1/shared_kg_note_likes?note_id=in.(' + noteIds.join(',') + ')&select=note_id,student_email', {
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token }
+                });
+                var likes = await likesRes.json();
+                (likes || []).forEach(function(lk) {
+                    if (!_kgLikes[lk.note_id]) _kgLikes[lk.note_id] = { count: 0, likedByMe: false };
+                    _kgLikes[lk.note_id].count++;
+                    if (lk.student_email === session.email) _kgLikes[lk.note_id].likedByMe = true;
+                });
+            } catch(e) { /* ignore likes errors */ }
+
             var html = '';
+            // Sort by likes desc as a small bonus
+            notes.sort(function(a, b) {
+                var la = (_kgLikes[a.id] && _kgLikes[a.id].count) || 0;
+                var lb = (_kgLikes[b.id] && _kgLikes[b.id].count) || 0;
+                return lb - la;
+            });
             notes.forEach(function(n) {
                 var isOwn = n.student_email === session.email;
                 var time = new Date(n.created_at).toLocaleDateString('ar-EG', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                var lk = _kgLikes[n.id] || { count: 0, likedByMe: false };
+                var likeBtn = '<button onclick="toggleKGNoteLike(\'' + n.id + '\',this)" data-liked="' + (lk.likedByMe ? '1' : '0') + '" style="display:flex;align-items:center;gap:4px;background:' + (lk.likedByMe ? 'rgba(239,68,68,0.12)' : 'transparent') + ';border:1px solid ' + (lk.likedByMe ? '#ef4444' : 'var(--border)') + ';border-radius:20px;padding:4px 10px;cursor:pointer;font-size:0.78rem;color:' + (lk.likedByMe ? '#ef4444' : 'var(--text)') + ';font-weight:600;transition:all 0.15s;">' +
+                    '<span class="kg-like-icon">' + (lk.likedByMe ? '❤️' : '🤍') + '</span>' +
+                    '<span class="kg-like-count">' + lk.count + '</span></button>';
                 html += '<div style="border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;background:var(--input-bg);">' +
                     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
                         '<div><span style="font-weight:700;font-size:0.85rem;color:var(--dark);">' + (n.student_name || 'طالب') + '</span>' +
@@ -10203,12 +10385,64 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                         (isOwn ? '<button onclick="deleteSharedKGNote(\'' + n.id + '\',this)" style="background:none;border:none;cursor:pointer;font-size:0.8rem;color:#ef4444;" title="حذف">🗑️</button>' : '') +
                     '</div>' +
                     '<div style="font-size:0.75rem;color:var(--accent);font-weight:600;margin-bottom:6px;">📍 ' + (n.lo_title || n.lo_id) + '</div>' +
-                    '<div style="font-size:0.82rem;color:var(--dark);line-height:1.6;white-space:pre-wrap;">' + n.note_text.replace(/</g,'&lt;') + '</div>' +
+                    '<div style="font-size:0.82rem;color:var(--dark);line-height:1.6;white-space:pre-wrap;margin-bottom:10px;">' + n.note_text.replace(/</g,'&lt;') + '</div>' +
+                    '<div style="display:flex;justify-content:flex-start;align-items:center;">' + likeBtn + '</div>' +
                 '</div>';
             });
             list.innerHTML = html;
         } catch(e) {
             list.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">❌ حصل خطأ في تحميل الملاحظات</div>';
+        }
+    };
+
+    window.toggleKGNoteLike = async function(noteId, btn) {
+        var session = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+        if (!session || !session.access_token) {
+            showToast('🔒 سجل دخولك أولاً للإعجاب', 'warning');
+            return;
+        }
+        var liked = btn.dataset.liked === '1';
+        btn.disabled = true;
+        try {
+            if (liked) {
+                // Unlike
+                await fetch(SUPABASE_URL + '/rest/v1/shared_kg_note_likes?note_id=eq.' + noteId + '&student_email=eq.' + encodeURIComponent(session.email), {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token }
+                });
+                btn.dataset.liked = '0';
+                var icon = btn.querySelector('.kg-like-icon'); icon.textContent = '🤍';
+                var cnt = btn.querySelector('.kg-like-count'); cnt.textContent = Math.max(0, parseInt(cnt.textContent) - 1);
+                btn.style.background = 'transparent';
+                btn.style.borderColor = 'var(--border)';
+                btn.style.color = 'var(--text)';
+            } else {
+                // Like
+                var res = await fetch(SUPABASE_URL + '/rest/v1/shared_kg_note_likes', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ note_id: noteId, student_email: session.email })
+                });
+                if (!res.ok && res.status !== 409) throw new Error('Failed');
+                btn.dataset.liked = '1';
+                var icon2 = btn.querySelector('.kg-like-icon'); icon2.textContent = '❤️';
+                var cnt2 = btn.querySelector('.kg-like-count'); cnt2.textContent = parseInt(cnt2.textContent) + 1;
+                btn.style.background = 'rgba(239,68,68,0.12)';
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#ef4444';
+                // Cute pop animation
+                btn.style.transform = 'scale(1.15)';
+                setTimeout(function() { btn.style.transform = 'scale(1)'; }, 150);
+            }
+        } catch(e) {
+            showToast('❌ فشل التحديث', 'error');
+        } finally {
+            btn.disabled = false;
         }
     };
 
@@ -10319,6 +10553,7 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     };
 
     window.resetKGLayout = function() {
+        var grade = document.getElementById('kgGradeSelect').value;
         var keysToDelete = Object.keys(_kgPositions).filter(function(k) { return k.indexOf('pos:' + grade + ':') === 0; });
         keysToDelete.forEach(function(k) { delete _kgPositions[k]; });
         localStorage.setItem('kg_positions', JSON.stringify(_kgPositions));
@@ -10355,9 +10590,18 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             items.forEach(function(lo, li) {
                 var defaultX = 60 + spacing * li + spacing / 2;
                 var defaultY = laneY;
-                var color = _kgColors[si % _kgColors.length];
+                var defaultColor = _kgColors[si % _kgColors.length];
                 var completed = isCompleted(grade, lo.id);
                 var unlocked = li === 0 || isCompleted(grade, items[li - 1].id);
+
+                // Apply per-node customization
+                var custom = getCustom(grade, lo.id);
+                var color = defaultColor;
+                if (custom && custom.color) {
+                    color = { main: custom.color, glow: custom.glowColor || (custom.color + '55'), light: (custom.color + '14') };
+                }
+                var sizeFactor = (custom && custom.size) ? (custom.size / 100) : 1;
+                var nodeR = nodeRadius * sizeFactor;
 
                 // Check saved position
                 var saved = _kgPositions[getPosKey(grade, lo.id)];
@@ -10365,9 +10609,10 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
                 var ny = saved ? saved.y : defaultY;
 
                 nodes.push({
-                    x: nx, y: ny, r: nodeRadius,
+                    x: nx, y: ny, r: nodeR,
                     lo: lo, color: color, completed: completed, unlocked: unlocked,
-                    subject: subj, idx: idx, subjectIdx: si, posInSubject: li
+                    subject: subj, idx: idx, subjectIdx: si, posInSubject: li,
+                    custom: custom
                 });
 
                 // Edge to next in same subject
@@ -10489,12 +10734,21 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             ctx.lineWidth = n.completed ? 2.5 : 1.5;
             ctx.stroke();
 
-            // Icon/text inside node
+            // Icon/text inside node (with customization)
             ctx.fillStyle = n.completed ? '#ffffff' : (n.unlocked ? (isDark ? '#e2e8f0' : '#333') : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'));
-            ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.55) + 'px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            var label = n.lo.lo_code || ('L' + (n.posInSubject + 1));
+            var label;
+            if (n.custom && n.custom.emoji) {
+                ctx.font = Math.round(r * 0.85) + 'px sans-serif';
+                label = n.custom.emoji;
+            } else if (n.custom && n.custom.label) {
+                ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.45) + 'px "Segoe UI", sans-serif';
+                label = n.custom.label.length > 6 ? n.custom.label.substring(0, 6) : n.custom.label;
+            } else {
+                ctx.font = (n.completed ? 'bold ' : '') + Math.round(r * 0.55) + 'px "Segoe UI", sans-serif';
+                label = n.lo.lo_code || ('L' + (n.posInSubject + 1));
+            }
             ctx.fillText(label, n.x, n.y);
 
             // Lock icon for locked nodes
