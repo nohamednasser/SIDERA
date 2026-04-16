@@ -568,6 +568,35 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_kg_note_likes: {
+        Row: {
+          created_at: string
+          id: string
+          note_id: string
+          student_email: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_id: string
+          student_email: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_id?: string
+          student_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_kg_note_likes_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "shared_kg_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_kg_notes: {
         Row: {
           created_at: string
