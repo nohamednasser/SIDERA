@@ -721,14 +721,15 @@
       checkEmail: "Account created. You can login now."
     },
     ar: {
-      sub: "مجتمع مصري للدراسة الذاتية في الـ STEM يجمع بين أفضل المصادر وأحدث تقنيات الذكاء الاصطناعي. مواد، امتحانات، أدوات للكابستون ومتابعة مستمرة — كل ده في مكان واحد.",
-      btnS: "أنا طالب", btnT: "أنا مُدرّس",
+      sub: "سيدرا: مركزك الشامل لكل مواد الـ STEM في مكان واحد. بنمكّن الطلاب بتجربة تعليمية موحّدة، سلسة، وأذكى.",
+      tagline: "مجتمع الدراسة الذاتية",
+      btnS: "أنا طالب", btnT: "أنا أدمن",
       why: "ليه SIDERA؟",
       f1t: "أمان متقدم", f1d: "نزاهة امتحانات بدرع مضاد للغش، كاشف تشتيت، وتحقق من الشهادات — مبني للتقييم الموثوق.",
       f2t: "أدوات ذكاء اصطناعي", f2d: "مولّد أسئلة، توقّع ميزانية الكابستون، بحث ذكي، ومساعد دراسة شخصي — بنماذج متقدمة.",
       f3t: "سرعة فائقة", f3d: "مُحسّن للوصول الفوري — المواد والمعامل والامتحانات بتفتح في أجزاء من الثانية.",
       lang: "EN",
-      roleStudent: "طالب", roleTeacher: "مُدرّس",
+      roleStudent: "طالب", roleAdmin: "بوابة الأدمن",
       loginTitle: "أهلاً بعودتك", loginSub: "سجّل دخولك للوصول لحسابك",
       signupTitle: "أنشئ حسابك", signupSub: "انضم لمجتمع SIDERA",
       loginBtn: "دخول", signupBtn: "إنشاء حساب", loading: "جاري المعالجة…",
@@ -749,8 +750,9 @@
     const t = _ar ? TXT.ar : TXT.en;
     document.documentElement.dir = _ar ? 'rtl' : 'ltr';
     document.getElementById('heroSub').textContent = t.sub;
+    document.getElementById('heroTagline').textContent = t.tagline;
     document.getElementById('btnStudent').textContent = t.btnS;
-    document.getElementById('btnTeacher').textContent = t.btnT;
+    document.getElementById('btnAdmin').textContent = t.btnT;
     document.getElementById('whyTitle').textContent = t.why;
     document.getElementById('f1Title').textContent = t.f1t;
     document.getElementById('f1Desc').textContent = t.f1d;
@@ -763,7 +765,7 @@
     if (document.getElementById('authBackdrop').classList.contains('visible')) {
       updateAuthLabels();
       document.getElementById('roleBadgeLabel').textContent =
-        _currentRole === 'student' ? t.roleStudent : t.roleTeacher;
+        _currentRole === 'student' ? t.roleStudent : t.roleAdmin;
     }
   }
 
