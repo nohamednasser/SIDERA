@@ -765,25 +765,39 @@
         .auth-guest { margin-top: 15px; font-size: 0.8rem; color: var(--text); cursor: pointer; transition: color 0.15s; }
         .auth-guest:hover { color: var(--accent); }
 
-        /* Welcome Overlay */
-        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.6s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+        /* Welcome Overlay — kept for compatibility but hidden by JS */
+        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: none; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.35s ease; pointer-events: none; }
         .welcome-overlay.fade-out { opacity: 0; }
-        .welcome-content { text-align: center; animation: welcomeBounce 0.7s cubic-bezier(.34,1.56,.64,1); }
-        .welcome-emoji { font-size: 4rem; margin-bottom: 16px; animation: welcomeWave 1.2s ease-in-out; }
-        .welcome-text { font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; letter-spacing: -0.5px; }
-        .welcome-sub { font-size: 1rem; color: var(--text); opacity: 0.7; }
-        @keyframes welcomeBounce { from { opacity:0; transform: scale(0.8) translateY(20px); } to { opacity:1; transform: none; } }
-        @keyframes welcomeWave { 0%,100%{transform:rotate(0)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(10deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(6deg)} }
+
+        /* Minimal loader — three dots, replaces the heavy welcome screen */
+        .mini-loader { display: inline-flex; gap: 8px; align-items: center; }
+        .mini-loader .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); opacity: 0.35; animation: miniDot 1s cubic-bezier(.4,0,.2,1) infinite; }
+        .mini-loader .dot:nth-child(2) { animation-delay: 0.15s; }
+        .mini-loader .dot:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes miniDot {
+            0%, 100% { opacity: 0.35; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-6px); }
+        }
+
+        /* Smooth global micro-interactions */
+        a, button, .control-btn, .auth-btn, .file-card, .exam-card, .review-card, .nav-pill {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }
 
         /* Smooth page entrance */
         .page-enter header,
         .page-enter .filter-container,
         .page-enter .content,
-        .page-enter .exam-section { animation: pageSlideUp 0.5s cubic-bezier(.4,0,.2,1) both; }
-        .page-enter .filter-container { animation-delay: 0.05s; }
-        .page-enter .content { animation-delay: 0.1s; }
-        .page-enter .exam-section { animation-delay: 0.15s; }
-        @keyframes pageSlideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+        .page-enter .exam-section { animation: pageSlideUp 0.45s cubic-bezier(.4,0,.2,1) both; }
+        .page-enter .filter-container { animation-delay: 0.04s; }
+        .page-enter .content { animation-delay: 0.08s; }
+        .page-enter .exam-section { animation-delay: 0.12s; }
+        @keyframes pageSlideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: none; } }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
 
         /* Alumni Insights Section */
         .alumni-section { width: 90%; max-width: 1400px; padding: 0 0 30px; margin-top: 20px; }
@@ -3040,10 +3054,12 @@ function showAuthForGuest() {
 }
 
 function showWelcome(name) {
-    // Welcome overlay disabled for smoother, instant UX.
-    // Auth feedback is handled on /landing — once we land here, just show the app.
+    // Heavy welcome screen replaced by smooth, lightweight page-enter animation.
     const wo = document.getElementById('welcomeOverlay');
     if (wo) wo.style.display = 'none';
+    // Trigger the smooth slide-up on header/content/etc.
+    document.body.classList.add('page-enter');
+    setTimeout(function(){ document.body.classList.remove('page-enter'); }, 700);
 }
 
 function hideAuthOverlay() {
@@ -8486,8 +8502,10 @@ function applyLanguage() {
     var tooltip = document.getElementById('langTooltip');
     if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
-    document.body.dir = isAr ? 'rtl' : 'ltr';
-    document.body.style.textAlign = isAr ? 'right' : '';
+    // IMPORTANT: do NOT flip layout direction. Only translate text content.
+    // Keeping the layout LTR prevents the page from "jumping" left↔right on language switch.
+    document.body.dir = 'ltr';
+    document.body.style.textAlign = '';
     
     var dict = isAr ? _translations : _reverseTranslations;
     
