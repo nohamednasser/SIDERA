@@ -287,6 +287,33 @@
   }
   .footer-note span { color: var(--peach); font-weight: 600; }
 
+  /* PROMO + MEME SECTION */
+  .promo-section {
+    position: relative; z-index: 2;
+    width: 92%; max-width: 1200px;
+    margin: 30px auto 20px;
+    display: flex; gap: 24px;
+    align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .promo-card { text-align: center; }
+  .promo-video { flex: 1; min-width: 300px; max-width: 650px; }
+  .promo-meme { flex: 0 0 auto; width: 320px; max-width: 100%; }
+  .promo-card h2 {
+    font-size: 1.4rem; font-weight: 800;
+    color: var(--navy); margin: 0 0 8px;
+  }
+  .promo-meme h2 { font-size: 1.2rem; }
+  .promo-card p {
+    color: var(--text-soft); font-size: 0.92rem; margin: 0 0 14px;
+  }
+  .promo-card video, .promo-card img {
+    width: 100%; border-radius: 16px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    display: block;
+  }
+
   @media (max-width: 640px) {
     .deco.sq, .deco.ring { display:none; }
     .hero { padding: 100px 20px 60px; }
@@ -525,6 +552,22 @@
       <h3 id="f3Title">Lightning Fast</h3>
       <p id="f3Desc">Optimized for instant access — materials, virtual labs, and exams load in milliseconds across any device.</p>
     </div>
+  </div>
+</section>
+
+<!-- PROMO + MEME -->
+<section class="promo-section">
+  <div class="promo-card promo-video">
+    <h2 id="promoVideoTitle">🎬 ليه SIDERA؟</h2>
+    <p id="promoVideoSub">شوف الفيديو وانت تعرف 👇</p>
+    <video controls playsinline preload="metadata">
+      <source src="/videos/promo.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="promo-card promo-meme">
+    <h2 id="promoMemeTitle">😂 حال طلاب STEM</h2>
+    <p id="promoMemeSub">عشان كده عملنالكم SIDERA 💪</p>
+    <img src="/images/meme.png" alt="STEM Meme">
   </div>
 </section>
 
