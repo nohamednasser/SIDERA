@@ -610,6 +610,10 @@
     document.getElementById('lblUser').textContent = t.username;
     document.getElementById('lblPass').textContent = t.password;
     document.getElementById('guestLink').textContent = t.guest;
+    // Admin portal: hide signup toggle and guest mode
+    var isAdmin = _currentRole === 'admin';
+    document.getElementById('authSwitch').style.display = isAdmin ? 'none' : 'block';
+    document.getElementById('guestLink').style.display = isAdmin ? 'none' : 'block';
   }
 
   function showAuthError(msg) {
