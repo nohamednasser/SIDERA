@@ -2890,6 +2890,42 @@ function applyFiltersToUI() {
 // ===== Student Auth System =====
 let _authIsLogin = true;
 let _studentUser = null;
+let _authRole = 'student'; // 'student' or 'admin'
+
+window.chooseRole = function(role) {
+    _authRole = role;
+    var chooser = document.getElementById('authChooser');
+    var formCard = document.getElementById('authFormCard');
+    if (chooser) chooser.style.display = 'none';
+    if (formCard) formCard.style.display = '';
+    var title = document.getElementById('authFormTitle');
+    var sub = document.getElementById('authSub');
+    var toggle = document.getElementById('authToggle');
+    var btn = document.getElementById('authBtn');
+    var userIn = document.getElementById('authUsername');
+    if (role === 'admin') {
+        if (title) title.textContent = '🛡️ Admin Login';
+        if (sub) sub.textContent = 'Sign in with your admin credentials.';
+        if (toggle) toggle.style.display = 'none';
+        if (btn) btn.textContent = 'Sign In';
+        if (userIn) userIn.placeholder = 'Admin username or email';
+    } else {
+        if (title) title.textContent = '🎓 Student Login';
+        if (sub) sub.textContent = 'Login to access your study hub.';
+        if (toggle) toggle.style.display = '';
+        if (btn) btn.textContent = 'Login';
+        if (userIn) userIn.placeholder = 'Enter your username';
+    }
+    setTimeout(function() { if (userIn) userIn.focus(); }, 50);
+};
+
+window.backToRoleChooser = function() {
+    var chooser = document.getElementById('authChooser');
+    var formCard = document.getElementById('authFormCard');
+    if (chooser) chooser.style.display = '';
+    if (formCard) formCard.style.display = 'none';
+    if (typeof clearAuthError === 'function') clearAuthError();
+};
 
 function toggleAuthMode() {
     _authIsLogin = !_authIsLogin;
