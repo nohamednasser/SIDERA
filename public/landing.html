@@ -758,7 +758,24 @@
     document.getElementById('f3Title').textContent = t.f3t;
     document.getElementById('f3Desc').textContent = t.f3d;
     document.getElementById('langLabel').textContent = t.lang;
+    // Refresh modal labels if open
+    if (document.getElementById('authBackdrop').classList.contains('visible')) {
+      updateAuthLabels();
+      document.getElementById('roleBadgeLabel').textContent =
+        _currentRole === 'student' ? t.roleStudent : t.roleTeacher;
+    }
   }
+
+  // If user already has a session, skip the landing
+  (function autoSkip() {
+    try {
+      var s = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+      if (s && s.access_token) {
+        // Already logged in — go straight to the app
+        if (window.location.pathname === '/landing') window.location.replace('/');
+      }
+    } catch(e){}
+  })();
 </script>
 </body>
 </html>
