@@ -868,15 +868,33 @@
         return;
       }
 
-      // Persist session in the same shape stem-drive expects
-      localStorage.setItem('sidera_session', JSON.stringify({
+      // Persist session — write BOTH new + legacy keys so stem-drive picks it up
+      var sessionPayload = {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
         user: data.user,
         email
-      }));
+      };
+      localStorage.setItem('sidera_session', JSON.stringify(sessionPayload));
       localStorage.setItem('sidera_role', _currentRole);
-      localStorage.setItem('sidera_username', username.replace(/@.*/, ''));
+      var unameOnly = username.replace(/@.*/, '');
+      localStorage.setItem('sidera_username', unameOnly);
+
+      // Legacy keys consumed by stem-drive.html
+      localStorage.removeItem('sideraGuest');
+      if (_currentRole === 'admin') {
+        localStorage.setItem('isSideraAdmin', 'true');
+        localStorage.setItem('sideraAuthSession', data.access_token);
+        localStorage.setItem('sideraStudentToken', data.access_token);
+        localStorage.setItem('sideraStudentRefresh', data.refresh_token || '');
+        localStorage.setItem('sideraUsername', unameOnly);
+      } else {
+        localStorage.removeItem('isSideraAdmin');
+        localStorage.removeItem('sideraAuthSession');
+        localStorage.setItem('sideraStudentToken', data.access_token);
+        localStorage.setItem('sideraStudentRefresh', data.refresh_token || '');
+        localStorage.setItem('sideraUsername', unameOnly);
+      }
 
       // Redirect to the main app
       window.location.href = '/';
@@ -889,7 +907,11 @@
 
   function enterAsGuest() {
     localStorage.setItem('sidera_role', 'guest');
+    localStorage.setItem('sideraGuest', 'true');
     localStorage.removeItem('sidera_session');
+    localStorage.removeItem('sideraStudentToken');
+    localStorage.removeItem('sideraAuthSession');
+    localStorage.removeItem('isSideraAdmin');
     window.location.href = '/?guest=1';
   }
 
