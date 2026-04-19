@@ -8500,8 +8500,10 @@ function applyLanguage() {
     var tooltip = document.getElementById('langTooltip');
     if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
-    document.body.dir = isAr ? 'rtl' : 'ltr';
-    document.body.style.textAlign = isAr ? 'right' : '';
+    // IMPORTANT: do NOT flip layout direction. Only translate text content.
+    // Keeping the layout LTR prevents the page from "jumping" left↔right on language switch.
+    document.body.dir = 'ltr';
+    document.body.style.textAlign = '';
     
     var dict = isAr ? _translations : _reverseTranslations;
     
