@@ -3092,6 +3092,8 @@ function showAuthForGuest() {
     overlay.style.display = 'flex';
     overlay.classList.remove('hidden');
     document.getElementById('guestSignInBtn').style.display = 'none';
+    // Reset to role chooser when reopening
+    if (typeof backToRoleChooser === 'function') backToRoleChooser();
 }
 
 function showWelcome(name) {
