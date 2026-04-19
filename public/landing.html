@@ -627,9 +627,9 @@
     if (!username || !password) { showAuthError(t.errEmpty); return; }
     if (password.length < 6)   { showAuthError(t.errShort); return; }
 
-    // Block admin pattern in signup
-    if (_isSignup && /^admin\d*$/i.test(username)) {
-      showAuthError(t.errAdmin);
+    // Admins cannot sign up — must be pre-provisioned
+    if (_currentRole === 'admin' && _isSignup) {
+      showAuthError(t.errAdminSignup);
       return;
     }
 
