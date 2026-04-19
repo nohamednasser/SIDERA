@@ -1090,19 +1090,19 @@
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
     <!-- Step 1: Role chooser (landing-style) -->
-    <div class="auth-container auth-chooser" id="authChooser" style="position:relative;max-width:520px;">
+    <div class="auth-container auth-chooser" id="authChooser" style="position:relative;max-width:760px;background:transparent;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:30px 20px;">
         <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <img src="/sidera-logo.png" alt="SIDERA" class="auth-logo-img" />
-        <h2 class="auth-tagline">Learn Without Limits with <span>Sidera</span></h2>
-        <p class="auth-sub">An Egyptian educational platform combining top teachers with cutting-edge AI. Courses for all systems with advanced security and continuous tracking.</p>
+        <h2 class="auth-tagline">Learn Without Limits with<br><span>Sidera</span></h2>
+        <p class="auth-sub" style="max-width:560px;margin-left:auto;margin-right:auto;font-size:1rem;line-height:1.6;">An Egyptian educational platform combining top teachers with cutting-edge AI. Courses for all systems with advanced security and continuous tracking.</p>
         <div class="auth-role-buttons">
             <button class="role-btn role-student" onclick="chooseRole('student')">
                 <span class="role-icon">🎓</span>
                 <span class="role-label">I'm a Student</span>
             </button>
             <button class="role-btn role-admin" onclick="chooseRole('admin')">
-                <span class="role-icon">🛡️</span>
-                <span class="role-label">I'm an Admin</span>
+                <span class="role-icon">📖</span>
+                <span class="role-label">I'm a Teacher</span>
             </button>
         </div>
         <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
