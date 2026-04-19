@@ -3054,10 +3054,12 @@ function showAuthForGuest() {
 }
 
 function showWelcome(name) {
-    // Welcome overlay disabled for smoother, instant UX.
-    // Auth feedback is handled on /landing — once we land here, just show the app.
+    // Heavy welcome screen replaced by smooth, lightweight page-enter animation.
     const wo = document.getElementById('welcomeOverlay');
     if (wo) wo.style.display = 'none';
+    // Trigger the smooth slide-up on header/content/etc.
+    document.body.classList.add('page-enter');
+    setTimeout(function(){ document.body.classList.remove('page-enter'); }, 700);
 }
 
 function hideAuthOverlay() {
