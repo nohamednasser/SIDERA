@@ -1052,9 +1052,91 @@
             50% { opacity: 0.7; }
         }
         .focus-ray.visible { animation: focusRayPulse 4s ease-in-out infinite; }
+
+        /* ===== Community Promo Floating Card ===== */
+        .community-promo {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 300px;
+            background: linear-gradient(135deg, rgba(8,145,178,0.95), rgba(14,165,233,0.92));
+            color: #fff;
+            border-radius: 16px;
+            padding: 16px 18px 14px;
+            box-shadow: 0 12px 32px rgba(8,145,178,0.35), 0 2px 8px rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.18);
+            z-index: 9990;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform .45s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        .community-promo.visible { transform: translateY(0); opacity: 1; }
+        .community-promo.hidden { display: none; }
+        .community-promo .cp-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .community-promo .cp-close:hover { background: rgba(255,255,255,0.28); }
+        .community-promo .cp-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .community-promo .cp-text {
+            font-size: 12.5px;
+            line-height: 1.45;
+            opacity: 0.92;
+            margin: 0 0 10px;
+        }
+        .community-promo .cp-btn {
+            display: inline-block;
+            background: #fff;
+            color: #0e7490;
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .community-promo .cp-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        }
+        @media (max-width: 640px) {
+            .community-promo { left: 12px; right: 12px; bottom: 12px; width: auto; }
+        }
     </style>
 </head>
 <body>
+
+<!-- Community Promo Floating Card -->
+<div class="community-promo hidden" id="communityPromo" role="complementary" aria-label="Join SIDERA Community">
+    <button class="cp-close" id="cpCloseBtn" aria-label="Close">×</button>
+    <p class="cp-title">✨ انضم لمجتمع SIDERA</p>
+    <p class="cp-text">شارك ملاحظاتك، اتعلم مع زمايلك، واكسب XP في رحلتك مع STEM 🚀</p>
+    <button class="cp-btn" id="cpJoinBtn">ابدأ دلوقتي</button>
+</div>
+
 
 <!-- Floating Language Button -->
 <button class="lang-float-btn" id="langBtn" onclick="toggleLanguage()" title="Switch Language">
