@@ -297,6 +297,156 @@
   /* RTL support */
   [dir="rtl"] body { font-family: 'Inter', 'Tajawal', 'Segoe UI', sans-serif; }
   [dir="rtl"] .lang-btn { right: auto; left: 24px; }
+
+  /* ===== AUTH MODAL ===== */
+  .auth-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(10, 14, 24, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity .25s ease;
+  }
+  .auth-backdrop.visible { display: flex; opacity: 1; }
+  .auth-modal {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(160deg, #1B2438 0%, #161E2F 100%);
+    border: 1px solid rgba(255,165,134,0.18);
+    border-radius: 24px;
+    padding: 36px 32px 28px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    position: relative;
+    transform: translateY(20px) scale(.97);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .auth-backdrop.visible .auth-modal { transform: translateY(0) scale(1); }
+  .auth-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  .auth-close:hover { background: rgba(181,26,43,0.3); }
+  .auth-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+  .auth-role-badge.student {
+    background: rgba(181,26,43,0.18);
+    color: #ff8a99;
+    border: 1px solid rgba(181,26,43,0.35);
+  }
+  .auth-role-badge.teacher {
+    background: rgba(255,165,134,0.15);
+    color: var(--peach);
+    border: 1px solid rgba(255,165,134,0.32);
+  }
+  .auth-modal h2 {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .auth-modal .auth-sub {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-bottom: 22px;
+  }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label {
+    display: block;
+    color: var(--text);
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .auth-field input {
+    width: 100%;
+    padding: 13px 16px;
+    background: rgba(15,22,38,0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color .2s, background .2s;
+    outline: none;
+  }
+  .auth-field input:focus {
+    border-color: var(--peach);
+    background: rgba(15,22,38,0.85);
+  }
+  .auth-error {
+    display: none;
+    background: rgba(181,26,43,0.15);
+    border: 1px solid rgba(181,26,43,0.35);
+    color: #ff8a99;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .auth-error.visible { display: block; }
+  .auth-submit {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #B51A2B 0%, #d63347 100%);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(181,26,43,0.4);
+    transition: transform .15s, filter .15s;
+    font-family: inherit;
+  }
+  .auth-submit:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+  .auth-submit:disabled { opacity: 0.6; cursor: wait; }
+  .auth-switch {
+    margin-top: 16px;
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 13px;
+  }
+  .auth-switch span {
+    color: var(--peach);
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+  .auth-switch span:hover { text-decoration: underline; }
+  .auth-guest {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    color: var(--text-soft);
+    font-size: 12.5px;
+    cursor: pointer;
+    opacity: 0.75;
+  }
+  .auth-guest:hover { opacity: 1; color: var(--peach); }
 </style>
 </head>
 <body>
@@ -382,11 +532,166 @@
   © 2026 <span>SIDERA</span> · Built for STEM Egypt students.
 </div>
 
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-backdrop" id="authBackdrop" onclick="if(event.target===this)closeAuth()">
+  <div class="auth-modal" role="dialog" aria-modal="true">
+    <button class="auth-close" onclick="closeAuth()" aria-label="Close">×</button>
+    <div class="auth-role-badge" id="roleBadge">🎓 <span id="roleBadgeLabel">Student</span></div>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="auth-sub" id="authSubLabel">Sign in to access your dashboard</p>
+
+    <div class="auth-error" id="authError"></div>
+
+    <div class="auth-field">
+      <label id="lblUser">Username</label>
+      <input type="text" id="authUser" autocomplete="username" placeholder="Enter your username" onkeyup="if(event.key==='Enter')submitAuth()">
+    </div>
+    <div class="auth-field">
+      <label id="lblPass">Password</label>
+      <input type="password" id="authPass" autocomplete="current-password" placeholder="••••••••" onkeyup="if(event.key==='Enter')submitAuth()">
+    </div>
+
+    <button class="auth-submit" id="authSubmitBtn" onclick="submitAuth()">
+      <span id="authSubmitLabel">Login</span>
+    </button>
+
+    <p class="auth-switch" id="authSwitch">
+      <span id="authSwitchText">Don't have an account?</span>
+      <span onclick="toggleAuthMode()" id="authSwitchAction">Sign Up</span>
+    </p>
+    <p class="auth-guest" onclick="enterAsGuest()" id="guestLink">Continue as Guest →</p>
+  </div>
+</div>
+
 <script>
+  const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
+
+  let _currentRole = 'student';
+  let _isSignup = false;
+
   function enterApp(role) {
-    // Save the role and redirect to the main app
-    try { localStorage.setItem('sidera_role', role); } catch(e){}
-    window.location.href = '/?role=' + role + '&login=1';
+    _currentRole = role;
+    _isSignup = false;
+    openAuth();
+  }
+
+  function openAuth() {
+    const t = _ar ? TXT.ar : TXT.en;
+    const isStudent = _currentRole === 'student';
+    const badge = document.getElementById('roleBadge');
+    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'teacher');
+    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleTeacher;
+    badge.firstChild.textContent = isStudent ? '🎓 ' : '👨‍🏫 ';
+    updateAuthLabels();
+    document.getElementById('authBackdrop').classList.add('visible');
+    setTimeout(()=>document.getElementById('authUser').focus(), 200);
+  }
+
+  function closeAuth() {
+    document.getElementById('authBackdrop').classList.remove('visible');
+    document.getElementById('authError').classList.remove('visible');
+    document.getElementById('authUser').value = '';
+    document.getElementById('authPass').value = '';
+  }
+
+  function toggleAuthMode() {
+    _isSignup = !_isSignup;
+    updateAuthLabels();
+  }
+
+  function updateAuthLabels() {
+    const t = _ar ? TXT.ar : TXT.en;
+    document.getElementById('authTitle').textContent = _isSignup ? t.signupTitle : t.loginTitle;
+    document.getElementById('authSubLabel').textContent = _isSignup ? t.signupSub : t.loginSub;
+    document.getElementById('authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+    document.getElementById('authSwitchText').textContent = _isSignup ? t.haveAccount : t.noAccount;
+    document.getElementById('authSwitchAction').textContent = _isSignup ? t.loginBtn : t.signupBtn;
+    document.getElementById('lblUser').textContent = t.username;
+    document.getElementById('lblPass').textContent = t.password;
+    document.getElementById('guestLink').textContent = t.guest;
+  }
+
+  function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  async function submitAuth() {
+    const username = document.getElementById('authUser').value.trim();
+    const password = document.getElementById('authPass').value;
+    const btn = document.getElementById('authSubmitBtn');
+    const t = _ar ? TXT.ar : TXT.en;
+
+    if (!username || !password) { showAuthError(t.errEmpty); return; }
+    if (password.length < 6)   { showAuthError(t.errShort); return; }
+
+    // Block admin pattern in signup
+    if (_isSignup && /^admin\d*$/i.test(username)) {
+      showAuthError(t.errAdmin);
+      return;
+    }
+
+    // Build email per role - matches the main app conventions
+    const domain = _currentRole === 'teacher' ? 'sidera.app' : 'sidera.local';
+    const email = username.includes('@') ? username : (username + '@' + domain);
+
+    btn.disabled = true;
+    btn.querySelector('#authSubmitLabel').textContent = t.loading;
+
+    try {
+      const endpoint = _isSignup ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
+      const res = await fetch(SUPABASE_URL + endpoint, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const m = (data.msg || data.error_description || data.error || '').toLowerCase();
+        if (m.includes('invalid')) showAuthError(t.errInvalid);
+        else if (m.includes('already') || m.includes('registered')) showAuthError(t.errExists);
+        else showAuthError(data.msg || data.error_description || t.errGeneric);
+        btn.disabled = false;
+        btn.querySelector('#authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+        return;
+      }
+
+      if (_isSignup && !data.access_token) {
+        // Email confirmation required
+        showAuthError(t.checkEmail);
+        btn.disabled = false;
+        btn.querySelector('#authSubmitLabel').textContent = t.loginBtn;
+        _isSignup = false;
+        updateAuthLabels();
+        return;
+      }
+
+      // Persist session in the same shape stem-drive expects
+      localStorage.setItem('sidera_session', JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        user: data.user,
+        email
+      }));
+      localStorage.setItem('sidera_role', _currentRole);
+      localStorage.setItem('sidera_username', username.replace(/@.*/, ''));
+
+      // Redirect to the main app
+      window.location.href = '/';
+    } catch (err) {
+      showAuthError(t.errNetwork);
+      btn.disabled = false;
+      btn.querySelector('#authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+    }
+  }
+
+  function enterAsGuest() {
+    localStorage.setItem('sidera_role', 'guest');
+    localStorage.removeItem('sidera_session');
+    window.location.href = '/?guest=1';
   }
 
   let _ar = false;
@@ -398,7 +703,21 @@
       f1t: "Advanced Security", f1d: "Exam integrity with anti-cheat shield, blur detection, and certificate verification — built for trustworthy assessment.",
       f2t: "Smart AI Tools",   f2d: "AI question generator, capstone budget predictor, smart search, and a personal study assistant — powered by advanced models.",
       f3t: "Lightning Fast",   f3d: "Optimized for instant access — materials, virtual labs, and exams load in milliseconds across any device.",
-      lang: "عربي"
+      lang: "عربي",
+      roleStudent: "Student", roleTeacher: "Teacher",
+      loginTitle: "Welcome back", loginSub: "Sign in to access your dashboard",
+      signupTitle: "Create your account", signupSub: "Join the SIDERA community",
+      loginBtn: "Login", signupBtn: "Sign Up", loading: "Please wait…",
+      noAccount: "Don't have an account?", haveAccount: "Already have an account?",
+      username: "Username", password: "Password", guest: "Continue as Guest →",
+      errEmpty: "Please fill in both fields.",
+      errShort: "Password must be at least 6 characters.",
+      errInvalid: "Wrong username or password.",
+      errExists: "This username is already registered. Try logging in.",
+      errAdmin: "This username pattern is reserved.",
+      errNetwork: "Network error. Check your connection.",
+      errGeneric: "Something went wrong. Try again.",
+      checkEmail: "Account created. You can login now."
     },
     ar: {
       sub: "مجتمع مصري للدراسة الذاتية في الـ STEM يجمع بين أفضل المصادر وأحدث تقنيات الذكاء الاصطناعي. مواد، امتحانات، أدوات للكابستون ومتابعة مستمرة — كل ده في مكان واحد.",
@@ -407,7 +726,21 @@
       f1t: "أمان متقدم", f1d: "نزاهة امتحانات بدرع مضاد للغش، كاشف تشتيت، وتحقق من الشهادات — مبني للتقييم الموثوق.",
       f2t: "أدوات ذكاء اصطناعي", f2d: "مولّد أسئلة، توقّع ميزانية الكابستون، بحث ذكي، ومساعد دراسة شخصي — بنماذج متقدمة.",
       f3t: "سرعة فائقة", f3d: "مُحسّن للوصول الفوري — المواد والمعامل والامتحانات بتفتح في أجزاء من الثانية.",
-      lang: "EN"
+      lang: "EN",
+      roleStudent: "طالب", roleTeacher: "مُدرّس",
+      loginTitle: "أهلاً بعودتك", loginSub: "سجّل دخولك للوصول لحسابك",
+      signupTitle: "أنشئ حسابك", signupSub: "انضم لمجتمع SIDERA",
+      loginBtn: "دخول", signupBtn: "إنشاء حساب", loading: "جاري المعالجة…",
+      noAccount: "ماعندكش حساب؟", haveAccount: "عندك حساب بالفعل؟",
+      username: "اسم المستخدم", password: "كلمة المرور", guest: "ادخل كزائر ←",
+      errEmpty: "ادخل اسم المستخدم وكلمة المرور.",
+      errShort: "كلمة المرور لازم تكون 6 حروف على الأقل.",
+      errInvalid: "اسم المستخدم أو كلمة المرور غلط.",
+      errExists: "الاسم ده مسجل قبل كده. جرب تسجل دخول.",
+      errAdmin: "الاسم ده محجوز.",
+      errNetwork: "خطأ في الاتصال. جرب تاني.",
+      errGeneric: "حصلت مشكلة. حاول تاني.",
+      checkEmail: "تم إنشاء الحساب. تقدر تسجل دخول دلوقتي."
     }
   };
   function toggleLang() {
@@ -425,7 +758,24 @@
     document.getElementById('f3Title').textContent = t.f3t;
     document.getElementById('f3Desc').textContent = t.f3d;
     document.getElementById('langLabel').textContent = t.lang;
+    // Refresh modal labels if open
+    if (document.getElementById('authBackdrop').classList.contains('visible')) {
+      updateAuthLabels();
+      document.getElementById('roleBadgeLabel').textContent =
+        _currentRole === 'student' ? t.roleStudent : t.roleTeacher;
+    }
   }
+
+  // If user already has a session, skip the landing
+  (function autoSkip() {
+    try {
+      var s = JSON.parse(localStorage.getItem('sidera_session') || 'null');
+      if (s && s.access_token) {
+        // Already logged in — go straight to the app
+        if (window.location.pathname === '/landing') window.location.replace('/');
+      }
+    } catch(e){}
+  })();
 </script>
 </body>
 </html>
