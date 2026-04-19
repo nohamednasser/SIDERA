@@ -1929,15 +1929,31 @@ function ensurePdfJs() {
 <script>
 // Toast notification system
 const TOAST_ICONS = { error:'❌', success:'✅', warning:'⚠️', info:'ℹ️' };
-function showToast(message, type = 'error', duration = 4000) {
+// Quieter toasts: shorter duration, dedupe repeated messages, cap visible count
+let _lastToastMsg = '';
+let _lastToastTime = 0;
+function showToast(message, type = 'error', duration = 2000) {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    // Dedupe: ignore identical toast within 2.5s
+    var now = Date.now();
+    if (message === _lastToastMsg && (now - _lastToastTime) < 2500) return;
+    _lastToastMsg = message; _lastToastTime = now;
+    // Cap to 2 visible toasts max
+    var existing = container.querySelectorAll('.sidera-toast');
+    if (existing.length >= 2) { existing[0].remove(); }
     const toast = document.createElement('div');
     toast.className = 'sidera-toast toast-' + type;
     toast.innerHTML = '<span>' + (TOAST_ICONS[type]||'') + '</span><span>' + message + '</span>';
     container.appendChild(toast);
+    // Click to dismiss
+    toast.addEventListener('click', function() {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 200);
+    });
     setTimeout(() => {
         toast.classList.add('toast-exit');
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(() => toast.remove(), 200);
     }, duration);
 }
 
