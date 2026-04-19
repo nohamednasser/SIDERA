@@ -532,11 +532,166 @@
   © 2026 <span>SIDERA</span> · Built for STEM Egypt students.
 </div>
 
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-backdrop" id="authBackdrop" onclick="if(event.target===this)closeAuth()">
+  <div class="auth-modal" role="dialog" aria-modal="true">
+    <button class="auth-close" onclick="closeAuth()" aria-label="Close">×</button>
+    <div class="auth-role-badge" id="roleBadge">🎓 <span id="roleBadgeLabel">Student</span></div>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="auth-sub" id="authSubLabel">Sign in to access your dashboard</p>
+
+    <div class="auth-error" id="authError"></div>
+
+    <div class="auth-field">
+      <label id="lblUser">Username</label>
+      <input type="text" id="authUser" autocomplete="username" placeholder="Enter your username" onkeyup="if(event.key==='Enter')submitAuth()">
+    </div>
+    <div class="auth-field">
+      <label id="lblPass">Password</label>
+      <input type="password" id="authPass" autocomplete="current-password" placeholder="••••••••" onkeyup="if(event.key==='Enter')submitAuth()">
+    </div>
+
+    <button class="auth-submit" id="authSubmitBtn" onclick="submitAuth()">
+      <span id="authSubmitLabel">Login</span>
+    </button>
+
+    <p class="auth-switch" id="authSwitch">
+      <span id="authSwitchText">Don't have an account?</span>
+      <span onclick="toggleAuthMode()" id="authSwitchAction">Sign Up</span>
+    </p>
+    <p class="auth-guest" onclick="enterAsGuest()" id="guestLink">Continue as Guest →</p>
+  </div>
+</div>
+
 <script>
+  const SUPABASE_URL = 'https://vlzdipbirrhvftwpcccx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsemRpcGJpcnJodmZ0d3BjY2N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTUyMDEsImV4cCI6MjA5MDM5MTIwMX0.CHCWu0v-9Taem5VQ1kVfXTqYHI6uJXZwMSXxq1Gn9YQ';
+
+  let _currentRole = 'student';
+  let _isSignup = false;
+
   function enterApp(role) {
-    // Save the role and redirect to the main app
-    try { localStorage.setItem('sidera_role', role); } catch(e){}
-    window.location.href = '/?role=' + role + '&login=1';
+    _currentRole = role;
+    _isSignup = false;
+    openAuth();
+  }
+
+  function openAuth() {
+    const t = _ar ? TXT.ar : TXT.en;
+    const isStudent = _currentRole === 'student';
+    const badge = document.getElementById('roleBadge');
+    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'teacher');
+    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleTeacher;
+    badge.firstChild.textContent = isStudent ? '🎓 ' : '👨‍🏫 ';
+    updateAuthLabels();
+    document.getElementById('authBackdrop').classList.add('visible');
+    setTimeout(()=>document.getElementById('authUser').focus(), 200);
+  }
+
+  function closeAuth() {
+    document.getElementById('authBackdrop').classList.remove('visible');
+    document.getElementById('authError').classList.remove('visible');
+    document.getElementById('authUser').value = '';
+    document.getElementById('authPass').value = '';
+  }
+
+  function toggleAuthMode() {
+    _isSignup = !_isSignup;
+    updateAuthLabels();
+  }
+
+  function updateAuthLabels() {
+    const t = _ar ? TXT.ar : TXT.en;
+    document.getElementById('authTitle').textContent = _isSignup ? t.signupTitle : t.loginTitle;
+    document.getElementById('authSubLabel').textContent = _isSignup ? t.signupSub : t.loginSub;
+    document.getElementById('authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+    document.getElementById('authSwitchText').textContent = _isSignup ? t.haveAccount : t.noAccount;
+    document.getElementById('authSwitchAction').textContent = _isSignup ? t.loginBtn : t.signupBtn;
+    document.getElementById('lblUser').textContent = t.username;
+    document.getElementById('lblPass').textContent = t.password;
+    document.getElementById('guestLink').textContent = t.guest;
+  }
+
+  function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  async function submitAuth() {
+    const username = document.getElementById('authUser').value.trim();
+    const password = document.getElementById('authPass').value;
+    const btn = document.getElementById('authSubmitBtn');
+    const t = _ar ? TXT.ar : TXT.en;
+
+    if (!username || !password) { showAuthError(t.errEmpty); return; }
+    if (password.length < 6)   { showAuthError(t.errShort); return; }
+
+    // Block admin pattern in signup
+    if (_isSignup && /^admin\d*$/i.test(username)) {
+      showAuthError(t.errAdmin);
+      return;
+    }
+
+    // Build email per role - matches the main app conventions
+    const domain = _currentRole === 'teacher' ? 'sidera.app' : 'sidera.local';
+    const email = username.includes('@') ? username : (username + '@' + domain);
+
+    btn.disabled = true;
+    btn.querySelector('#authSubmitLabel').textContent = t.loading;
+
+    try {
+      const endpoint = _isSignup ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
+      const res = await fetch(SUPABASE_URL + endpoint, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const m = (data.msg || data.error_description || data.error || '').toLowerCase();
+        if (m.includes('invalid')) showAuthError(t.errInvalid);
+        else if (m.includes('already') || m.includes('registered')) showAuthError(t.errExists);
+        else showAuthError(data.msg || data.error_description || t.errGeneric);
+        btn.disabled = false;
+        btn.querySelector('#authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+        return;
+      }
+
+      if (_isSignup && !data.access_token) {
+        // Email confirmation required
+        showAuthError(t.checkEmail);
+        btn.disabled = false;
+        btn.querySelector('#authSubmitLabel').textContent = t.loginBtn;
+        _isSignup = false;
+        updateAuthLabels();
+        return;
+      }
+
+      // Persist session in the same shape stem-drive expects
+      localStorage.setItem('sidera_session', JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        user: data.user,
+        email
+      }));
+      localStorage.setItem('sidera_role', _currentRole);
+      localStorage.setItem('sidera_username', username.replace(/@.*/, ''));
+
+      // Redirect to the main app
+      window.location.href = '/';
+    } catch (err) {
+      showAuthError(t.errNetwork);
+      btn.disabled = false;
+      btn.querySelector('#authSubmitLabel').textContent = _isSignup ? t.signupBtn : t.loginBtn;
+    }
+  }
+
+  function enterAsGuest() {
+    localStorage.setItem('sidera_role', 'guest');
+    localStorage.removeItem('sidera_session');
+    window.location.href = '/?guest=1';
   }
 
   let _ar = false;
