@@ -917,7 +917,8 @@
   function toggleLang() {
     _ar = !_ar;
     const t = _ar ? TXT.ar : TXT.en;
-    document.documentElement.dir = _ar ? 'rtl' : 'ltr';
+    // Keep LTR layout always — only swap text content, not direction
+    document.documentElement.dir = 'ltr';
     document.getElementById('heroSub').textContent = t.sub;
     document.getElementById('heroTagline').textContent = t.tagline;
     document.getElementById('btnStudent').textContent = t.btnS;
