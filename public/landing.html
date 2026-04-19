@@ -882,11 +882,17 @@
 
       // Legacy keys consumed by stem-drive.html
       localStorage.removeItem('sideraGuest');
+      // sideraAuthSession MUST be a JSON object with refresh_token (stem-drive.restoreSession parses it)
+      var legacyAuthSession = JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token || ''
+      });
       if (_currentRole === 'admin') {
         localStorage.setItem('isSideraAdmin', 'true');
-        localStorage.setItem('sideraAuthSession', data.access_token);
-        localStorage.setItem('sideraStudentToken', data.access_token);
-        localStorage.setItem('sideraStudentRefresh', data.refresh_token || '');
+        localStorage.setItem('sideraAuthSession', legacyAuthSession);
+        // Admin should NOT have a student token — keeps role separation clean
+        localStorage.removeItem('sideraStudentToken');
+        localStorage.removeItem('sideraStudentRefresh');
         localStorage.setItem('sideraUsername', unameOnly);
       } else {
         localStorage.removeItem('isSideraAdmin');
