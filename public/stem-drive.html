@@ -10,15 +10,13 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* DEFAULT THEME = Navy/Peach (matches /landing) */
-        :root {
-            --dark: #FFA586; --accent: #FFA586; --accent-2: #B51A2B; --bg: #161E2F; --card-bg: #242F49;
-            --text: #c8cfdb; --header-bg: #1B2438; --border: #384358; --input-bg: #1F2840;
+        :root { 
+            --dark: #1B1931; --accent: #A34054; --bg: #F8F9FA; --card-bg: #ffffff;
+            --text: #6c757d; --header-bg: #ffffff; --border: #eeeeee; --input-bg: #fafafa;
         }
-        /* Alternate light theme (kept for users who toggle) */
-        [data-theme="light"] {
-            --dark: #161E2F; --accent: #B51A2B; --accent-2: #FFA586; --bg: #F5F1EE; --card-bg: #ffffff;
-            --text: #4a5066; --header-bg: #ffffff; --border: #E5DED7; --input-bg: #FAF6F2;
+        [data-theme="dark"] {
+            --dark: #ffffff; --accent: #ff4d6d; --bg: #0a0812; --card-bg: #16131f;
+            --text: #b0b0b0; --header-bg: #16131f; --border: #2a2740; --input-bg: #1f1c2e;
         }
 
         html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -765,39 +763,25 @@
         .auth-guest { margin-top: 15px; font-size: 0.8rem; color: var(--text); cursor: pointer; transition: color 0.15s; }
         .auth-guest:hover { color: var(--accent); }
 
-        /* Welcome Overlay — kept for compatibility but hidden by JS */
-        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: none; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.35s ease; pointer-events: none; }
+        /* Welcome Overlay */
+        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.6s cubic-bezier(.4,0,.2,1); pointer-events: none; }
         .welcome-overlay.fade-out { opacity: 0; }
-
-        /* Minimal loader — three dots, replaces the heavy welcome screen */
-        .mini-loader { display: inline-flex; gap: 8px; align-items: center; }
-        .mini-loader .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); opacity: 0.35; animation: miniDot 1s cubic-bezier(.4,0,.2,1) infinite; }
-        .mini-loader .dot:nth-child(2) { animation-delay: 0.15s; }
-        .mini-loader .dot:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes miniDot {
-            0%, 100% { opacity: 0.35; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(-6px); }
-        }
-
-        /* Smooth global micro-interactions */
-        a, button, .control-btn, .auth-btn, .file-card, .exam-card, .review-card, .nav-pill {
-            transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-        }
+        .welcome-content { text-align: center; animation: welcomeBounce 0.7s cubic-bezier(.34,1.56,.64,1); }
+        .welcome-emoji { font-size: 4rem; margin-bottom: 16px; animation: welcomeWave 1.2s ease-in-out; }
+        .welcome-text { font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; letter-spacing: -0.5px; }
+        .welcome-sub { font-size: 1rem; color: var(--text); opacity: 0.7; }
+        @keyframes welcomeBounce { from { opacity:0; transform: scale(0.8) translateY(20px); } to { opacity:1; transform: none; } }
+        @keyframes welcomeWave { 0%,100%{transform:rotate(0)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(10deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(6deg)} }
 
         /* Smooth page entrance */
         .page-enter header,
         .page-enter .filter-container,
         .page-enter .content,
-        .page-enter .exam-section { animation: pageSlideUp 0.45s cubic-bezier(.4,0,.2,1) both; }
-        .page-enter .filter-container { animation-delay: 0.04s; }
-        .page-enter .content { animation-delay: 0.08s; }
-        .page-enter .exam-section { animation-delay: 0.12s; }
-        @keyframes pageSlideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: none; } }
-
-        /* Respect reduced motion preference */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-        }
+        .page-enter .exam-section { animation: pageSlideUp 0.5s cubic-bezier(.4,0,.2,1) both; }
+        .page-enter .filter-container { animation-delay: 0.05s; }
+        .page-enter .content { animation-delay: 0.1s; }
+        .page-enter .exam-section { animation-delay: 0.15s; }
+        @keyframes pageSlideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
         /* Alumni Insights Section */
         .alumni-section { width: 90%; max-width: 1400px; padding: 0 0 30px; margin-top: 20px; }
@@ -1068,123 +1052,9 @@
             50% { opacity: 0.7; }
         }
         .focus-ray.visible { animation: focusRayPulse 4s ease-in-out infinite; }
-
-        /* ===== Community Promo Floating Card ===== */
-        .community-promo {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            width: 300px;
-            background: linear-gradient(135deg, #161E2F 0%, #341A2B 60%, #B51A2B 100%);
-            color: #FFA586;
-            border-radius: 16px;
-            padding: 16px 18px 14px;
-            box-shadow: 0 12px 32px rgba(22,30,47,0.45), 0 2px 8px rgba(181,26,43,0.25);
-            border: 1px solid rgba(255,165,134,0.22);
-            z-index: 9990;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: transform .45s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
-        .community-promo.visible { transform: translateY(0); opacity: 1; }
-        .community-promo.hidden { display: none; }
-        .community-promo .cp-close {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: #fff;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .community-promo .cp-close:hover { background: rgba(255,255,255,0.28); }
-        .community-promo .cp-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 0 0 4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .community-promo .cp-text {
-            font-size: 12.5px;
-            line-height: 1.45;
-            opacity: 0.92;
-            margin: 0 0 10px;
-        }
-        .community-promo .cp-btn {
-            display: inline-block;
-            background: #FFA586;
-            color: #161E2F;
-            font-weight: 700;
-            font-size: 12.5px;
-            padding: 7px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .community-promo .cp-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-        }
-        @media (max-width: 640px) {
-            .community-promo { left: 12px; right: 12px; bottom: 12px; width: auto; }
-        }
     </style>
 </head>
 <body>
-<!-- Page Transition Loader (shared across landing.html, stem-drive.html, React app) -->
-<style>
-  #sideraPageLoader{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(22,30,47,0.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:Inter,'Segoe UI',sans-serif}
-  #sideraPageLoader.show{display:flex;opacity:1;pointer-events:auto}
-  #sideraPageLoader .sidera-spinner{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,165,134,0.18);border-top-color:#FFA586;animation:sideraSpin .7s linear infinite}
-  #sideraPageLoader .sidera-loader-text{margin-top:18px;color:#FFA586;font-size:.85rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;opacity:.85}
-  #sideraPageLoader .sidera-loader-box{display:flex;flex-direction:column;align-items:center}
-  @keyframes sideraSpin{to{transform:rotate(360deg)}}
-</style>
-<div id="sideraPageLoader" aria-hidden="true">
-  <div class="sidera-loader-box">
-    <div class="sidera-spinner"></div>
-    <div class="sidera-loader-text">SIDERA</div>
-  </div>
-</div>
-<script>
-  (function(){
-    window.sideraNavigate = function(url, replace){
-      try {
-        var el = document.getElementById('sideraPageLoader');
-        if (el) { el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
-      } catch(e){}
-      setTimeout(function(){
-        if (replace) window.location.replace(url); else window.location.href = url;
-      }, 60);
-    };
-    window.addEventListener('pageshow', function(){
-      var el = document.getElementById('sideraPageLoader');
-      if (el) { el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
-    });
-  })();
-</script>
-
-<!-- Community Promo Floating Card -->
-<div class="community-promo hidden" id="communityPromo" role="complementary" aria-label="Join SIDERA Community">
-    <button class="cp-close" id="cpCloseBtn" aria-label="Close">×</button>
-    <p class="cp-title">✨ انضم لمجتمع SIDERA</p>
-    <p class="cp-text">شارك ملاحظاتك، اتعلم مع زمايلك، واكسب XP في رحلتك مع STEM 🚀</p>
-    <button class="cp-btn" id="cpJoinBtn">ابدأ دلوقتي</button>
-</div>
-
 
 <!-- Floating Language Button -->
 <button class="lang-float-btn" id="langBtn" onclick="toggleLanguage()" title="Switch Language">
@@ -1192,20 +1062,25 @@
     <span class="lang-tooltip" id="langTooltip">عربي</span>
 </button>
 
-<!-- Student Auth Overlay (DISABLED — auth handled by /landing page) -->
-<div class="auth-overlay hidden" id="authOverlay" style="display:none !important;" aria-hidden="true">
+<!-- Student Auth Overlay -->
+<div class="auth-overlay" id="authOverlay">
     <div class="auth-container" style="position:relative;">
+        <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <h2>SIDERA</h2>
-        <p class="auth-sub" id="authSub">Redirecting…</p>
+        <p class="auth-sub" id="authSub">Login to access your files.</p>
         <div class="auth-error" id="authError"></div>
-        <div class="auth-success" id="authSuccess" style="display:none;"></div>
-        <div class="auth-input-group" style="display:none;">
-            <input type="text" class="auth-input" id="authUsername">
-            <input type="password" class="auth-input" id="authPass">
+        <div class="auth-success" id="authSuccess">✅ Account created! You can login now.</div>
+        <div class="auth-input-group">
+            <label>Username</label>
+            <input type="text" class="auth-input" id="authUsername" placeholder="Enter your username" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()" autocomplete="username">
         </div>
-        <button class="auth-btn" id="authBtn" style="display:none;">Login</button>
-        <p class="auth-switch" id="authToggle" style="display:none;"></p>
-        <p class="auth-guest" style="display:none;"></p>
+        <div class="auth-input-group">
+            <label>Password</label>
+            <input type="password" class="auth-input" id="authPass" placeholder="••••••••" oninput="clearAuthError()" onkeyup="if(event.key==='Enter')handleAuth()">
+        </div>
+        <button class="auth-btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="auth-switch" id="authToggle">Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span></p>
+        <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
     </div>
 </div>
 
@@ -1890,8 +1765,67 @@
     </div>
 </div>
 
-<!-- Promo, Meme, and Footer moved to /landing page -->
-<div style="height:40px;"></div>
+<!-- Promo & Meme Section - Side by Side -->
+<div style="width:90%;max-width:1200px;margin:60px auto 40px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center;">
+    <!-- Video -->
+    <div style="flex:1;min-width:300px;max-width:650px;text-align:center;">
+        <h2 style="font-size:1.4rem;font-weight:800;color:var(--dark);margin-bottom:8px;">🎬 ليه SIDERA؟</h2>
+        <p style="color:var(--text);font-size:0.9rem;margin-bottom:14px;">شوف الفيديو وانت تعرف 👇</p>
+        <video controls playsinline preload="metadata" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+            <source src="/videos/promo.mp4" type="video/mp4">
+        </video>
+    </div>
+    <!-- Meme -->
+    <div style="flex:0 0 auto;width:320px;text-align:center;">
+        <h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:6px;">😂 حال طلاب STEM</h2>
+        <p style="color:var(--text);font-size:0.85rem;margin-bottom:12px;">عشان كده عملنالكم SIDERA 💪</p>
+        <img src="/images/meme.png" alt="STEM Meme" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+</div>
+
+<footer>
+    <div style="max-width:680px;margin:0 auto;padding:0 20px;">
+        <!-- Brand -->
+        <div style="margin-bottom:20px;">
+            <div style="font-size:1.6rem;font-weight:900;letter-spacing:-0.5px;color:var(--dark);margin-bottom:4px;">SIDERA</div>
+            <p style="font-size:0.8rem;color:var(--text);margin:0;">Built for STEM students, by STEM students 🚀</p>
+        </div>
+
+        <!-- Links Row -->
+        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+            <a href="https://siderdev.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-weight:600;font-size:0.78rem;padding:6px 14px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';this.style.transform='none'">🌐 Sider Platform</a>
+            <a href="https://stemcalculator.lovable.app" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);text-decoration:none;font-weight:600;font-size:0.78rem;padding:6px 14px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';this.style.transform='none'">🧮 STEM Calculator</a>
+        </div>
+
+        <!-- Divider -->
+        <div style="height:1px;background:var(--border);margin-bottom:20px;"></div>
+
+        <!-- Team Section -->
+        <div style="margin-bottom:16px;">
+            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text);opacity:0.6;margin-bottom:12px;font-weight:700;">The Team</div>
+            <div style="display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;">
+                <a href="https://www.linkedin.com/in/mohamed-nasser-b40824322/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:700;padding:5px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.2);transition:all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(139,92,246,0.15)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">👑 Mohamed Nasser</a>
+                <a href="https://mohamed-portfoli.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;text-decoration:none;color:var(--accent);font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:16px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼</a>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <a href="https://www.linkedin.com/in/youssef-abdelhamed-salama" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">🧑‍💻 Youssef Salama</a>
+                <a href="https://youssefsalama.lovable.app/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;text-decoration:none;color:var(--accent);font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:16px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">💼</a>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">👩‍💻 Jina Hany</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">👩‍💻 Mariam Moamen</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <span style="color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);">🧑‍💻 Eyad Atef</span>
+                <span style="color:var(--border);font-size:0.6rem;">•</span>
+                <a href="https://www.linkedin.com/in/ahmed-waleed-hagar-8261293a2/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--dark);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">🧑‍💻 Ahmed Waleed</a>
+            </div>
+        </div>
+
+        <!-- Sponsor + Copyright -->
+        <div style="font-size:0.72rem;color:var(--text);opacity:0.7;">
+            Sponsored by <span style="font-weight:bold;color:var(--accent);">A.C.I.S Team</span> · © 2025 SIDERA
+        </div>
+    </div>
+</footer>
 
 <!-- Toast Container -->
 <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:100000;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
@@ -2798,16 +2732,7 @@ function closePreview() {
     cleanupPreviewUrl();
 }
 
-// Default = dark (Navy/Peach matches /landing). Only switch to light if user explicitly chose it.
-(function initTheme(){
-    var savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (!savedTheme) localStorage.setItem('theme', 'dark');
-    }
-})();
+if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
 // ===== User Preferences Sync =====
 let _prefsSaveTimer = null;
@@ -2829,7 +2754,7 @@ async function loadUserPrefs() {
         if (data.length === 0) return;
         const prefs = data[0];
         // Apply saved theme
-        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'dark')) {
+        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'light')) {
             localStorage.setItem('theme', prefs.theme);
             document.documentElement.setAttribute('data-theme', prefs.theme);
         }
@@ -2854,7 +2779,7 @@ function saveUserPrefs() {
 async function _saveUserPrefsNow() {
     const email = getUserEmail();
     if (!email) return;
-    const theme = localStorage.getItem('theme') || 'dark';
+    const theme = localStorage.getItem('theme') || 'light';
     const payload = { user_email: email, theme, selected_grade: currentGrade, selected_subject: currentSub, selected_semester: currentSemester, updated_at: new Date().toISOString() };
     try {
         // Upsert
@@ -3080,18 +3005,44 @@ function enterAsGuest() {
 }
 
 function showAuthForGuest() {
-    // Auth is handled by /landing page now
     localStorage.removeItem('sideraGuest');
-    (window.sideraNavigate || function(u){window.location.href=u;})('/landing');
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
 function showWelcome(name) {
-    // Heavy welcome screen replaced by smooth, lightweight page-enter animation.
     const wo = document.getElementById('welcomeOverlay');
-    if (wo) wo.style.display = 'none';
-    // Trigger the smooth slide-up on header/content/etc.
-    document.body.classList.add('page-enter');
-    setTimeout(function(){ document.body.classList.remove('page-enter'); }, 700);
+    const hour = new Date().getHours();
+    let greeting = '👋';
+    let text = 'Welcome back!';
+    if (hour < 12) { greeting = '🌅'; text = 'Good morning'; }
+    else if (hour < 18) { greeting = '☀️'; text = 'Good afternoon'; }
+    else { greeting = '🌙'; text = 'Good evening'; }
+    
+    if (name && name !== 'Guest') {
+        text += ', ' + name + '!';
+    } else if (name === 'Guest') {
+        text = 'Welcome to SIDERA! 🎓';
+    } else {
+        text += '!';
+    }
+    
+    document.getElementById('welcomeText').textContent = text;
+    document.querySelector('.welcome-emoji').textContent = greeting;
+    document.getElementById('welcomeSub').textContent = 'Loading your resources...';
+    wo.style.display = 'flex';
+    
+    setTimeout(() => {
+        wo.classList.add('fade-out');
+        document.body.classList.add('page-enter');
+        setTimeout(() => {
+            wo.style.display = 'none';
+            wo.classList.remove('fade-out');
+            document.body.classList.remove('page-enter');
+        }, 600);
+    }, 1400);
 }
 
 function hideAuthOverlay() {
@@ -3109,25 +3060,19 @@ function checkStudentAuth() {
     const token = localStorage.getItem('sideraStudentToken');
     const isGuest = localStorage.getItem('sideraGuest');
     const isAdminSession = localStorage.getItem('sideraAuthSession');
-
-    // No session of any kind → bounce to /landing (auth lives there now)
-    if (!token && !isGuest && !isAdminSession) {
-        (window.sideraNavigate || function(u,r){window.location.replace(u);})('/landing', true);
-        return;
+    if (token || isGuest || isAdminSession) {
+        const username = localStorage.getItem('sideraUsername');
+        if (token) {
+            authAccessToken = token;
+            _studentUser = { email: username ? username + '@sidera.local' : '' };
+            showWelcome(username || 'Student');
+        } else if (isAdminSession) {
+            showWelcome('Admin');
+        } else if (isGuest) {
+            showWelcome('Guest');
+        }
+        hideAuthOverlay();
     }
-
-    const username = localStorage.getItem('sideraUsername');
-    if (token) {
-        authAccessToken = token;
-        _studentUser = { email: username ? username + '@sidera.local' : '' };
-        showWelcome(username || 'Student');
-    } else if (isAdminSession) {
-        showWelcome('Admin');
-    } else if (isGuest) {
-        showWelcome('Guest');
-    }
-    hideAuthOverlay();
-
     if (token) {
         document.getElementById('studentLogoutBtn').style.display = 'flex';
     } else if (isGuest) {
@@ -3137,15 +3082,18 @@ function checkStudentAuth() {
 
 function studentLogout() {
     _studentUser = null;
-    authAccessToken = null;
-    // Clear ALL session keys (new + legacy)
-    ['sideraStudentToken','sideraStudentRefresh','sideraUsername','sideraGuest',
-     'sideraStudent','sideraAuthSession','isSideraAdmin',
-     'sidera_session','sidera_role','sidera_username'].forEach(function(k){
-        localStorage.removeItem(k);
-    });
-    // Send back to landing page
-    (window.sideraNavigate || function(u,r){window.location.replace(u);})('/landing', true);
+    authAccessToken = localStorage.getItem('isSideraAdmin') === 'true' ? authAccessToken : null;
+    localStorage.removeItem('sideraStudentToken');
+    localStorage.removeItem('sideraStudentRefresh');
+    localStorage.removeItem('sideraUsername');
+    localStorage.removeItem('sideraGuest');
+    localStorage.removeItem('sideraStudent');
+    // Show auth overlay again without reload
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    document.getElementById('studentLogoutBtn').style.display = 'none';
+    document.getElementById('guestSignInBtn').style.display = 'none';
 }
 
 // Check auth on load
@@ -3196,11 +3144,8 @@ function setupApp() {
         if (loginOverlay) loginOverlay.style.display = 'none';
     }
 
-    // Default is dark; show ☀️ Mode button so user can switch to light
-    var savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme !== 'light') {
-        var tb = document.getElementById('themeBtn');
-        if (tb) tb.innerText = '☀️ Mode';
+    if (localStorage.getItem('theme') === 'dark') {
+        document.getElementById('themeBtn').innerText = '☀️ Mode';
         const ab = document.getElementById('authThemeBtn');
         if (ab) ab.innerText = '☀️';
     }
@@ -8534,10 +8479,8 @@ function applyLanguage() {
     var tooltip = document.getElementById('langTooltip');
     if (tooltip) tooltip.textContent = isAr ? 'English' : 'عربي';
     
-    // IMPORTANT: do NOT flip layout direction. Only translate text content.
-    // Keeping the layout LTR prevents the page from "jumping" left↔right on language switch.
-    document.body.dir = 'ltr';
-    document.body.style.textAlign = '';
+    document.body.dir = isAr ? 'rtl' : 'ltr';
+    document.body.style.textAlign = isAr ? 'right' : '';
     
     var dict = isAr ? _translations : _reverseTranslations;
     
@@ -11170,39 +11113,6 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
             rebuildGraph();
         }
     }, 1500);
-})();
-
-// ===== Community Promo Floating Card =====
-(function initCommunityPromo() {
-    try {
-        var promo = document.getElementById('communityPromo');
-        if (!promo) return;
-        var dismissed = localStorage.getItem('sidera_promo_dismissed');
-        if (dismissed && Date.now() - parseInt(dismissed, 10) < 7 * 24 * 60 * 60 * 1000) return;
-
-        setTimeout(function() {
-            promo.classList.remove('hidden');
-            requestAnimationFrame(function() { promo.classList.add('visible'); });
-        }, 6000);
-
-        document.getElementById('cpCloseBtn').addEventListener('click', function() {
-            promo.classList.remove('visible');
-            setTimeout(function() { promo.classList.add('hidden'); }, 350);
-            localStorage.setItem('sidera_promo_dismissed', String(Date.now()));
-        });
-
-        document.getElementById('cpJoinBtn').addEventListener('click', function() {
-            var target = document.getElementById('reviewsSection') ||
-                         document.getElementById('alumniSection') ||
-                         document.querySelector('header');
-            if (target && target.scrollIntoView) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            promo.classList.remove('visible');
-            setTimeout(function() { promo.classList.add('hidden'); }, 350);
-            localStorage.setItem('sidera_promo_dismissed', String(Date.now()));
-        });
-    } catch (e) { console.warn('promo init failed', e); }
 })();
 
 </script>
