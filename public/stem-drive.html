@@ -3040,36 +3040,10 @@ function showAuthForGuest() {
 }
 
 function showWelcome(name) {
+    // Welcome overlay disabled for smoother, instant UX.
+    // Auth feedback is handled on /landing — once we land here, just show the app.
     const wo = document.getElementById('welcomeOverlay');
-    const hour = new Date().getHours();
-    let greeting = '👋';
-    let text = 'Welcome back!';
-    if (hour < 12) { greeting = '🌅'; text = 'Good morning'; }
-    else if (hour < 18) { greeting = '☀️'; text = 'Good afternoon'; }
-    else { greeting = '🌙'; text = 'Good evening'; }
-    
-    if (name && name !== 'Guest') {
-        text += ', ' + name + '!';
-    } else if (name === 'Guest') {
-        text = 'Welcome to SIDERA! 🎓';
-    } else {
-        text += '!';
-    }
-    
-    document.getElementById('welcomeText').textContent = text;
-    document.querySelector('.welcome-emoji').textContent = greeting;
-    document.getElementById('welcomeSub').textContent = 'Loading your resources...';
-    wo.style.display = 'flex';
-    
-    setTimeout(() => {
-        wo.classList.add('fade-out');
-        document.body.classList.add('page-enter');
-        setTimeout(() => {
-            wo.style.display = 'none';
-            wo.classList.remove('fade-out');
-            document.body.classList.remove('page-enter');
-        }, 600);
-    }, 1400);
+    if (wo) wo.style.display = 'none';
 }
 
 function hideAuthOverlay() {
