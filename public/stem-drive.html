@@ -747,17 +747,21 @@
         .auth-container { position: relative; z-index: 1; background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 44px 36px; border-radius: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(6, 182, 212, 0.15); width: 100%; max-width: 420px; text-align: center; border: 1px solid rgba(255,255,255,0.08); animation: authFadeIn 0.5s cubic-bezier(.4,0,.2,1); }
         @keyframes authFadeIn { from { opacity:0; transform: translateY(20px) scale(0.96); } to { opacity:1; transform: none; } }
         .auth-container h2 { margin: 18px 0 8px; color: #ffffff; font-weight: 800; font-size: 2rem; letter-spacing: 1px; background: linear-gradient(135deg, #ffffff 0%, #06B6D4 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        /* Landing-style tagline */
-        .auth-tagline { margin: 18px 0 10px; font-weight: 800; font-size: 1.55rem; line-height: 1.25; color: #ffffff; letter-spacing: 0.3px; }
-        .auth-tagline span { display: block; margin-top: 4px; background: linear-gradient(135deg, #22D3EE 0%, #06B6D4 60%, #0ea5e9 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.9rem; }
-        .auth-logo-img { width: 96px; height: 96px; margin: 0 auto 4px; display: block; border-radius: 22px; background: #ffffff; padding: 12px; box-shadow: 0 18px 40px rgba(6, 182, 212, 0.25), 0 0 0 6px rgba(255,255,255,0.04); object-fit: contain; }
-        .auth-logo-img.auth-logo-sm { width: 64px; height: 64px; padding: 8px; border-radius: 16px; }
-        /* Role chooser buttons (landing-style) */
-        .auth-role-buttons { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
-        .role-btn { flex: 1; min-width: 180px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 22px; border: none; border-radius: 14px; font-size: 1rem; font-weight: 700; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease; letter-spacing: 0.2px; }
-        .role-btn .role-icon { font-size: 1.25rem; line-height: 1; }
-        .role-btn.role-student { background: linear-gradient(135deg, #0ea5e9 0%, #06B6D4 100%); box-shadow: 0 10px 28px rgba(6, 182, 212, 0.35); }
-        .role-btn.role-admin { background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%); box-shadow: 0 10px 28px rgba(16, 185, 129, 0.35); }
+        /* Landing-style tagline (Big, two-line) */
+        .auth-tagline { margin: 22px 0 14px; font-weight: 800; font-size: 2.6rem; line-height: 1.15; color: #ffffff; letter-spacing: -0.5px; }
+        .auth-tagline span { display: inline-block; margin-top: 2px; background: linear-gradient(135deg, #22D3EE 0%, #06B6D4 60%, #0ea5e9 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.2rem; line-height: 1.1; }
+        @media (max-width: 640px) {
+            .auth-tagline { font-size: 1.9rem; }
+            .auth-tagline span { font-size: 2.3rem; }
+        }
+        .auth-logo-img { width: 130px; height: 130px; margin: 0 auto 6px; display: block; border-radius: 28px; background: #ffffff; padding: 14px; box-shadow: 0 22px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06); object-fit: contain; }
+        .auth-logo-img.auth-logo-sm { width: 72px; height: 72px; padding: 10px; border-radius: 18px; }
+        /* Role chooser buttons (landing-style capsules) */
+        .auth-role-buttons { display: flex; gap: 16px; margin: 32px auto 24px; flex-wrap: wrap; justify-content: center; max-width: 560px; }
+        .role-btn { flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 18px 28px; border: none; border-radius: 999px; font-size: 1.05rem; font-weight: 700; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease; letter-spacing: 0.2px; }
+        .role-btn .role-icon { font-size: 1.3rem; line-height: 1; }
+        .role-btn.role-student { background: linear-gradient(135deg, #2563eb 0%, #06B6D4 100%); box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4); }
+        .role-btn.role-admin { background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4); }
         .role-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
         .role-btn:active { transform: translateY(0); }
         .auth-back-btn { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; width: 38px; height: 38px; cursor: pointer; font-size: 1.1rem; color: #f1f5f9; transition: background 0.2s, border-color 0.2s; z-index: 2; display: inline-flex; align-items: center; justify-content: center; }
@@ -1090,19 +1094,19 @@
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
     <!-- Step 1: Role chooser (landing-style) -->
-    <div class="auth-container auth-chooser" id="authChooser" style="position:relative;max-width:520px;">
+    <div class="auth-container auth-chooser" id="authChooser" style="position:relative;max-width:760px;background:transparent;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:30px 20px;">
         <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <img src="/sidera-logo.png" alt="SIDERA" class="auth-logo-img" />
-        <h2 class="auth-tagline">Learn Without Limits with <span>Sidera</span></h2>
-        <p class="auth-sub">An Egyptian educational platform combining top teachers with cutting-edge AI. Courses for all systems with advanced security and continuous tracking.</p>
+        <h2 class="auth-tagline">Learn Without Limits with<br><span>Sidera</span></h2>
+        <p class="auth-sub" style="max-width:560px;margin-left:auto;margin-right:auto;font-size:1rem;line-height:1.6;">An Egyptian educational platform combining top teachers with cutting-edge AI. Courses for all systems with advanced security and continuous tracking.</p>
         <div class="auth-role-buttons">
             <button class="role-btn role-student" onclick="chooseRole('student')">
                 <span class="role-icon">🎓</span>
                 <span class="role-label">I'm a Student</span>
             </button>
             <button class="role-btn role-admin" onclick="chooseRole('admin')">
-                <span class="role-icon">🛡️</span>
-                <span class="role-label">I'm an Admin</span>
+                <span class="role-icon">📖</span>
+                <span class="role-label">I'm a Teacher</span>
             </button>
         </div>
         <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
