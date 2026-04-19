@@ -10,13 +10,15 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        :root { 
-            --dark: #161E2F; --accent: #B51A2B; --accent-2: #FFA586; --bg: #F5F1EE; --card-bg: #ffffff;
-            --text: #4a5066; --header-bg: #ffffff; --border: #E5DED7; --input-bg: #FAF6F2;
-        }
-        [data-theme="dark"] {
+        /* DEFAULT THEME = Navy/Peach (matches /landing) */
+        :root {
             --dark: #FFA586; --accent: #FFA586; --accent-2: #B51A2B; --bg: #161E2F; --card-bg: #242F49;
             --text: #c8cfdb; --header-bg: #1B2438; --border: #384358; --input-bg: #1F2840;
+        }
+        /* Alternate light theme (kept for users who toggle) */
+        [data-theme="light"] {
+            --dark: #161E2F; --accent: #B51A2B; --accent-2: #FFA586; --bg: #F5F1EE; --card-bg: #ffffff;
+            --text: #4a5066; --header-bg: #ffffff; --border: #E5DED7; --input-bg: #FAF6F2;
         }
 
         html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -2750,7 +2752,16 @@ function closePreview() {
     cleanupPreviewUrl();
 }
 
-if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+// Default = dark (Navy/Peach matches /landing). Only switch to light if user explicitly chose it.
+(function initTheme(){
+    var savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (!savedTheme) localStorage.setItem('theme', 'dark');
+    }
+})();
 
 // ===== User Preferences Sync =====
 let _prefsSaveTimer = null;
@@ -2772,7 +2783,7 @@ async function loadUserPrefs() {
         if (data.length === 0) return;
         const prefs = data[0];
         // Apply saved theme
-        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'light')) {
+        if (prefs.theme && prefs.theme !== (localStorage.getItem('theme') || 'dark')) {
             localStorage.setItem('theme', prefs.theme);
             document.documentElement.setAttribute('data-theme', prefs.theme);
         }
@@ -2797,7 +2808,7 @@ function saveUserPrefs() {
 async function _saveUserPrefsNow() {
     const email = getUserEmail();
     if (!email) return;
-    const theme = localStorage.getItem('theme') || 'light';
+    const theme = localStorage.getItem('theme') || 'dark';
     const payload = { user_email: email, theme, selected_grade: currentGrade, selected_subject: currentSub, selected_semester: currentSemester, updated_at: new Date().toISOString() };
     try {
         // Upsert
@@ -3163,8 +3174,11 @@ function setupApp() {
         if (loginOverlay) loginOverlay.style.display = 'none';
     }
 
-    if (localStorage.getItem('theme') === 'dark') {
-        document.getElementById('themeBtn').innerText = '☀️ Mode';
+    // Default is dark; show ☀️ Mode button so user can switch to light
+    var savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme !== 'light') {
+        var tb = document.getElementById('themeBtn');
+        if (tb) tb.innerText = '☀️ Mode';
         const ab = document.getElementById('authThemeBtn');
         if (ab) ab.innerText = '☀️';
     }
