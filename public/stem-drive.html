@@ -3023,11 +3023,9 @@ function enterAsGuest() {
 }
 
 function showAuthForGuest() {
+    // Auth is handled by /landing page now
     localStorage.removeItem('sideraGuest');
-    const overlay = document.getElementById('authOverlay');
-    overlay.style.display = 'flex';
-    overlay.classList.remove('hidden');
-    document.getElementById('guestSignInBtn').style.display = 'none';
+    window.location.href = '/landing';
 }
 
 function showWelcome(name) {
@@ -3100,18 +3098,15 @@ function checkStudentAuth() {
 
 function studentLogout() {
     _studentUser = null;
-    authAccessToken = localStorage.getItem('isSideraAdmin') === 'true' ? authAccessToken : null;
-    localStorage.removeItem('sideraStudentToken');
-    localStorage.removeItem('sideraStudentRefresh');
-    localStorage.removeItem('sideraUsername');
-    localStorage.removeItem('sideraGuest');
-    localStorage.removeItem('sideraStudent');
-    // Show auth overlay again without reload
-    const overlay = document.getElementById('authOverlay');
-    overlay.style.display = 'flex';
-    overlay.classList.remove('hidden');
-    document.getElementById('studentLogoutBtn').style.display = 'none';
-    document.getElementById('guestSignInBtn').style.display = 'none';
+    authAccessToken = null;
+    // Clear ALL session keys (new + legacy)
+    ['sideraStudentToken','sideraStudentRefresh','sideraUsername','sideraGuest',
+     'sideraStudent','sideraAuthSession','isSideraAdmin',
+     'sidera_session','sidera_role','sidera_username'].forEach(function(k){
+        localStorage.removeItem(k);
+    });
+    // Send back to landing page
+    window.location.replace('/landing');
 }
 
 // Check auth on load
