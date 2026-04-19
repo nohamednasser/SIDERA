@@ -557,6 +557,38 @@
 </style>
 </head>
 <body>
+<!-- Page Transition Loader (shared across landing.html, stem-drive.html, React app) -->
+<style>
+  #sideraPageLoader{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(22,30,47,0.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:Inter,'Segoe UI',sans-serif}
+  #sideraPageLoader.show{display:flex;opacity:1;pointer-events:auto}
+  #sideraPageLoader .sidera-spinner{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,165,134,0.18);border-top-color:#FFA586;animation:sideraSpin .7s linear infinite}
+  #sideraPageLoader .sidera-loader-text{margin-top:18px;color:#FFA586;font-size:.85rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;opacity:.85}
+  #sideraPageLoader .sidera-loader-box{display:flex;flex-direction:column;align-items:center}
+  @keyframes sideraSpin{to{transform:rotate(360deg)}}
+</style>
+<div id="sideraPageLoader" aria-hidden="true">
+  <div class="sidera-loader-box">
+    <div class="sidera-spinner"></div>
+    <div class="sidera-loader-text">SIDERA</div>
+  </div>
+</div>
+<script>
+  (function(){
+    window.sideraNavigate = function(url, replace){
+      try {
+        var el = document.getElementById('sideraPageLoader');
+        if (el) { el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
+      } catch(e){}
+      setTimeout(function(){
+        if (replace) window.location.replace(url); else window.location.href = url;
+      }, 60);
+    };
+    window.addEventListener('pageshow', function(){
+      var el = document.getElementById('sideraPageLoader');
+      if (el) { el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
+    });
+  })();
+</script>
 
 <button class="lang-btn" onclick="toggleLang()">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
