@@ -11197,6 +11197,39 @@ var _origOnAuth = typeof onAuthSuccess === 'function' ? onAuthSuccess : null;
     }, 1500);
 })();
 
+// ===== Community Promo Floating Card =====
+(function initCommunityPromo() {
+    try {
+        var promo = document.getElementById('communityPromo');
+        if (!promo) return;
+        var dismissed = localStorage.getItem('sidera_promo_dismissed');
+        if (dismissed && Date.now() - parseInt(dismissed, 10) < 7 * 24 * 60 * 60 * 1000) return;
+
+        setTimeout(function() {
+            promo.classList.remove('hidden');
+            requestAnimationFrame(function() { promo.classList.add('visible'); });
+        }, 6000);
+
+        document.getElementById('cpCloseBtn').addEventListener('click', function() {
+            promo.classList.remove('visible');
+            setTimeout(function() { promo.classList.add('hidden'); }, 350);
+            localStorage.setItem('sidera_promo_dismissed', String(Date.now()));
+        });
+
+        document.getElementById('cpJoinBtn').addEventListener('click', function() {
+            var target = document.getElementById('reviewsSection') ||
+                         document.getElementById('alumniSection') ||
+                         document.querySelector('header');
+            if (target && target.scrollIntoView) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            promo.classList.remove('visible');
+            setTimeout(function() { promo.classList.add('hidden'); }, 350);
+            localStorage.setItem('sidera_promo_dismissed', String(Date.now()));
+        });
+    } catch (e) { console.warn('promo init failed', e); }
+})();
+
 </script>
 
 <!-- Cloud IDE -->
