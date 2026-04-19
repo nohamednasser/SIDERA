@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIDERA — Learn Without Limits</title>
-<meta name="description" content="An Egyptian self-study STEM community combining top resources with cutting-edge AI. Built for ambitious students and dedicated teachers.">
+<title>SIDERA — Self Study Community</title>
+<meta name="description" content="Sidera: Your ultimate hub for all STEM materials in one place. Empowering students with a unified, seamless, and smarter learning experience.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -354,7 +354,7 @@
     color: #ff8a99;
     border: 1px solid rgba(181,26,43,0.35);
   }
-  .auth-role-badge.teacher {
+  .auth-role-badge.admin {
     background: rgba(255,165,134,0.15);
     color: var(--peach);
     border: 1px solid rgba(255,165,134,0.32);
@@ -483,10 +483,10 @@
   <h1 class="hero-title">
     Learn Without Limits with
     <span class="brand">SIDERA</span>
+    <span style="display:block;font-size:0.42em;font-weight:600;letter-spacing:0.18em;color:var(--text-soft);margin-top:14px;text-transform:uppercase;" id="heroTagline">Self Study Community</span>
   </h1>
   <p class="hero-sub" id="heroSub">
-    An Egyptian STEM self-study community combining top resources with cutting-edge AI.
-    Materials, exams, capstone tools, and continuous tracking — all in one place.
+    Sidera: Your ultimate hub for all STEM materials in one place. Empowering students with a unified, seamless, and smarter learning experience.
   </p>
 
   <div class="cta-row">
@@ -494,9 +494,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5a6 3 0 0 0 12 0v-5"/></svg>
       <span id="btnStudent">I'm a Student</span>
     </button>
-    <button class="cta cta-secondary" onclick="enterApp('teacher')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      <span id="btnTeacher">I'm a Teacher</span>
+    <button class="cta cta-secondary" onclick="enterApp('admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+      <span id="btnAdmin">I'm an Admin</span>
     </button>
   </div>
 </section>
@@ -580,9 +580,9 @@
     const t = _ar ? TXT.ar : TXT.en;
     const isStudent = _currentRole === 'student';
     const badge = document.getElementById('roleBadge');
-    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'teacher');
-    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleTeacher;
-    badge.firstChild.textContent = isStudent ? '🎓 ' : '👨‍🏫 ';
+    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'admin');
+    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleAdmin;
+    badge.firstChild.textContent = isStudent ? '🎓 ' : '🛡️ ';
     updateAuthLabels();
     document.getElementById('authBackdrop').classList.add('visible');
     setTimeout(()=>document.getElementById('authUser').focus(), 200);
@@ -610,6 +610,10 @@
     document.getElementById('lblUser').textContent = t.username;
     document.getElementById('lblPass').textContent = t.password;
     document.getElementById('guestLink').textContent = t.guest;
+    // Admin portal: hide signup toggle and guest mode
+    var isAdmin = _currentRole === 'admin';
+    document.getElementById('authSwitch').style.display = isAdmin ? 'none' : 'block';
+    document.getElementById('guestLink').style.display = isAdmin ? 'none' : 'block';
   }
 
   function showAuthError(msg) {
@@ -627,14 +631,14 @@
     if (!username || !password) { showAuthError(t.errEmpty); return; }
     if (password.length < 6)   { showAuthError(t.errShort); return; }
 
-    // Block admin pattern in signup
-    if (_isSignup && /^admin\d*$/i.test(username)) {
-      showAuthError(t.errAdmin);
+    // Admins cannot sign up — must be pre-provisioned
+    if (_currentRole === 'admin' && _isSignup) {
+      showAuthError(t.errAdminSignup);
       return;
     }
 
     // Build email per role - matches the main app conventions
-    const domain = _currentRole === 'teacher' ? 'sidera.app' : 'sidera.local';
+    const domain = _currentRole === 'admin' ? 'sidera.app' : 'sidera.local';
     const email = username.includes('@') ? username : (username + '@' + domain);
 
     btn.disabled = true;
@@ -697,14 +701,15 @@
   let _ar = false;
   const TXT = {
     en: {
-      sub: "An Egyptian STEM self-study community combining top resources with cutting-edge AI. Materials, exams, capstone tools, and continuous tracking — all in one place.",
-      btnS: "I'm a Student", btnT: "I'm a Teacher",
+      sub: "Sidera: Your ultimate hub for all STEM materials in one place. Empowering students with a unified, seamless, and smarter learning experience.",
+      tagline: "Self Study Community",
+      btnS: "I'm a Student", btnT: "I'm an Admin",
       why: "Why SIDERA?",
       f1t: "Advanced Security", f1d: "Exam integrity with anti-cheat shield, blur detection, and certificate verification — built for trustworthy assessment.",
       f2t: "Smart AI Tools",   f2d: "AI question generator, capstone budget predictor, smart search, and a personal study assistant — powered by advanced models.",
       f3t: "Lightning Fast",   f3d: "Optimized for instant access — materials, virtual labs, and exams load in milliseconds across any device.",
       lang: "عربي",
-      roleStudent: "Student", roleTeacher: "Teacher",
+      roleStudent: "Student", roleAdmin: "Admin Portal",
       loginTitle: "Welcome back", loginSub: "Sign in to access your dashboard",
       signupTitle: "Create your account", signupSub: "Join the SIDERA community",
       loginBtn: "Login", signupBtn: "Sign Up", loading: "Please wait…",
@@ -715,19 +720,21 @@
       errInvalid: "Wrong username or password.",
       errExists: "This username is already registered. Try logging in.",
       errAdmin: "This username pattern is reserved.",
+      errAdminSignup: "Admins cannot sign up here. Login only.",
       errNetwork: "Network error. Check your connection.",
       errGeneric: "Something went wrong. Try again.",
       checkEmail: "Account created. You can login now."
     },
     ar: {
-      sub: "مجتمع مصري للدراسة الذاتية في الـ STEM يجمع بين أفضل المصادر وأحدث تقنيات الذكاء الاصطناعي. مواد، امتحانات، أدوات للكابستون ومتابعة مستمرة — كل ده في مكان واحد.",
-      btnS: "أنا طالب", btnT: "أنا مُدرّس",
+      sub: "سيدرا: مركزك الشامل لكل مواد الـ STEM في مكان واحد. بنمكّن الطلاب بتجربة تعليمية موحّدة، سلسة، وأذكى.",
+      tagline: "مجتمع الدراسة الذاتية",
+      btnS: "أنا طالب", btnT: "أنا أدمن",
       why: "ليه SIDERA؟",
       f1t: "أمان متقدم", f1d: "نزاهة امتحانات بدرع مضاد للغش، كاشف تشتيت، وتحقق من الشهادات — مبني للتقييم الموثوق.",
       f2t: "أدوات ذكاء اصطناعي", f2d: "مولّد أسئلة، توقّع ميزانية الكابستون، بحث ذكي، ومساعد دراسة شخصي — بنماذج متقدمة.",
       f3t: "سرعة فائقة", f3d: "مُحسّن للوصول الفوري — المواد والمعامل والامتحانات بتفتح في أجزاء من الثانية.",
       lang: "EN",
-      roleStudent: "طالب", roleTeacher: "مُدرّس",
+      roleStudent: "طالب", roleAdmin: "بوابة الأدمن",
       loginTitle: "أهلاً بعودتك", loginSub: "سجّل دخولك للوصول لحسابك",
       signupTitle: "أنشئ حسابك", signupSub: "انضم لمجتمع SIDERA",
       loginBtn: "دخول", signupBtn: "إنشاء حساب", loading: "جاري المعالجة…",
@@ -738,6 +745,7 @@
       errInvalid: "اسم المستخدم أو كلمة المرور غلط.",
       errExists: "الاسم ده مسجل قبل كده. جرب تسجل دخول.",
       errAdmin: "الاسم ده محجوز.",
+      errAdminSignup: "الأدمن مش بيعمل تسجيل من هنا. دخول فقط.",
       errNetwork: "خطأ في الاتصال. جرب تاني.",
       errGeneric: "حصلت مشكلة. حاول تاني.",
       checkEmail: "تم إنشاء الحساب. تقدر تسجل دخول دلوقتي."
@@ -748,8 +756,9 @@
     const t = _ar ? TXT.ar : TXT.en;
     document.documentElement.dir = _ar ? 'rtl' : 'ltr';
     document.getElementById('heroSub').textContent = t.sub;
+    document.getElementById('heroTagline').textContent = t.tagline;
     document.getElementById('btnStudent').textContent = t.btnS;
-    document.getElementById('btnTeacher').textContent = t.btnT;
+    document.getElementById('btnAdmin').textContent = t.btnT;
     document.getElementById('whyTitle').textContent = t.why;
     document.getElementById('f1Title').textContent = t.f1t;
     document.getElementById('f1Desc').textContent = t.f1d;
@@ -762,7 +771,7 @@
     if (document.getElementById('authBackdrop').classList.contains('visible')) {
       updateAuthLabels();
       document.getElementById('roleBadgeLabel').textContent =
-        _currentRole === 'student' ? t.roleStudent : t.roleTeacher;
+        _currentRole === 'student' ? t.roleStudent : t.roleAdmin;
     }
   }
 
