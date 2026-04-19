@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIDERA — Learn Without Limits</title>
-<meta name="description" content="An Egyptian self-study STEM community combining top resources with cutting-edge AI. Built for ambitious students and dedicated teachers.">
+<title>SIDERA — Self Study Community</title>
+<meta name="description" content="Sidera: Your ultimate hub for all STEM materials in one place. Empowering students with a unified, seamless, and smarter learning experience.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -580,9 +580,9 @@
     const t = _ar ? TXT.ar : TXT.en;
     const isStudent = _currentRole === 'student';
     const badge = document.getElementById('roleBadge');
-    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'teacher');
-    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleTeacher;
-    badge.firstChild.textContent = isStudent ? '🎓 ' : '👨‍🏫 ';
+    badge.className = 'auth-role-badge ' + (isStudent ? 'student' : 'admin');
+    document.getElementById('roleBadgeLabel').textContent = isStudent ? t.roleStudent : t.roleAdmin;
+    badge.firstChild.textContent = isStudent ? '🎓 ' : '🛡️ ';
     updateAuthLabels();
     document.getElementById('authBackdrop').classList.add('visible');
     setTimeout(()=>document.getElementById('authUser').focus(), 200);
@@ -634,7 +634,7 @@
     }
 
     // Build email per role - matches the main app conventions
-    const domain = _currentRole === 'teacher' ? 'sidera.app' : 'sidera.local';
+    const domain = _currentRole === 'admin' ? 'sidera.app' : 'sidera.local';
     const email = username.includes('@') ? username : (username + '@' + domain);
 
     btn.disabled = true;
