@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIDERA — Learn Without Limits</title>
+<meta name="description" content="An Egyptian self-study STEM community combining top resources with cutting-edge AI. Built for ambitious students and dedicated teachers.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --navy-1: #0F1626;
+    --navy-2: #161E2F;
+    --navy-3: #1B2438;
+    --steel:  #384358;
+    --peach:  #FFA586;
+    --red:    #B51A2B;
+    --wine:   #341A2B;
+    --text:   #c8cfdb;
+    --text-soft: #8b94a7;
+  }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    background: var(--navy-2);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* Subtle dotted grid background */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: radial-gradient(rgba(255,165,134,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events:none;
+    z-index:0;
+  }
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(181,26,43,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 70%, rgba(255,165,134,0.10) 0%, transparent 50%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Floating decorative shapes */
+  .deco {
+    position:absolute;
+    border-radius: 28px;
+    z-index: 1;
+    pointer-events: none;
+    animation: float 9s ease-in-out infinite;
+  }
+  .deco.sq {
+    width: 110px; height: 110px;
+    border: 1.5px solid rgba(255,165,134,0.18);
+    background: rgba(255,165,134,0.04);
+    top: 28%; left: 8%;
+    transform: rotate(15deg);
+  }
+  .deco.dot {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--wine), var(--navy-3));
+    border-radius: 50%;
+    top: 55%; right: 9%;
+    box-shadow: 0 8px 32px rgba(181,26,43,0.25);
+    animation-delay: -3s;
+  }
+  .deco.ring {
+    width: 80px; height: 80px;
+    border: 1.5px solid rgba(255,165,134,0.22);
+    border-radius: 50%;
+    top: 12%; right: 14%;
+    animation-delay: -6s;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50%     { transform: translateY(-18px) rotate(8deg); }
+  }
+  .deco.sq { animation-name: floatRot; }
+  @keyframes floatRot {
+    0%,100% { transform: translateY(0) rotate(15deg); }
+    50%     { transform: translateY(-22px) rotate(22deg); }
+  }
+
+  /* Lang button */
+  .lang-btn {
+    position: fixed;
+    top: 20px; right: 24px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background .2s, border-color .2s;
+  }
+  .lang-btn:hover { background: rgba(255,165,134,0.12); border-color: rgba(255,165,134,0.3); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 24px 80px;
+    text-align: center;
+  }
+  .logo-card {
+    width: 116px; height: 116px;
+    border-radius: 26px;
+    background: linear-gradient(145deg, #ffffff, #f3eee9);
+    box-shadow:
+      0 18px 50px rgba(181,26,43,0.35),
+      0 4px 12px rgba(0,0,0,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+    position: relative;
+    transform: translateZ(0);
+  }
+  .logo-card::before {
+    content:'';
+    position:absolute; inset:-3px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255,165,134,0.4), transparent 60%);
+    z-index:-1;
+    filter: blur(8px);
+  }
+  .logo-card svg { width: 64px; height: 64px; }
+
+  h1.hero-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    max-width: 900px;
+    margin: 0 auto 8px;
+  }
+  h1.hero-title .brand {
+    display: block;
+    background: linear-gradient(135deg, #FFA586 0%, #B51A2B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    margin-top: 6px;
+  }
+  .hero-sub {
+    max-width: 620px;
+    margin: 28px auto 44px;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    line-height: 1.7;
+    color: var(--text-soft);
+    font-weight: 400;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s;
+    font-family: inherit;
+  }
+  .cta-primary {
+    background: linear-gradient(135deg, #B51A2B 0%, #d63347 100%);
+    color: #fff;
+    box-shadow: 0 10px 28px rgba(181,26,43,0.45), inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(181,26,43,0.55); }
+  .cta-secondary {
+    background: linear-gradient(135deg, #FFA586 0%, #ffb89c 100%);
+    color: #341A2B;
+    box-shadow: 0 10px 28px rgba(255,165,134,0.35), inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .cta-secondary:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(255,165,134,0.45); }
+  .cta svg { width: 20px; height: 20px; }
+
+  /* WHY SECTION */
+  .why {
+    position: relative;
+    z-index: 2;
+    padding: 80px 24px 120px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .why-title {
+    text-align: center;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    margin-bottom: 64px;
+    background: linear-gradient(135deg, #FFA586 0%, #B51A2B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .feature {
+    background: linear-gradient(160deg, rgba(36,47,73,0.6), rgba(22,30,47,0.4));
+    border: 1px solid rgba(255,165,134,0.10);
+    border-radius: 22px;
+    padding: 36px 28px;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .feature:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,165,134,0.32);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    background: rgba(255,165,134,0.10);
+    border: 1px solid rgba(255,165,134,0.18);
+  }
+  .feature-icon.red    { background: rgba(181,26,43,0.15); border-color: rgba(181,26,43,0.3); }
+  .feature-icon.peach  { background: rgba(255,165,134,0.15); border-color: rgba(255,165,134,0.35); }
+  .feature-icon.steel  { background: rgba(56,67,88,0.45); border-color: rgba(255,255,255,0.12); }
+  .feature-icon svg { width: 28px; height: 28px; }
+  .feature h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .feature p {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text-soft);
+  }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 30px 20px 50px;
+    color: var(--text-soft);
+    font-size: 13px;
+  }
+  .footer-note span { color: var(--peach); font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .deco.sq, .deco.ring { display:none; }
+    .hero { padding: 100px 20px 60px; }
+    .cta { padding: 14px 22px; font-size: 15px; }
+    .lang-btn { top: 14px; right: 14px; padding: 8px 14px; font-size: 13px; }
+  }
+
+  /* RTL support */
+  [dir="rtl"] body { font-family: 'Inter', 'Tajawal', 'Segoe UI', sans-serif; }
+  [dir="rtl"] .lang-btn { right: auto; left: 24px; }
+</style>
+</head>
+<body>
+
+<button class="lang-btn" onclick="toggleLang()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+  <span id="langLabel">عربي</span>
+</button>
+
+<section class="hero">
+  <div class="deco sq"></div>
+  <div class="deco ring"></div>
+  <div class="deco dot"></div>
+
+  <div class="logo-card" aria-hidden="true">
+    <svg viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="bookGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FFA586"/>
+          <stop offset="100%" stop-color="#B51A2B"/>
+        </linearGradient>
+        <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff7f0"/>
+          <stop offset="100%" stop-color="#ffd9c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M10 14 L32 10 L54 14 L54 52 L32 48 L10 52 Z" fill="url(#bookGrad)"/>
+      <path d="M14 18 L32 15 L32 46 L14 49 Z" fill="url(#pageGrad)" opacity="0.95"/>
+      <path d="M50 18 L32 15 L32 46 L50 49 Z" fill="url(#pageGrad)" opacity="0.85"/>
+      <path d="M32 12 L32 48" stroke="#341A2B" stroke-width="1.2" opacity="0.4"/>
+    </svg>
+  </div>
+
+  <h1 class="hero-title">
+    Learn Without Limits with
+    <span class="brand">SIDERA</span>
+  </h1>
+  <p class="hero-sub" id="heroSub">
+    An Egyptian STEM self-study community combining top resources with cutting-edge AI.
+    Materials, exams, capstone tools, and continuous tracking — all in one place.
+  </p>
+
+  <div class="cta-row">
+    <button class="cta cta-primary" onclick="enterApp('student')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5a6 3 0 0 0 12 0v-5"/></svg>
+      <span id="btnStudent">I'm a Student</span>
+    </button>
+    <button class="cta cta-secondary" onclick="enterApp('teacher')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span id="btnTeacher">I'm a Teacher</span>
+    </button>
+  </div>
+</section>
+
+<section class="why">
+  <h2 class="why-title" id="whyTitle">Why SIDERA?</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff8a99" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3 id="f1Title">Advanced Security</h3>
+      <p id="f1Desc">Exam integrity with anti-cheat shield, blur detection, and certificate verification — built for trustworthy assessment.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon peach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FFA586" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/></svg>
+      </div>
+      <h3 id="f2Title">Smart AI Tools</h3>
+      <p id="f2Desc">AI question generator, capstone budget predictor, smart search, and a personal study assistant — powered by advanced models.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon steel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FFA586" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3 id="f3Title">Lightning Fast</h3>
+      <p id="f3Desc">Optimized for instant access — materials, virtual labs, and exams load in milliseconds across any device.</p>
+    </div>
+  </div>
+</section>
+
+<div class="footer-note">
+  © 2026 <span>SIDERA</span> · Built for STEM Egypt students.
+</div>
+
+<script>
+  function enterApp(role) {
+    // Save the role and redirect to the main app
+    try { localStorage.setItem('sidera_role', role); } catch(e){}
+    window.location.href = '/?role=' + role + '&login=1';
+  }
+
+  let _ar = false;
+  const TXT = {
+    en: {
+      sub: "An Egyptian STEM self-study community combining top resources with cutting-edge AI. Materials, exams, capstone tools, and continuous tracking — all in one place.",
+      btnS: "I'm a Student", btnT: "I'm a Teacher",
+      why: "Why SIDERA?",
+      f1t: "Advanced Security", f1d: "Exam integrity with anti-cheat shield, blur detection, and certificate verification — built for trustworthy assessment.",
+      f2t: "Smart AI Tools",   f2d: "AI question generator, capstone budget predictor, smart search, and a personal study assistant — powered by advanced models.",
+      f3t: "Lightning Fast",   f3d: "Optimized for instant access — materials, virtual labs, and exams load in milliseconds across any device.",
+      lang: "عربي"
+    },
+    ar: {
+      sub: "مجتمع مصري للدراسة الذاتية في الـ STEM يجمع بين أفضل المصادر وأحدث تقنيات الذكاء الاصطناعي. مواد، امتحانات، أدوات للكابستون ومتابعة مستمرة — كل ده في مكان واحد.",
+      btnS: "أنا طالب", btnT: "أنا مُدرّس",
+      why: "ليه SIDERA؟",
+      f1t: "أمان متقدم", f1d: "نزاهة امتحانات بدرع مضاد للغش، كاشف تشتيت، وتحقق من الشهادات — مبني للتقييم الموثوق.",
+      f2t: "أدوات ذكاء اصطناعي", f2d: "مولّد أسئلة، توقّع ميزانية الكابستون، بحث ذكي، ومساعد دراسة شخصي — بنماذج متقدمة.",
+      f3t: "سرعة فائقة", f3d: "مُحسّن للوصول الفوري — المواد والمعامل والامتحانات بتفتح في أجزاء من الثانية.",
+      lang: "EN"
+    }
+  };
+  function toggleLang() {
+    _ar = !_ar;
+    const t = _ar ? TXT.ar : TXT.en;
+    document.documentElement.dir = _ar ? 'rtl' : 'ltr';
+    document.getElementById('heroSub').textContent = t.sub;
+    document.getElementById('btnStudent').textContent = t.btnS;
+    document.getElementById('btnTeacher').textContent = t.btnT;
+    document.getElementById('whyTitle').textContent = t.why;
+    document.getElementById('f1Title').textContent = t.f1t;
+    document.getElementById('f1Desc').textContent = t.f1d;
+    document.getElementById('f2Title').textContent = t.f2t;
+    document.getElementById('f2Desc').textContent = t.f2d;
+    document.getElementById('f3Title').textContent = t.f3t;
+    document.getElementById('f3Desc').textContent = t.f3d;
+    document.getElementById('langLabel').textContent = t.lang;
+  }
+</script>
+</body>
+</html>
