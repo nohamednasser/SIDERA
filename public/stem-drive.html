@@ -751,6 +751,18 @@
         .auth-tagline { margin: 18px 0 10px; font-weight: 800; font-size: 1.55rem; line-height: 1.25; color: #ffffff; letter-spacing: 0.3px; }
         .auth-tagline span { display: block; margin-top: 4px; background: linear-gradient(135deg, #22D3EE 0%, #06B6D4 60%, #0ea5e9 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.9rem; }
         .auth-logo-img { width: 96px; height: 96px; margin: 0 auto 4px; display: block; border-radius: 22px; background: #ffffff; padding: 12px; box-shadow: 0 18px 40px rgba(6, 182, 212, 0.25), 0 0 0 6px rgba(255,255,255,0.04); object-fit: contain; }
+        .auth-logo-img.auth-logo-sm { width: 64px; height: 64px; padding: 8px; border-radius: 16px; }
+        /* Role chooser buttons (landing-style) */
+        .auth-role-buttons { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+        .role-btn { flex: 1; min-width: 180px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 22px; border: none; border-radius: 14px; font-size: 1rem; font-weight: 700; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease; letter-spacing: 0.2px; }
+        .role-btn .role-icon { font-size: 1.25rem; line-height: 1; }
+        .role-btn.role-student { background: linear-gradient(135deg, #0ea5e9 0%, #06B6D4 100%); box-shadow: 0 10px 28px rgba(6, 182, 212, 0.35); }
+        .role-btn.role-admin { background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%); box-shadow: 0 10px 28px rgba(16, 185, 129, 0.35); }
+        .role-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+        .role-btn:active { transform: translateY(0); }
+        .auth-back-btn { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; width: 38px; height: 38px; cursor: pointer; font-size: 1.1rem; color: #f1f5f9; transition: background 0.2s, border-color 0.2s; z-index: 2; display: inline-flex; align-items: center; justify-content: center; }
+        .auth-back-btn:hover { background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.4); }
+        .auth-form-title { margin: 14px 0 6px; font-weight: 800; font-size: 1.5rem; color: #ffffff; letter-spacing: 0.3px; }
         .auth-container .auth-sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 28px; line-height: 1.5; }
         .auth-container .auth-input-group { margin-bottom: 16px; text-align: left; }
         .auth-container .auth-input-group label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 8px; color: #cbd5e1; letter-spacing: 0.3px; }
@@ -1077,11 +1089,32 @@
 
 <!-- Student Auth Overlay -->
 <div class="auth-overlay" id="authOverlay">
-    <div class="auth-container" style="position:relative;">
+    <!-- Step 1: Role chooser (landing-style) -->
+    <div class="auth-container auth-chooser" id="authChooser" style="position:relative;max-width:520px;">
         <button class="auth-theme-toggle" id="authThemeBtn" onclick="toggleTheme()">🌙</button>
         <img src="/sidera-logo.png" alt="SIDERA" class="auth-logo-img" />
         <h2 class="auth-tagline">Learn Without Limits with <span>Sidera</span></h2>
-        <p class="auth-sub" id="authSub">An Egyptian educational platform combining top teachers with cutting-edge AI.</p>
+        <p class="auth-sub">An Egyptian educational platform combining top teachers with cutting-edge AI. Courses for all systems with advanced security and continuous tracking.</p>
+        <div class="auth-role-buttons">
+            <button class="role-btn role-student" onclick="chooseRole('student')">
+                <span class="role-icon">🎓</span>
+                <span class="role-label">I'm a Student</span>
+            </button>
+            <button class="role-btn role-admin" onclick="chooseRole('admin')">
+                <span class="role-icon">🛡️</span>
+                <span class="role-label">I'm an Admin</span>
+            </button>
+        </div>
+        <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
+    </div>
+
+    <!-- Step 2: Login form (hidden until role chosen) -->
+    <div class="auth-container auth-form-card" id="authFormCard" style="position:relative;display:none;">
+        <button class="auth-back-btn" onclick="backToRoleChooser()" title="Back">←</button>
+        <button class="auth-theme-toggle" onclick="toggleTheme()">🌙</button>
+        <img src="/sidera-logo.png" alt="SIDERA" class="auth-logo-img auth-logo-sm" />
+        <h2 class="auth-form-title" id="authFormTitle">Student Login</h2>
+        <p class="auth-sub" id="authSub">Login to access your study hub.</p>
         <div class="auth-error" id="authError"></div>
         <div class="auth-success" id="authSuccess">✅ Account created! You can login now.</div>
         <div class="auth-input-group">
@@ -1094,7 +1127,6 @@
         </div>
         <button class="auth-btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="auth-switch" id="authToggle">Don't have an account? <span onclick="toggleAuthMode()">Sign Up</span></p>
-        <p class="auth-guest" onclick="enterAsGuest()">Continue as Guest →</p>
     </div>
 </div>
 
@@ -2858,6 +2890,42 @@ function applyFiltersToUI() {
 // ===== Student Auth System =====
 let _authIsLogin = true;
 let _studentUser = null;
+let _authRole = 'student'; // 'student' or 'admin'
+
+window.chooseRole = function(role) {
+    _authRole = role;
+    var chooser = document.getElementById('authChooser');
+    var formCard = document.getElementById('authFormCard');
+    if (chooser) chooser.style.display = 'none';
+    if (formCard) formCard.style.display = '';
+    var title = document.getElementById('authFormTitle');
+    var sub = document.getElementById('authSub');
+    var toggle = document.getElementById('authToggle');
+    var btn = document.getElementById('authBtn');
+    var userIn = document.getElementById('authUsername');
+    if (role === 'admin') {
+        if (title) title.textContent = '🛡️ Admin Login';
+        if (sub) sub.textContent = 'Sign in with your admin credentials.';
+        if (toggle) toggle.style.display = 'none';
+        if (btn) btn.textContent = 'Sign In';
+        if (userIn) userIn.placeholder = 'Admin username or email';
+    } else {
+        if (title) title.textContent = '🎓 Student Login';
+        if (sub) sub.textContent = 'Login to access your study hub.';
+        if (toggle) toggle.style.display = '';
+        if (btn) btn.textContent = 'Login';
+        if (userIn) userIn.placeholder = 'Enter your username';
+    }
+    setTimeout(function() { if (userIn) userIn.focus(); }, 50);
+};
+
+window.backToRoleChooser = function() {
+    var chooser = document.getElementById('authChooser');
+    var formCard = document.getElementById('authFormCard');
+    if (chooser) chooser.style.display = '';
+    if (formCard) formCard.style.display = 'none';
+    if (typeof clearAuthError === 'function') clearAuthError();
+};
 
 function toggleAuthMode() {
     _authIsLogin = !_authIsLogin;
@@ -3024,6 +3092,8 @@ function showAuthForGuest() {
     overlay.style.display = 'flex';
     overlay.classList.remove('hidden');
     document.getElementById('guestSignInBtn').style.display = 'none';
+    // Reset to role chooser when reopening
+    if (typeof backToRoleChooser === 'function') backToRoleChooser();
 }
 
 function showWelcome(name) {
