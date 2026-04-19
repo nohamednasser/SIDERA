@@ -4,12 +4,24 @@ const Index = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Redirect to /landing if no session and not coming back from auth
+    // Auth is fully owned by /landing. If no session of any kind exists, bounce there.
     try {
-      const session = JSON.parse(localStorage.getItem("sidera_session") || "null");
       const params = new URLSearchParams(window.location.search);
-      const isGuest = params.get("guest") === "1";
-      if (!session?.access_token && !isGuest) {
+      const isGuestParam = params.get("guest") === "1";
+
+      const newSession = JSON.parse(localStorage.getItem("sidera_session") || "null");
+      const legacyToken = localStorage.getItem("sideraStudentToken");
+      const legacyAdmin = localStorage.getItem("sideraAuthSession");
+      const legacyGuest = localStorage.getItem("sideraGuest") === "true";
+
+      const hasSession =
+        !!newSession?.access_token ||
+        !!legacyToken ||
+        !!legacyAdmin ||
+        legacyGuest ||
+        isGuestParam;
+
+      if (!hasSession) {
         window.location.replace("/landing");
         return;
       }
