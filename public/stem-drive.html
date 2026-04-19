@@ -3076,19 +3076,25 @@ function checkStudentAuth() {
     const token = localStorage.getItem('sideraStudentToken');
     const isGuest = localStorage.getItem('sideraGuest');
     const isAdminSession = localStorage.getItem('sideraAuthSession');
-    if (token || isGuest || isAdminSession) {
-        const username = localStorage.getItem('sideraUsername');
-        if (token) {
-            authAccessToken = token;
-            _studentUser = { email: username ? username + '@sidera.local' : '' };
-            showWelcome(username || 'Student');
-        } else if (isAdminSession) {
-            showWelcome('Admin');
-        } else if (isGuest) {
-            showWelcome('Guest');
-        }
-        hideAuthOverlay();
+
+    // No session of any kind → bounce to /landing (auth lives there now)
+    if (!token && !isGuest && !isAdminSession) {
+        window.location.replace('/landing');
+        return;
     }
+
+    const username = localStorage.getItem('sideraUsername');
+    if (token) {
+        authAccessToken = token;
+        _studentUser = { email: username ? username + '@sidera.local' : '' };
+        showWelcome(username || 'Student');
+    } else if (isAdminSession) {
+        showWelcome('Admin');
+    } else if (isGuest) {
+        showWelcome('Guest');
+    }
+    hideAuthOverlay();
+
     if (token) {
         document.getElementById('studentLogoutBtn').style.display = 'flex';
     } else if (isGuest) {
