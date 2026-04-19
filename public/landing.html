@@ -935,7 +935,7 @@
       }
 
       // Redirect to the main app
-      window.location.href = '/';
+      (window.sideraNavigate || function(u){window.location.href=u;})('/');
     } catch (err) {
       showAuthError(t.errNetwork);
       btn.disabled = false;
@@ -950,7 +950,7 @@
     localStorage.removeItem('sideraStudentToken');
     localStorage.removeItem('sideraAuthSession');
     localStorage.removeItem('isSideraAdmin');
-    window.location.href = '/?guest=1';
+    (window.sideraNavigate || function(u){window.location.href=u;})('/?guest=1');
   }
 
   let _ar = false;
@@ -1072,7 +1072,7 @@
       var s = JSON.parse(localStorage.getItem('sidera_session') || 'null');
       if (s && s.access_token) {
         // Already logged in — go straight to the app
-        if (window.location.pathname === '/landing') window.location.replace('/');
+        if (window.location.pathname === '/landing') (window.sideraNavigate || function(u,r){window.location.replace(u);})('/', true);
       }
     } catch(e){}
   })();

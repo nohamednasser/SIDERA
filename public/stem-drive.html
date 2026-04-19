@@ -3082,7 +3082,7 @@ function enterAsGuest() {
 function showAuthForGuest() {
     // Auth is handled by /landing page now
     localStorage.removeItem('sideraGuest');
-    window.location.href = '/landing';
+    (window.sideraNavigate || function(u){window.location.href=u;})('/landing');
 }
 
 function showWelcome(name) {
@@ -3112,7 +3112,7 @@ function checkStudentAuth() {
 
     // No session of any kind → bounce to /landing (auth lives there now)
     if (!token && !isGuest && !isAdminSession) {
-        window.location.replace('/landing');
+        (window.sideraNavigate || function(u,r){window.location.replace(u);})('/landing', true);
         return;
     }
 
@@ -3145,7 +3145,7 @@ function studentLogout() {
         localStorage.removeItem(k);
     });
     // Send back to landing page
-    window.location.replace('/landing');
+    (window.sideraNavigate || function(u,r){window.location.replace(u);})('/landing', true);
 }
 
 // Check auth on load
