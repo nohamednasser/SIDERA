@@ -10,13 +10,15 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        :root { 
-            --dark: #161E2F; --accent: #B51A2B; --accent-2: #FFA586; --bg: #F5F1EE; --card-bg: #ffffff;
-            --text: #4a5066; --header-bg: #ffffff; --border: #E5DED7; --input-bg: #FAF6F2;
-        }
-        [data-theme="dark"] {
+        /* DEFAULT THEME = Navy/Peach (matches /landing) */
+        :root {
             --dark: #FFA586; --accent: #FFA586; --accent-2: #B51A2B; --bg: #161E2F; --card-bg: #242F49;
             --text: #c8cfdb; --header-bg: #1B2438; --border: #384358; --input-bg: #1F2840;
+        }
+        /* Alternate light theme (kept for users who toggle) */
+        [data-theme="light"] {
+            --dark: #161E2F; --accent: #B51A2B; --accent-2: #FFA586; --bg: #F5F1EE; --card-bg: #ffffff;
+            --text: #4a5066; --header-bg: #ffffff; --border: #E5DED7; --input-bg: #FAF6F2;
         }
 
         html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
